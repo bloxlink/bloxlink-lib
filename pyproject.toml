@@ -6,6 +6,8 @@ authors = ["Bloxlink <oss@blox.link>"]
 readme = "README.md"
 homepage = "https://blox.link/"
 repository = "https://github.com/bloxlink/bot-models"
+packages = [{include = "bot-models"}]
+
 
 [tool.poetry.dependencies]
 python = "^3.10"

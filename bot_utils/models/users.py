@@ -3,6 +3,22 @@ import hikari
 from attrs import field, define
 from .base import BaseModel
 
+
+@define(slots=True)
+class UserData:
+    """Representation of a User's data in Bloxlink
+
+    Attributes:
+        id (int): The Discord ID of the user.
+        robloxID (str): The roblox ID of the user's primary account.
+        robloxAccounts (dict): All of the user's linked accounts, and any guild specific verifications.
+    """
+
+    id: int
+    robloxID: str = None
+    robloxAccounts: dict = field(factory=lambda: {"accounts": [], "guilds": {}, "confirms": {}})
+
+
 @define(kw_only=True)
 class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
     """Representation of a user on Roblox."""
@@ -56,19 +72,3 @@ class MemberSerializable(BaseModel):
             avatar_hash=member.avatar_hash,
             nickname=member.nickname
         )
-
-    def to_dict(self) -> dict[str, str | int]:
-        """Convert the object into a dict of values."""
-
-        return {
-            "id": self.id,
-            "username": self.username,
-            "avatar_url": self.avatar_url,
-            "display_name": self.display_name,
-            "is_bot": self.is_bot,
-            "joined_at": self.joined_at.isoformat(),
-            "role_ids": self.role_ids,
-            "nickname": self.nickname,
-            "guild_id": self.guild_id,
-            "avatar_hash": self.avatar_hash,
-        }

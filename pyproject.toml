@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "bot-models"
+version = "0.1.0"
+description = "Shared models used for the Python codebase of Bloxlink."
+authors = ["Bloxlink <oss@blox.link>"]
+readme = "README.md"
+homepage = "https://blox.link/"
+repository = "https://github.com/bloxlink/bot-models"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+attrs = "^23.2.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

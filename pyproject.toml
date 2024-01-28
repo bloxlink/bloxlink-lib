@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bot-models"
-version = "0.1.4"
+version = "0.1.5"
 description = "Shared models used for the Python codebase of Bloxlink."
 authors = ["Bloxlink <oss@blox.link>"]
 readme = "README.md"
@@ -10,7 +10,7 @@ packages = [{include = "bot_models"}]
 
 
 [tool.poetry.dependencies]
-python = ">=3.8.0,<3.13"
+python = "<3.13, >=3.12"
 attrs = "^23.2.0"
 hikari = "^2.0.0.dev122"
 

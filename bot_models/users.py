@@ -1,9 +1,9 @@
 from typing import Self
 import hikari
-from attrs import field
+from attrs import field, define, fields
 from .base import BaseModel
 
-
+@define(kw_only=True)
 class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
     """Representation of a user on Roblox."""
 
@@ -27,7 +27,8 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
     _data: dict = field(factory=lambda: {})
 
 
-class MemberSerializable(hikari.Member, BaseModel):
+@define(kw_only=True)
+class MemberSerializable(BaseModel):
     id: int = field(converter=int)
     username: str = None
     avatar_url: str = None
@@ -40,16 +41,16 @@ class MemberSerializable(hikari.Member, BaseModel):
     nickname: str = None
 
     @staticmethod
-    def from_hikari(member: hikari.Member) -> Self:
+    def from_hikari(member: hikari.InteractionMember) -> Self:
         """Convert a Hikari member into a MemberSerializable object."""
 
         return MemberSerializable(
             id=member.id,
             username=member.username,
-            avatar_url=member.avatar_url,
+            avatar_url=str(member.avatar_url),
             display_name=member.display_name,
             is_bot=member.is_bot,
-            joined_at=member.joined_at.isoformat(),
+            joined_at=member.joined_at,
             role_ids=member.role_ids,
             guild_id=member.guild_id,
             avatar_hash=member.avatar_hash,
@@ -67,7 +68,7 @@ class MemberSerializable(hikari.Member, BaseModel):
             "is_bot": self.is_bot,
             "joined_at": self.joined_at.isoformat(),
             "role_ids": self.role_ids,
-            "nick": self.nick,
+            "nickname": self.nickname,
             "guild_id": self.guild_id,
             "avatar_hash": self.avatar_hash,
         }

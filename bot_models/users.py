@@ -35,9 +35,9 @@ class MemberSerializable(hikari.Member, BaseModel):
     is_bot: bool = None
     joined_at: str = None
     role_ids: list[int] = None
-    nick: str = None
     guild_id: int = None
     avatar_hash: str = None
+    nickname: str = None
 
     @staticmethod
     def from_hikari(member: hikari.Member) -> Self:
@@ -51,9 +51,9 @@ class MemberSerializable(hikari.Member, BaseModel):
             is_bot=member.is_bot,
             joined_at=member.joined_at.isoformat(),
             role_ids=member.role_ids,
-            nick=member.nick,
             guild_id=member.guild_id,
             avatar_hash=member.avatar_hash,
+            nickname=member.nickname
         )
 
     def to_dict(self) -> dict[str, str | int]:

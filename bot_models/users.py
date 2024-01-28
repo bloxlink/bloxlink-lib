@@ -1,6 +1,6 @@
 import hikari
-from attrs import define, field
-from base import BaseModel
+from attrs import field
+from .base import BaseModel
 
 
 class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes

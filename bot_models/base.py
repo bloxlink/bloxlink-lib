@@ -1,4 +1,4 @@
-from attrs import define, field, fields
+from attrs import define, fields
 
 
 @define(slots=True, kw_only=True)

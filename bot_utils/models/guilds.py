@@ -1,5 +1,5 @@
-from attrs import define, field
 from typing import Self
+from attrs import define, field
 import hikari
 from .base import BaseModel
 

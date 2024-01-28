@@ -5,7 +5,8 @@ from typing import Type
 from motor.motor_asyncio import AsyncIOMotorClient
 from redis.asyncio import Redis
 
-from . import UserData, GuildData, CONFIG, GuildSerializable, MemberSerializable
+from . import UserData, GuildData, GuildSerializable, MemberSerializable
+from .config import CONFIG
 
 mongo: AsyncIOMotorClient = None
 redis: Redis = None

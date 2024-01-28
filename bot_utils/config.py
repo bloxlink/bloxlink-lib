@@ -1,4 +1,5 @@
-from typing import TypedDict, Unpack, NotRequired
+from typing import TypedDict, NotRequired
+from dotenv import dotenv_values
 
 
 class Config(TypedDict):
@@ -14,10 +15,4 @@ class Config(TypedDict):
     REDIS_PASSWORD: NotRequired[str]
 
 
-CONFIG: Config = None
-
-
-def utils_config(config: Unpack[Config]):
-    global CONFIG
-
-    CONFIG = Config(**config)
+CONFIG: Config = Config(**dotenv_values())

@@ -1,18 +1,20 @@
 [tool.poetry]
-name = "bot-models"
+name = "bot-utils"
 version = "0.0.1"
-description = "Shared models used for the Python codebase of Bloxlink."
+description = "Shared utils used for the Python codebase of Bloxlink."
 authors = ["Bloxlink <oss@blox.link>"]
 readme = "README.md"
 homepage = "https://blox.link/"
 repository = "https://github.com/bloxlink/bot-models"
-packages = [{include = "bot_models"}]
+packages = [{include = "bot_utils"}]
 
 
 [tool.poetry.dependencies]
 python = "<3.13, >=3.12"
 attrs = "^23.2.0"
 hikari = {git = "https://github.com/hikari-py/hikari.git", rev = "refs/pull/1803/merge"}
+motor = "^3.3.2"
+redis = "^5.0.1"
 
 
 [build-system]

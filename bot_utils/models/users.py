@@ -1,6 +1,6 @@
 from typing import Self
 import hikari
-from attrs import field, define, fields
+from attrs import field, define
 from .base import BaseModel
 
 @define(kw_only=True)

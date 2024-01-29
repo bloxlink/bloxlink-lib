@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "bot-utils"
+name = "bot-lib"
 version = "0.0.1"
 description = "Shared utils used for the Python codebase of Bloxlink."
 authors = ["Bloxlink <oss@blox.link>"]
 readme = "README.md"
 homepage = "https://blox.link/"
 repository = "https://github.com/bloxlink/bot-models"
-packages = [{include = "bot_utils"}]
+packages = [{include = "bot_lib"}]
 
 
 [tool.poetry.dependencies]

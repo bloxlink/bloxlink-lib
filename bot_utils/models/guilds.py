@@ -44,11 +44,11 @@ class RoleSerializable(BaseModel):
     id: hikari.Snowflake = field(converter=int)
     name: str = None
     color: int = None
-    hoist: bool = None
+    is_hoisted: bool = None
     position: int = None
     permissions: hikari.Permissions = None
-    managed: bool = None
-    mentionable: bool = None
+    is_managed: bool = None
+    is_mentionable: bool = None
 
     @staticmethod
     def from_hikari(role: hikari.Role | Self) -> 'RoleSerializable':
@@ -61,18 +61,18 @@ class RoleSerializable(BaseModel):
             id=role.id,
             name=role.name,
             color=role.color,
-            hoist=role.hoist,
+            is_hoisted=role.is_hoisted,
             position=role.position,
             permissions=role.permissions,
-            managed=role.managed,
-            mentionable=role.mentionable
+            is_managed=role.is_managed,
+            is_mentionable=role.is_mentionable
         )
 
 @define(kw_only=True)
 class GuildSerializable(BaseModel):
     id: hikari.Snowflake = field(converter=int)
     name: str = None
-    roles: Mapping[hikari.Snowflake, RoleSerializable] = field(converter=lambda roles: {int(r_id): RoleSerializable.from_hikari(r) for r_id, r in roles.items()})
+    roles: Mapping[hikari.Snowflake, RoleSerializable] = field(converter=lambda roles: {int(r_id): RoleSerializable.from_hikari(r).to_dict() for r_id, r in roles.items()})
 
     @staticmethod
     def from_hikari(guild: hikari.RESTGuild | Self) -> 'GuildSerializable':

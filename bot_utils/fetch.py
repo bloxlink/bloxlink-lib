@@ -8,7 +8,7 @@ import aiohttp
 from requests.utils import requote_uri
 
 from .exceptions import RobloxAPIError, RobloxDown, RobloxNotFound
-from config import CONFIG
+from .config import CONFIG
 
 __all__ = ("fetch", "StatusCodes")
 

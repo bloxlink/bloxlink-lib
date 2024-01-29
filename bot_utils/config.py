@@ -15,6 +15,8 @@ class Config:
     REDIS_HOST: str = None
     REDIS_PORT: str = None
     REDIS_PASSWORD: str = None
+    #############################
+    PROXY_URL: str = None
 
 
 CONFIG: Config = Config(

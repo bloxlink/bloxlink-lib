@@ -27,9 +27,21 @@ def connect_database():
     mongo.get_io_loop = asyncio.get_running_loop
 
     if CONFIG.REDIS_URL:
-        redis = Redis.from_url(CONFIG.REDIS_URL, decode_responses=True)
+        redis = Redis.from_url(
+            CONFIG.REDIS_URL,
+            decode_responses=True,
+            retry_on_timeout=True,
+            health_check_interval=30,
+        )
     else:
-        redis = Redis(host=CONFIG.REDIS_HOST, port=CONFIG.REDIS_PORT, password=CONFIG.REDIS_PASSWORD, decode_responses=True)
+        redis = Redis(
+            host=CONFIG.REDIS_HOST,
+            port=CONFIG.REDIS_PORT,
+            password=CONFIG.REDIS_PASSWORD,
+            decode_responses=True,
+            retry_on_timeout=True,
+            health_check_interval=30,
+        )
 
 
 async def fetch_item[T](domain: str, constructor: Type[T], item_id: str, *aspects) -> T:

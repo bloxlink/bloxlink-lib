@@ -17,6 +17,7 @@ class Config:
     REDIS_PASSWORD: str = None
     #############################
     PROXY_URL: str = None
+    ROBLOX_INFO_SERVER: str
 
 
 CONFIG: Config = Config(

@@ -13,3 +13,6 @@ class RobloxAPIError(BloxlinkException):
 
 class RobloxDown(BloxlinkException):
     """Raised when the Roblox API is down."""
+
+class UserNotVerified(BloxlinkException):
+    """Raised when a user is not verified."""

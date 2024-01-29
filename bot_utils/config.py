@@ -1,5 +1,6 @@
 from attrs import define
 from dotenv import dotenv_values
+from os import getcwd
 
 
 @define(slots=True, kw_only=True)
@@ -16,4 +17,6 @@ class Config:
     REDIS_PASSWORD: str = None
 
 
-CONFIG: Config = Config(**dotenv_values())
+CONFIG: Config = Config(
+    **{field:value for field, value in dotenv_values(f"{getcwd()}/.env").items() if field in Config.__annotations__}
+)

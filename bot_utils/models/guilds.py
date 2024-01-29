@@ -40,10 +40,39 @@ class GuildData:
     converted_binds: bool = False
 
 @define(kw_only=True)
+class RoleSerializable(BaseModel):
+    id: hikari.Snowflake = field(converter=int)
+    name: str = None
+    color: int = None
+    hoist: bool = None
+    position: int = None
+    permissions: hikari.Permissions = None
+    managed: bool = None
+    mentionable: bool = None
+
+    @staticmethod
+    def from_hikari(role: hikari.Role | Self) -> 'RoleSerializable':
+        """Convert a Hikari role into a RoleSerializable object."""
+
+        if isinstance(role, RoleSerializable):
+            return role
+
+        return RoleSerializable(
+            id=role.id,
+            name=role.name,
+            color=role.color,
+            hoist=role.hoist,
+            position=role.position,
+            permissions=role.permissions,
+            managed=role.managed,
+            mentionable=role.mentionable
+        )
+
+@define(kw_only=True)
 class GuildSerializable(BaseModel):
     id: hikari.Snowflake = field(converter=int)
     name: str = None
-    roles: Mapping[hikari.Snowflake, hikari.Role] = None
+    roles: Mapping[hikari.Snowflake, RoleSerializable] = field(converter=lambda r: {int(r[0]): RoleSerializable.from_hikari(r[1])})
 
     @staticmethod
     def from_hikari(guild: hikari.RESTGuild | Self) -> 'GuildSerializable':

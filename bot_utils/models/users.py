@@ -1,4 +1,4 @@
-from typing import Sequence, Self, TypedDict, Dict
+from typing import Sequence, Self, TypedDict
 import math
 from datetime import datetime
 import hikari

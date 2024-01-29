@@ -1,4 +1,4 @@
-from typing import Self, Mapping
+from typing import Mapping
 from attrs import define, field
 import hikari
 from .base import BaseModel
@@ -46,7 +46,7 @@ class GuildSerializable(BaseModel):
     roles: Mapping[hikari.Snowflake, hikari.Role] = None
 
     @staticmethod
-    def from_hikari(guild: hikari.RESTGuild | 'GuildSerializable') -> Self:
+    def from_hikari(guild: hikari.RESTGuild | 'GuildSerializable') -> 'GuildSerializable':
         """Convert a Hikari guild into a GuildSerializable object."""
 
         if isinstance(guild, GuildSerializable):

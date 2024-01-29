@@ -7,8 +7,8 @@ from typing import Type, TYPE_CHECKING
 from motor.motor_asyncio import AsyncIOMotorClient
 from redis.asyncio import Redis
 
-from bot_lib.models import users
-from bot_lib.models import guilds
+from bloxlink_lib.models import users
+from bloxlink_lib.models import guilds
 from .config import CONFIG
 
 mongo: AsyncIOMotorClient = None

@@ -46,8 +46,11 @@ class GuildSerializable(BaseModel):
     roles: Mapping[hikari.Snowflake, hikari.Role] = None
 
     @staticmethod
-    def from_hikari(guild: hikari.RESTGuild) -> Self:
+    def from_hikari(guild: hikari.RESTGuild | 'GuildSerializable') -> Self:
         """Convert a Hikari guild into a GuildSerializable object."""
+
+        if isinstance(guild, GuildSerializable):
+            return guild
 
         return GuildSerializable(
             id=guild.id,

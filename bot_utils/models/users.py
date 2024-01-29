@@ -1,4 +1,4 @@
-from typing import Self, Sequence
+from typing import Self, Sequence, Self
 import hikari
 from attrs import field, define
 from .base import BaseModel
@@ -57,8 +57,11 @@ class MemberSerializable(BaseModel):
     nickname: str = None
 
     @staticmethod
-    def from_hikari(member: hikari.InteractionMember) -> Self:
+    def from_hikari(member: hikari.InteractionMember | 'MemberSerializable') -> Self:
         """Convert a Hikari member into a MemberSerializable object."""
+
+        if isinstance(member, MemberSerializable):
+            return member
 
         return MemberSerializable(
             id=member.id,

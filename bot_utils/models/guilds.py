@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Self, Mapping
 from attrs import define, field
 import hikari
 from .base import BaseModel
@@ -41,9 +41,9 @@ class GuildData:
 
 @define(kw_only=True)
 class GuildSerializable(BaseModel):
-    id: int = field(converter=int)
+    id: hikari.Snowflake = field(converter=int)
     name: str = None
-    roles: dict[int, hikari.Role] = None
+    roles: Mapping[hikari.Snowflake, hikari.Role] = None
 
     @staticmethod
     def from_hikari(guild: hikari.RESTGuild) -> Self:

@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Self, Sequence
 import hikari
 from attrs import field, define
 from .base import BaseModel
@@ -45,13 +45,13 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
 
 @define(kw_only=True)
 class MemberSerializable(BaseModel):
-    id: int = field(converter=int)
+    id: hikari.Snowflake = field(converter=int)
     username: str = None
     avatar_url: str = None
     display_name: str = None
     is_bot: bool = None
     joined_at: str = None
-    role_ids: list[int] = None
+    role_ids: Sequence[hikari.Snowflake] = None
     guild_id: int = None
     avatar_hash: str = None
     nickname: str = None

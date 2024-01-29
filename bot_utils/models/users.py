@@ -169,7 +169,7 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
             await group.sync()
             self.groups[group.id] = group
 
-    def to_dict(self) -> Dict[Self]:
+    def to_dict(self) -> dict[str, str | int]:
         """Return a dictionary representing this roblox account"""
         return asdict(self)
 

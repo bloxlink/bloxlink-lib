@@ -1,15 +1,21 @@
+from __future__ import annotations
+
 import asyncio
 from os.path import exists
-from typing import Type
+from typing import Type, TYPE_CHECKING
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from redis.asyncio import Redis
 
-from . import UserData, GuildData, GuildSerializable, MemberSerializable
+from bot_utils.models import users
+from bot_utils.models import guilds
 from .config import CONFIG
 
 mongo: AsyncIOMotorClient = None
 redis: Redis = None
+
+if TYPE_CHECKING:
+    from . import MemberSerializable, GuildSerializable
 
 
 def connect_database():
@@ -115,7 +121,7 @@ async def update_item(domain: str, item_id: str, **aspects) -> None:
     )
 
 
-async def fetch_user_data(user: str | int | dict | MemberSerializable, *aspects) -> UserData:
+async def fetch_user_data(user: str | int | dict | MemberSerializable, *aspects) -> users.UserData:
     """
     Fetch a full user from local cache, then redis, then database.
     Will populate caches for later access
@@ -123,15 +129,15 @@ async def fetch_user_data(user: str | int | dict | MemberSerializable, *aspects)
 
     if isinstance(user, dict):
         user_id = str(user["id"])
-    elif isinstance(user, MemberSerializable):
+    elif isinstance(user, users.MemberSerializable):
         user_id = str(user.id)
     else:
         user_id = str(user)
 
-    return await fetch_item("users", UserData, user_id, *aspects)
+    return await fetch_item("users", users.UserData, user_id, *aspects)
 
 
-async def fetch_guild_data(guild: str | int | dict | GuildSerializable, *aspects) -> GuildData:
+async def fetch_guild_data(guild: str | int | dict | GuildSerializable, *aspects) -> guilds.GuildData:
     """
     Fetch a full guild from local cache, then redis, then database.
     Will populate caches for later access
@@ -139,12 +145,12 @@ async def fetch_guild_data(guild: str | int | dict | GuildSerializable, *aspects
 
     if isinstance(guild, dict):
         guild_id = str(guild["id"])
-    elif isinstance(guild, GuildSerializable):
+    elif isinstance(guild, guilds.GuildSerializable):
         guild_id = str(guild.id)
     else:
         guild_id = str(guild)
 
-    return await fetch_item("guilds", GuildData, guild_id, *aspects)
+    return await fetch_item("guilds", guilds.GuildData, guild_id, *aspects)
 
 
 async def update_user_data(user: str | int | dict | MemberSerializable, **aspects) -> None:
@@ -154,7 +160,7 @@ async def update_user_data(user: str | int | dict | MemberSerializable, **aspect
 
     if isinstance(user, dict):
         user_id = str(user["id"])
-    elif isinstance(user, MemberSerializable):
+    elif isinstance(user, users.MemberSerializable):
         user_id = str(user.id)
     else:
         user_id = str(user)
@@ -169,7 +175,7 @@ async def update_guild_data(guild: str | int | dict | GuildSerializable, **aspec
 
     if isinstance(guild, dict):
         guild_id = str(guild["id"])
-    elif isinstance(guild, GuildSerializable):
+    elif isinstance(guild, guilds.GuildSerializable):
         guild_id = str(guild.id)
     else:
         guild_id = str(guild)

@@ -19,13 +19,13 @@ class GroupBindData(TypedDict):
     everyone: bool
     guest: bool
 
-class BindData(TypedDict):
-    """Represents the data required for a bind."""
+class BindCriteria(TypedDict):
+    """Represents the criteria required for a bind. If anything is set, it must ALL be met."""
 
     type: VALID_BINDS
     id: NotRequired[int]
 
-    group: GroupBindData
+    group: NotRequired[GroupBindData]
 
 class BindToDict(TypedDict):
     """Represents the top level of a bind."""
@@ -34,7 +34,7 @@ class BindToDict(TypedDict):
     roles: list
     removeRoles: list
 
-    bind: BindData
+    criteria: BindCriteria
 
 @define(slots=True, kw_only=True)
 class GuildBind(BaseModel):

@@ -10,7 +10,7 @@ class GuildData:
     """Representation of the stored settings for a guild"""
 
     id: int
-    binds: list[binds_module.GuildBind] = field(converter=lambda bind_list: [binds_module.GuildBind(**b) for b in bind_list])
+    binds: list[binds_module.GuildBind] = field(factory=list, converter=lambda bind_list: [binds_module.GuildBind(**b) for b in bind_list])
 
     verifiedRoleEnabled: bool = True
     verifiedRoleName: str = "Verified"  # deprecated

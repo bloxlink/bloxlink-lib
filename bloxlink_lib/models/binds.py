@@ -55,8 +55,8 @@ class GuildBind(BaseModel):
     """
 
     nickname: str = None
-    roles: list[str] = field(factory=list)
-    removeRoles: list[str] = field(factory=list)
+    roles: list[str] = field(factory=list, converter=lambda roles: roles or [])
+    removeRoles: list[str] = field(factory=list, converter=lambda remove_roles: remove_roles or [])
 
     criteria: BindCriteria
     entity: RobloxEntity = None

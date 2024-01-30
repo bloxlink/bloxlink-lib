@@ -5,4 +5,3 @@ from .models.groups import *
 from .exceptions import *
 from .models.binds import *
 from .fetch import StatusCodes, fetch, fetch_typed
-from .utils import *

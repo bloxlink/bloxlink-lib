@@ -2,15 +2,16 @@ from __future__ import annotations
 from typing import Literal, TypedDict, NotRequired, TYPE_CHECKING
 from attrs import define, field, asdict
 
-from ..models.base import BaseModel, RobloxEntity
+from ..models.base import BaseModel, RobloxEntity, create_entity
 
 if TYPE_CHECKING:
     from .guilds import RoleSerializable
     from .users import MemberSerializable, RobloxUser
+    from .groups import RobloxGroup
 
 POP_OLD_BINDS: bool = False
 
-VALID_BINDS = Literal["group", "asset", "badge", "gamepass", "verified", "unverified"]
+VALID_BIND_TYPES = Literal["group", "asset", "badge", "gamepass", "verified", "unverified"]
 
 
 class GroupBindData(TypedDict):
@@ -25,7 +26,7 @@ class GroupBindData(TypedDict):
 class BindCriteria(TypedDict):
     """Represents the criteria required for a bind. If anything is set, it must ALL be met."""
 
-    type: VALID_BINDS
+    type: VALID_BIND_TYPES
     id: NotRequired[int]
 
     group: NotRequired[GroupBindData]
@@ -60,6 +61,9 @@ class GuildBind(BaseModel):
     criteria: BindCriteria
     entity: RobloxEntity = None
 
+    def __attrs_post_init__(self):
+        self.entity = self.entity or create_entity(self.criteria["type"], self.criteria["id"])
+
     async def satisfies_for(self, roles: list[RoleSerializable], member: MemberSerializable, roblox_user: RobloxUser | None = None) -> bool:
         """Check if a user satisfies the requirements for this bind."""
 
@@ -73,10 +77,34 @@ class GuildBind(BaseModel):
         match self.criteria["type"]:
             case "verified":
                 return True
+
             case "group":
-                # if roblox_user:
-                # if self.criteria["id"]
-                pass
+                if self.criteria["id"] in roblox_user.groups:
+                    if self.criteria["group"]["everyone"]:
+                        return True
+
+                    if self.criteria["group"]["guest"]:
+                        return False
+
+                    group: RobloxGroup = self.entity
+
+                    await group.sync_for(roblox_user)
+
+                    print(group)
+
+                    if (self.criteria["group"].get("min") and self.criteria["group"].get("max")) and (self.criteria["group"]["min"] <= group.user_roleset.rank <= self.criteria["group"]["max"]):
+                        return True
+
+                    if self.criteria["group"]["roleset"]:
+                        return group.user_roleset.rank == self.criteria["group"]["roleset"]
+
+
+
+                    return True
+
+                # Not in group. Return whether the bind is for guests only
+                return self.criteria["group"]["guest"]
+
 
 
         return False

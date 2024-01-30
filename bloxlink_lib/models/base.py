@@ -1,4 +1,5 @@
 from attrs import define, fields
+from typing import Literal
 from datetime import datetime
 from abc import ABC, abstractmethod
 
@@ -45,35 +46,38 @@ class RobloxEntity(ABC):
         return f"{name} ({self.id})"
 
 
-# def create_entity(
-#     category: Literal["asset", "badge", "gamepass", "group"] | str, entity_id: int
-# ) -> RobloxEntity:
-#     """Create a respective Roblox entity from a category and ID.
+def create_entity(
+    category: Literal["asset", "badge", "gamepass", "group"] | str, entity_id: int
+) -> RobloxEntity:
+    """Create a respective Roblox entity from a category and ID.
 
-#     Args:
-#         category (str): Type of Roblox entity to make. Subset from asset, badge, group, gamepass.
-#         entity_id (int): ID of the entity on Roblox.
+    Args:
+        category (str): Type of Roblox entity to make. Subset from asset, badge, group, gamepass.
+        entity_id (int): ID of the entity on Roblox.
 
-#     Returns:
-#         RobloxEntity: The respective RobloxEntity implementer, unsynced.
-#     """
-#     match category:
-#         case "asset":
-#             from resources.api.roblox.assets import RobloxAsset  # pylint: disable=import-outside-toplevel
+    Returns:
+        RobloxEntity: The respective RobloxEntity implementer, unsynced.
+    """
+    match category:
+        case "asset":
+            # from resources.api.roblox.assets import RobloxAsset  # pylint: disable=import-outside-toplevel
 
-#             return RobloxAsset(entity_id)
+            # return RobloxAsset(entity_id)
+            raise NotImplementedError()
 
-#         case "badge":
-#             from resources.api.roblox.badges import RobloxBadge  # pylint: disable=import-outside-toplevel
+        case "badge":
+            # from resources.api.roblox.badges import RobloxBadge  # pylint: disable=import-outside-toplevel
 
-#             return RobloxBadge(entity_id)
+            # return RobloxBadge(entity_id)
+            raise NotImplementedError()
 
-#         case "gamepass":
-#             from resources.api.roblox.gamepasses import RobloxGamepass  # pylint: disable=import-outside-toplevel
+        case "gamepass":
+            # from resources.api.roblox.gamepasses import RobloxGamepass  # pylint: disable=import-outside-toplevel
 
-#             return RobloxGamepass(entity_id)
+            # return RobloxGamepass(entity_id)
+            raise NotImplementedError()
 
-#         case "group":
-#             from resources.api.roblox.groups import RobloxGroup  # pylint: disable=import-outside-toplevel
+        case "group":
+            from .groups import RobloxGroup  # pylint: disable=import-outside-toplevel
 
-#             return RobloxGroup(entity_id)
+            return RobloxGroup(entity_id)

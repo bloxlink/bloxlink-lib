@@ -2,7 +2,7 @@ from typing import Literal, TypedDict, NotRequired
 from attrs import define, field, asdict
 
 from ..database import fetch_guild_data
-from ..models.base import BaseModel
+from ..models.base import BaseModel, RobloxEntity
 from .guilds import GuildData
 
 POP_OLD_BINDS: bool = False
@@ -55,9 +55,13 @@ class GuildBind(BaseModel):
     removeRoles: list = field(factory=list)
 
     bind: BindData
+    entity: RobloxEntity = None
 
     def to_dict(self) -> BindToDict:
-        return asdict(self)
+        data = asdict(self)
+        data.pop("entity", None)
+
+        return data
 
 
 async def get_binds(guild_id: int | str) -> list[GuildBind]:

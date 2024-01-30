@@ -2,6 +2,7 @@ from typing import Mapping, Self
 from attrs import define, field
 import hikari
 from .base import BaseModel
+from .binds import GuildBind
 
 
 @define(slots=True)
@@ -9,7 +10,7 @@ class GuildData:
     """Representation of the stored settings for a guild"""
 
     id: int
-    binds: list = field(factory=list)
+    binds: list[GuildBind] = field(converter=lambda binds: [GuildBind(**b) for b in binds])
 
     verifiedRoleEnabled: bool = True
     verifiedRoleName: str = "Verified"  # deprecated

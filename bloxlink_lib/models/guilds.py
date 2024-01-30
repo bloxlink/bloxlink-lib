@@ -2,7 +2,7 @@ from typing import Mapping, Self
 from attrs import define, field
 import hikari
 from .base import BaseModel
-from .binds import GuildBind, get_binds
+import bloxlink_lib.models.binds as binds_module
 
 
 @define(slots=True)
@@ -10,7 +10,7 @@ class GuildData:
     """Representation of the stored settings for a guild"""
 
     id: int
-    binds: list[GuildBind] = field(converter=lambda binds: [GuildBind(**b) for b in binds])
+    binds: list[binds_module.GuildBind] = field(converter=lambda bind_list: [binds_module.GuildBind(**b) for b in bind_list])
 
     verifiedRoleEnabled: bool = True
     verifiedRoleName: str = "Verified"  # deprecated
@@ -43,10 +43,10 @@ class GuildData:
     def __attrs_post_init__(self):
         # merge verified roles into binds
         if self.verifiedRole:
-            self.binds.append(GuildBind(criteria={"type": "verified"}, roles=[self.verifiedRole]))
+            self.binds.append(binds_module.GuildBind(criteria={"type": "verified"}, roles=[self.verifiedRole]))
 
         if self.unverifiedRole:
-            self.binds.append(GuildBind(criteria={"type": "unverified"}, roles=[self.unverifiedRole]))
+            self.binds.append(binds_module.GuildBind(criteria={"type": "unverified"}, roles=[self.unverifiedRole]))
 
         # if self.verifiedRoleName:
         #     self.binds.append(GuildBind(criteria={"type": "verified"}, roles=[self.verifiedRole]))

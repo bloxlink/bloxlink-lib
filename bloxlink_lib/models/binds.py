@@ -45,16 +45,16 @@ class GuildBind(BaseModel):
         roles (list): The IDs of roles that should be given by this bind.
         removeRole (list): The IDs of roles that should be removed when this bind is given.
 
-        bind (BindToDict): Bind-specific requirements
+        criteria (BindCriteria): Bind-specific requirements
 
         entity (RobloxEntity, optional): The entity that this binding represents. Defaults to None.
     """
 
     nickname: str = None
-    roles: list = field(factory=list)
-    removeRoles: list = field(factory=list)
+    roles: list[str] = field(factory=list)
+    removeRoles: list[str] = field(factory=list)
 
-    bind: BindData
+    criteria: BindCriteria
     entity: RobloxEntity = None
 
     def to_dict(self) -> BindToDict:

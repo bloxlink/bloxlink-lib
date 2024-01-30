@@ -2,7 +2,7 @@ from typing import Mapping, Self
 from attrs import define, field
 import hikari
 from .base import BaseModel
-from .binds import GuildBind
+from .binds import GuildBind, get_binds
 
 
 @define(slots=True)
@@ -39,6 +39,15 @@ class GuildData:
     roleBinds: dict = None
     groupIDs: dict = None
     converted_binds: bool = False
+
+    def __attrs_post_init__(self):
+        # merge verified roles into binds
+        if self.verifiedRole:
+            self.binds.append(GuildBind(criteria={"type": "verified"}, roles=[self.verifiedRole]))
+
+        if self.unverifiedRole:
+            self.binds.append(GuildBind(criteria={"type": "unverified"}, roles=[self.unverifiedRole]))
+
 
 @define(kw_only=True)
 class RoleSerializable(BaseModel):

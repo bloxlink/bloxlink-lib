@@ -1,15 +1,60 @@
+from __future__ import annotations
+
 import re
-from attrs import define
-from ..fetch import fetch
+from attrs import define, field
+from typing import TYPE_CHECKING
+from ..fetch import fetch, fetch_typed
 from ..exceptions import RobloxAPIError, RobloxNotFound
 
 from .base import RobloxEntity
+
+if TYPE_CHECKING:
+    from .users import RobloxUser
 
 GROUP_API = "https://groups.roblox.com/v1/groups"
 ROBLOX_GROUP_REGEX = re.compile(r"roblox.com/groups/(\d+)/")
 
 
-@define(slots=True)
+@define(slots=True, kw_only=True)
+class GroupRoleset:
+    """Representation of a roleset in a Roblox group."""
+
+    name: str
+    rank: int # User-assigned rank ID
+    id: int # Roblox-assigned roleset ID
+    memberCount: int = field(alias="member_count", default=None)
+
+@define(slots=True, kw_only=True)
+class RobloxRolesetResponse:
+    """Representation of the response from the Roblox roleset API."""
+
+    groupId: int
+    roles: list[GroupRoleset]
+
+@define(slots=True, kw_only=True)
+class RobloxGroupOwnerResponse:
+    """Representation of a group owner in a Roblox group."""
+
+    userId: int
+    username: str
+    displayName: str
+    hasVerifiedBadge: bool
+
+@define(slots=True, kw_only=True)
+class RobloxGroupResponse:
+    """Representation of the response from the Roblox group API."""
+
+    id: int
+    name: str
+    description: str
+    memberCount: int
+    owner: RobloxGroupOwnerResponse
+    shout: str | None
+    publicEntryAllowed: bool
+    hasVerifiedBadge: bool
+
+
+@define(kw_only=True, slots=True)
 class RobloxGroup(RobloxEntity):
     """Representation of a Group on Roblox.
 
@@ -23,8 +68,8 @@ class RobloxGroup(RobloxEntity):
     """
 
     member_count: int = None
-    rolesets: dict[int, str] = None
-    user_roleset: dict = None
+    rolesets: dict[int, GroupRoleset] = None
+    user_roleset: GroupRoleset = None
 
     def __attrs_post_init__(self):
         self.url = f"https://www.roblox.com/groups/{self.id}"
@@ -35,19 +80,31 @@ class RobloxGroup(RobloxEntity):
             return
 
         if self.rolesets is None:
-            json_data, _ = await fetch("GET", f"{GROUP_API}/{self.id}/roles")
+            roleset_data, _ = await fetch_typed(f"{GROUP_API}/{self.id}/roles", RobloxRolesetResponse)
+            self.rolesets = {int(roleset.rank): GroupRoleset(**roleset) for roleset in roleset_data.roles}
 
-            self.rolesets = {int(roleset["rank"]): roleset["name"].strip() for roleset in json_data["roles"]}
+        group_data, _ = await fetch_typed(f"{GROUP_API}/{self.id}", RobloxGroupResponse)
 
-        if self.name is None or self.description is None or self.member_count is None:
-            json_data, _ = await fetch("GET", f"{GROUP_API}/{self.id}")
+        self.name = group_data.name
+        self.description = group_data.description
+        self.member_count = group_data.memberCount
 
-            self.name = json_data.get("name")
-            self.description = json_data.get("description")
-            self.member_count = json_data.get("memberCount")
+        self.synced = True
 
-            if self.rolesets is not None:
-                self.synced = True
+    async def sync_for(self, roblox_user: RobloxUser):
+        """Sync and retrieve the roleset of a specific user in this group."""
+
+        await self.sync()
+
+        if self.user_roleset is None:
+            await roblox_user.sync(sync_groups=False)
+            print(roblox_user.groups)
+
+            user_group = roblox_user.groups.get(self.id)
+
+            if user_group:
+                self.user_roleset = user_group.user_roleset
+
 
     def __str__(self) -> str:
         name = f"**{self.name}**" if self.name else "*(Unknown Group)*"

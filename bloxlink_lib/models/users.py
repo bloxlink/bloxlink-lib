@@ -9,7 +9,7 @@ from ..fetch import fetch, fetch_typed, StatusCodes
 from ..config import CONFIG
 from ..exceptions import RobloxNotFound, RobloxAPIError, UserNotVerified
 from ..database import fetch_user_data, mongo
-from .groups import RobloxGroup
+from .groups import RobloxGroup, GroupRoleset
 
 ALL_USER_API_SCOPES = ["groups", "badges"]
 
@@ -28,9 +28,31 @@ class UserData:
     robloxID: str = None
     robloxAccounts: dict = field(factory=lambda: {"accounts": [], "guilds": {}, "confirms": {}})
 
+@define(slots=True, kw_only=True)
+class RobloxUserAvatar:
+    """Type definition for a Roblox user's avatar from the Bloxlink Info API."""
 
-class RobloxResponseDict(TypedDict, total=False):
-    """Type definition for a Roblox user from the Roblox API."""
+    bustThumbnail: str
+    headshotThumbnail: str
+    fullBody: str
+
+@define(slots=True, kw_only=True)
+class RobloxGroupResponse:
+    id: int
+    name: str
+    memberCount: int
+    hasVerifiedBadge: bool
+
+@define(slots=True, kw_only=True)
+class GroupWithUserRolesetResponse:
+    """Type definition for a Roblox user's groups from the Bloxlink Info API."""
+
+    group: RobloxGroupResponse
+    role: GroupRoleset
+
+@define(slots=True, kw_only=True)
+class RobloxUserInformationResponse:
+    """Type definition for a Roblox user from the Bloxlink Info API."""
 
     id: str
     name: str
@@ -40,7 +62,11 @@ class RobloxResponseDict(TypedDict, total=False):
     badges: list
     displayName: str
     created: str
-    avatar: dict
+    avatar: RobloxUserAvatar
+    hasVerifiedBadge: bool
+    hasDisplayName: bool
+    groupsv2: dict[str, GroupWithUserRolesetResponse] = field(alias="groups")
+
 
 @define(kw_only=True)
 class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
@@ -61,13 +87,14 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
 
     complete: bool = False
 
-    _data: RobloxResponseDict = field(factory=lambda: {})
+    _data: dict = field(factory=lambda: {})
 
     async def sync(
         self,
         includes: list | bool | None = None,
         *,
         cache: bool = True,
+        sync_groups: bool = True,
     ):
         """Retrieve information about this user from Roblox. Requires a username or id to be set.
 
@@ -99,22 +126,22 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
 
         roblox_user_data, user_data_response = await fetch_typed(
             f"{CONFIG.ROBLOX_INFO_SERVER}/roblox/info?{id_string}&{username_string}&include={includes}",
-            RobloxResponseDict,
+            RobloxUserInformationResponse,
         )
 
         if user_data_response.status == StatusCodes.OK:
-            self.id = roblox_user_data.get("id", self.id)
-            self.description = roblox_user_data.get("description", self.description)
-            self.username = roblox_user_data.get("name", self.username)
-            self.banned = roblox_user_data.get("isBanned", self.banned)
-            self.profile_link = roblox_user_data.get("profileLink", self.profile_link)
-            self.badges = roblox_user_data.get("badges", self.badges)
-            self.display_name = roblox_user_data.get("displayName", self.display_name)
-            self.created = roblox_user_data.get("created", self.created)
+            self.id = roblox_user_data.id
+            self.description = roblox_user_data.description
+            self.username = roblox_user_data.name
+            self.banned = roblox_user_data.isBanned
+            self.profile_link = roblox_user_data.profileLink
+            self.badges = roblox_user_data.badges
+            self.display_name = roblox_user_data.displayName
+            self.created = roblox_user_data.created
 
-            self._data.update(roblox_user_data)
+            self._data.update(asdict(roblox_user_data))
 
-            await self.parse_groups(roblox_user_data.get("groups"))
+            await self.parse_groups(roblox_user_data.groupsv2, sync_groups)
 
             self.parse_age()
 
@@ -146,27 +173,31 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
                 ending = f"day{((self.age_days > 1 or self.age_days == 0) and 's') or ''}"
                 self.short_age_string = f"{self.age_days} {ending} ago"
 
-    async def parse_groups(self, group_json: dict | None):
+    async def parse_groups(self, group_json: dict[str, GroupWithUserRolesetResponse] | None, sync_groups: bool = True):
         """Determine what groups this user is in from a json response.
 
         Args:
             group_json (dict | None): JSON input from Roblox representing a user's groups.
         """
+
         if group_json is None:
             return
 
         self.groups = {}
 
-        for group_data in group_json:
-            group_meta = group_data.get("group")
-            group_role = group_data.get("role")
+        for group_id, group_data in group_json.items():
+            group_meta = group_data.group
+            group_role = group_data.role
 
-            group: RobloxGroup = RobloxGroup(
-                id=str(group_meta["id"]),
+            group = RobloxGroup(
+                id=str(group_id),
                 name=group_meta["name"],
                 user_roleset=group_role,
-            )  # seems redundant, but this is so we can switch the endpoint and retain consistency
-            await group.sync()
+            )
+
+            if sync_groups:
+                await group.sync()
+
             self.groups[group.id] = group
 
     def to_dict(self) -> dict[str, str | int]:

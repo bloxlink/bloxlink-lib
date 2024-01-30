@@ -48,6 +48,9 @@ class GuildData:
         if self.unverifiedRole:
             self.binds.append(GuildBind(criteria={"type": "unverified"}, roles=[self.unverifiedRole]))
 
+        # if self.verifiedRoleName:
+        #     self.binds.append(GuildBind(criteria={"type": "verified"}, roles=[self.verifiedRole]))
+
 
 @define(kw_only=True)
 class RoleSerializable(BaseModel):

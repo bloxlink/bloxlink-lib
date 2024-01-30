@@ -3,7 +3,8 @@ from attrs import define, field, asdict
 
 from ..database import fetch_guild_data
 from ..models.base import BaseModel, RobloxEntity
-from .guilds import GuildData
+from .guilds import GuildData, RoleSerializable
+from .users import RobloxUser, MemberSerializable
 
 POP_OLD_BINDS: bool = False
 
@@ -56,6 +57,27 @@ class GuildBind(BaseModel):
 
     criteria: BindCriteria
     entity: RobloxEntity = None
+
+    async def satisfies_for(self, guild_roles: list[RoleSerializable], member: MemberSerializable, roblox_user: RobloxUser | None = None) -> bool:
+        """Check if a user satisfies the requirements for this bind."""
+
+        if not roblox_user:
+            # user is unverified
+            return self.criteria["type"] == "unverified"
+
+        # user is verified
+        await roblox_user.sync()
+
+        match self.criteria["type"]:
+            case "verified":
+                return True
+            case "group":
+                # if roblox_user:
+                # if self.criteria["id"]
+                pass
+
+
+        return False
 
     def to_dict(self) -> BindToDict:
         data = asdict(self)

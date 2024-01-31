@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Literal, TypedDict, NotRequired, TYPE_CHECKING
+from typing import Literal, TypedDict, NotRequired, TYPE_CHECKING, Tuple
 from attrs import define, field, asdict
 
 from ..models.base import BaseModel, RobloxEntity, create_entity
@@ -64,27 +64,37 @@ class GuildBind(BaseModel):
     def __attrs_post_init__(self):
         self.entity = self.entity or create_entity(self.criteria["type"], self.criteria["id"])
 
-    async def satisfies_for(self, roles: list[RoleSerializable], member: MemberSerializable, roblox_user: RobloxUser | None = None) -> bool:
+    async def satisfies_for(self, guild_roles: list[RoleSerializable], member: MemberSerializable, roblox_user: RobloxUser | None = None) -> Tuple[bool, list[RoleSerializable]]:
         """Check if a user satisfies the requirements for this bind."""
 
+        ineligible_roles: list[RoleSerializable] = []
+
         if not roblox_user:
-            # user is unverified
-            return self.criteria["type"] == "unverified"
+            if self.criteria["type"] == "unverified":
+                return True, ineligible_roles
+
+            # user is unverified, so remove Verified role
+            if self.criteria["type"] == "verified":
+                for role_id in filter(lambda r: int(r) in member.role_ids, self.roles):
+                    ineligible_roles.append(guild_roles.get(role_id))
+
+            return False, ineligible_roles
+
 
         # user is verified
         await roblox_user.sync()
 
         match self.criteria["type"]:
             case "verified":
-                return True
+                return True, ineligible_roles
 
             case "group":
                 if self.criteria["id"] in roblox_user.groups:
                     if self.criteria["group"]["everyone"]:
-                        return True
+                        return True, ineligible_roles
 
                     if self.criteria["group"]["guest"]:
-                        return False
+                        return False, ineligible_roles
 
                     group: RobloxGroup = self.entity
 
@@ -93,17 +103,17 @@ class GuildBind(BaseModel):
                     print(group)
 
                     if (self.criteria["group"].get("min") and self.criteria["group"].get("max")) and (self.criteria["group"]["min"] <= group.user_roleset.rank <= self.criteria["group"]["max"]):
-                        return True
+                        return True, ineligible_roles
 
                     if self.criteria["group"]["roleset"]:
-                        return group.user_roleset.rank == self.criteria["group"]["roleset"]
+                        return group.user_roleset.rank == self.criteria["group"]["roleset"], ineligible_roles
 
 
 
-                    return True
+                    return True, ineligible_roles
 
                 # Not in group. Return whether the bind is for guests only
-                return self.criteria["group"]["guest"]
+                return self.criteria["group"]["guest"], ineligible_roles
 
 
 

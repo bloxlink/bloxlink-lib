@@ -64,7 +64,7 @@ class GuildBind(BaseModel):
     def __attrs_post_init__(self):
         self.entity = self.entity or create_entity(self.criteria["type"], self.criteria["id"])
 
-    async def satisfies_for(self, guild_roles: list[RoleSerializable], member: MemberSerializable, roblox_user: RobloxUser | None = None) -> tuple[bool, list[RoleSerializable]]:
+    async def satisfies_for(self, guild_roles: dict[str, RoleSerializable], member: MemberSerializable, roblox_user: RobloxUser | None = None) -> tuple[bool, list[RoleSerializable]]:
         """Check if a user satisfies the requirements for this bind."""
 
         ineligible_roles: list[str] = []
@@ -76,7 +76,7 @@ class GuildBind(BaseModel):
             # user is unverified, so remove Verified role
             if self.criteria["type"] == "verified":
                 for role_id in filter(lambda r: int(r) in member.role_ids, self.roles):
-                    ineligible_roles.append(str(guild_roles[guild_roles.index(role_id)].id))
+                    ineligible_roles.append(guild_roles[role_id].id)
 
             return False, ineligible_roles
 

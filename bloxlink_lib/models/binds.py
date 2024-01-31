@@ -76,7 +76,7 @@ class GuildBind(BaseModel):
             # user is unverified, so remove Verified role
             if self.criteria["type"] == "verified":
                 for role_id in filter(lambda r: int(r) in member.role_ids, self.roles):
-                    ineligible_roles.append(guild_roles[role_id].id)
+                    ineligible_roles.append(str(guild_roles[role_id].id))
 
             return False, ineligible_roles
 

@@ -1,10 +1,9 @@
-from attrs import define
+from pydantic import BaseModel
 from dotenv import dotenv_values
 from os import getcwd
 
 
-@define(slots=True, kw_only=True)
-class Config:
+class Config(BaseModel):
     """Type definition for config values."""
 
     #############################

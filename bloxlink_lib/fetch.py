@@ -3,7 +3,7 @@ import logging
 from enum import IntEnum
 from typing import Literal, Type, Union, Tuple
 from aiohttp import ClientResponse
-from attrs import fields
+from pydantic import BaseModel
 import aiohttp
 from requests.utils import requote_uri
 
@@ -33,10 +33,10 @@ async def fetch[T](
     method: str,
     url: str,
     *,
-    params: dict = None,
+    params: dict[str, str] = None,
     headers: dict = None,
     body: dict = None,
-    parse_as: Literal["JSON", "BYTES", "TEXT"] | Type[T] = "JSON",
+    parse_as: Literal["JSON", "BYTES", "TEXT"] | BaseModel | Type[T] = "JSON",
     raise_on_failure: bool = True,
     timeout: float = 10,
 ) -> Union[Tuple[dict, ClientResponse], Tuple[str, ClientResponse], Tuple[bytes, ClientResponse], Tuple[T, ClientResponse], ClientResponse]:
@@ -117,11 +117,15 @@ async def fetch[T](
                 if parse_as == "BYTES":
                     return await response.read(), response
 
-                if isinstance(parse_as, type) and hasattr(parse_as, "__attrs_attrs__"):
+                if isinstance(parse_as, BaseModel):
                     json_response = await response.json()
-                    # Filter only relevant fields before constructing the dataclass instance
-                    relevant_fields = {field.name: json_response[field.name] for field in fields(parse_as) if field.name in json_response}
+                    # Filter only relevant fields before constructing the pydantic instance
+                    relevant_fields = {field_name: json_response[field_name] for field_name in parse_as.model_fields.keys() if field_name in json_response}
                     return parse_as(**relevant_fields), response
+
+                if isinstance(parse_as, dict):
+                    json_response = await response.json()
+                    return {key: json_response[value] for key, value in parse_as.items()}, response
 
             return response
 

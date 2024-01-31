@@ -1,21 +1,21 @@
-from typing import Sequence, Self, TypedDict
+from typing import Sequence, Self, Annotated, Literal
+from pydantic import BaseModel, Field
 import math
 from datetime import datetime
+import urlib
 import hikari
-from attrs import field, define, asdict
 from dateutil import parser
-from .base import BaseModel
 from ..fetch import fetch, fetch_typed, StatusCodes
 from ..config import CONFIG
 from ..exceptions import RobloxNotFound, RobloxAPIError, UserNotVerified
 from ..database import fetch_user_data, mongo
 from .groups import RobloxGroup, GroupRoleset
 
-ALL_USER_API_SCOPES = ["groups", "badges"]
+VALID_INFO_SERVER_SCOPES: list[Literal["groups", "badges"]] = ["groups", "badges"]
 
 
-@define(slots=True)
-class UserData:
+
+class UserData(BaseModel):
     """Representation of a User's data in Bloxlink
 
     Attributes:
@@ -26,90 +26,96 @@ class UserData:
 
     id: int
     robloxID: str = None
-    robloxAccounts: dict = field(factory=lambda: {"accounts": [], "guilds": {}, "confirms": {}})
+    robloxAccounts: dict = Field(default_factory=lambda: {"accounts": [], "guilds": {}, "confirms": {}})
 
-@define(slots=True, kw_only=True)
-class RobloxUserAvatar:
+
+class RobloxUserAvatar(BaseModel):
     """Type definition for a Roblox user's avatar from the Bloxlink Info API."""
 
-    bustThumbnail: str
-    headshotThumbnail: str
-    fullBody: str
+    bust_thumbnail: str = Field(alias="bustThumbnail")
+    headshot_thumbnail: str = Field(alias="headshotThumbnail")
+    full_body: str = Field(alias="fullBody")
 
-@define(slots=True, kw_only=True)
-class RobloxGroupResponse:
+
+class RobloxGroupResponse(BaseModel):
     id: int
     name: str
-    memberCount: int
-    hasVerifiedBadge: bool
+    member_count: int = Field(alias="memberCount")
+    has_verified_badge: bool = Field(alias="hasVerifiedBadge")
 
-@define(slots=True, kw_only=True)
-class GroupWithUserRolesetResponse:
+
+class GroupWithUserRolesetResponse(BaseModel):
     """Type definition for a Roblox user's groups from the Bloxlink Info API."""
 
     group: RobloxGroupResponse
     role: GroupRoleset
 
-@define(slots=True, kw_only=True)
-class RobloxUserInformationResponse:
-    """Type definition for a Roblox user from the Bloxlink Info API."""
 
-    id: str
-    name: str
-    description: str
-    isBanned: bool
-    profileLink: str
-    badges: list
-    displayName: str
-    created: str
-    avatar: RobloxUserAvatar
-    hasVerifiedBadge: bool
-    hasDisplayName: bool
-    groupsv2: dict[str, GroupWithUserRolesetResponse] = field(alias="groups")
+# class RobloxUserInformationResponse(BaseModel):
+#     """Type definition for a Roblox user from the Bloxlink Info API."""
+
+#     id: str
+#     name: str
+#     description: str
+#     is_banned: bool = Field(alias="isBanned")
+#     profile_link: str = Field(alias="profileLink")
+#     badges: list
+#     display_name: str = Field(alias="displayName")
+#     created: str
+#     avatar: RobloxUserAvatar
+#     has_verified_badge: bool = Field(alias="hasVerifiedBadge")
+#     has_display_name: bool = Field(alias="hasDisplayName")
+#     groups: dict[str, GroupWithUserRolesetResponse] = Field(alias="groupsv2")
 
 
-@define(kw_only=True)
+
 class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
     """Representation of a user on Roblox."""
 
-    id: str = field(converter=str)
+    # must provide one of these
+    id: str
     username: str = None
-    banned: bool = None
+
+    # these fields are provided after sync() is called
+    banned: bool = Field(alias="isBanned")
     age_days: int = None
     groups: dict[str, RobloxGroup] = None
     avatar: str = None
     description: str = None
-    profile_link: str = None
-    display_name: str = None
+    profile_link: str = Field(alias="profileLink")
+    display_name: str = Field(alias="displayName")
     created: str = None
     badges: list = None
     short_age_string: str = None
 
-    complete: bool = False
-
-    _data: dict = field(factory=lambda: {})
+    _complete: bool = False
 
     async def sync(
         self,
-        includes: list | bool | None = None,
+        includes: list[Literal["groups", "badges"]] | bool | None = None,
         *,
         cache: bool = True,
-        sync_groups: bool = True,
+        sync_groups: bool = False,
     ):
-        """Retrieve information about this user from Roblox. Requires a username or id to be set.
+        """Retrieve and sync information about this user from Roblox. Requires a username or id to be set.
 
         Args:
             includes (list | bool | None, optional): Data that should be included. Defaults to None.
-                True retrieves all available data. Otherwise a list can be passed with either
+                True retrieves all available data; otherwise, a list can be passed with either
                 "groups", "presences", and/or "badges" in it.
             cache (bool, optional): Should we check the object for values before retrieving. Defaults to True.
+            sync_groups (bool, optional): Should we sync the groups of this user. Requires a REST call for each group. Defaults to False.
         """
+
+        if any((x is False or x not in [*VALID_INFO_SERVER_SCOPES, True, None]) for x in includes):
+            raise ValueError("Invalid includes provided.")
+
         if includes is None:
             includes = []
 
         elif includes is True:
-            includes = ALL_USER_API_SCOPES
-            self.complete = True
+            includes = VALID_INFO_SERVER_SCOPES
+            self._complete = True
 
         if cache:
             # remove includes if we already have the value saved
@@ -119,29 +125,23 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
             if self.badges is not None and "badges" in includes:
                 includes.remove("badges")
 
-        includes = ",".join(includes)
-
-        id_string = "id" if not self.id else f"id={self.id}"
-        username_string = "username" if not self.username else f"username={self.username}"
-
         roblox_user_data, user_data_response = await fetch_typed(
-            f"{CONFIG.ROBLOX_INFO_SERVER}/roblox/info?{id_string}&{username_string}&include={includes}",
-            RobloxUserInformationResponse,
+            f"{CONFIG.ROBLOX_INFO_SERVER}/roblox/info",
+            RobloxUser, # seems redundant but it's so that we can use type hinting
+            params={"id": self.id, "includes": ",".join(includes)},
         )
 
         if user_data_response.status == StatusCodes.OK:
             self.id = roblox_user_data.id
             self.description = roblox_user_data.description
             self.username = roblox_user_data.name
-            self.banned = roblox_user_data.isBanned
-            self.profile_link = roblox_user_data.profileLink
+            self.banned = roblox_user_data.banned
+            self.profile_link = roblox_user_data.profile_link
             self.badges = roblox_user_data.badges
-            self.display_name = roblox_user_data.displayName
+            self.display_name = roblox_user_data.display_name
             self.created = roblox_user_data.created
 
-            self._data.update(asdict(roblox_user_data))
-
-            await self.parse_groups(roblox_user_data.groupsv2, sync_groups)
+            await self.parse_groups(roblox_user_data.groups, sync_groups)
 
             self.parse_age()
 
@@ -173,11 +173,12 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
                 ending = f"day{((self.age_days > 1 or self.age_days == 0) and 's') or ''}"
                 self.short_age_string = f"{self.age_days} {ending} ago"
 
-    async def parse_groups(self, group_json: dict[str, GroupWithUserRolesetResponse] | None, sync_groups: bool = True):
+    async def parse_groups(self, group_json: dict[str, GroupWithUserRolesetResponse] | None, sync_groups: bool = False):
         """Determine what groups this user is in from a json response.
 
         Args:
             group_json (dict | None): JSON input from Roblox representing a user's groups.
+            sync_groups (bool, optional): Should we sync the groups of this user. Requires a REST call for each group. Defaults to False.
         """
 
         if group_json is None:
@@ -199,10 +200,6 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
                 await group.sync()
 
             self.groups[group.id] = group
-
-    def to_dict(self) -> dict[str, str | int]:
-        """Return a dictionary representing this roblox account"""
-        return asdict(self)
 
 
 async def get_user_account(
@@ -228,7 +225,6 @@ async def get_user_account(
 
     if guild_id:
         guild_accounts = (bloxlink_user.robloxAccounts or {}).get("guilds") or {}
-
         guild_account = guild_accounts.get(str(guild_id))
 
         if guild_account:
@@ -244,7 +240,7 @@ async def get_user_account(
 
 async def get_user(
     user: hikari.User = None,
-    includes: list = None,
+    includes: list[Literal["groups", "badges"]] = None,
     *,
     roblox_username: str = None,
     roblox_id: int = None,
@@ -253,8 +249,6 @@ async def get_user(
     """Get a Roblox account.
 
     If a user is not passed, it is required that either roblox_username OR roblox_id is given.
-
-    roblox_id takes priority over roblox_username when searching for users.
 
     guild_id only applies when a user is given.
 
@@ -269,20 +263,26 @@ async def get_user(
             Defaults to None.
 
     Returns:
-        RobloxAccount | None: The found Roblox account, if any.
+        RobloxUser | None: The found Roblox account, if any.
     """
 
-    roblox_account: RobloxUser = None
+    roblox_user: RobloxUser = None
+
+    if roblox_id and roblox_username:
+        raise ValueError("You cannot provide both a roblox_id and a roblox_username.")
+
+    if user and (roblox_username or roblox_id):
+        raise ValueError("You cannot provide both a user and a roblox_id or roblox_username.")
 
     if user:
-        roblox_account = await get_user_account(user, guild_id)
-        await roblox_account.sync(includes)
+        roblox_user = await get_user_account(user, guild_id)
+        await roblox_user.sync(includes)
 
     else:
-        roblox_account = RobloxUser(username=roblox_username, id=roblox_id)
-        await roblox_account.sync(includes)
+        roblox_user = RobloxUser(username=roblox_username, id=roblox_id)
+        await roblox_user.sync(includes)
 
-    return roblox_account
+    return roblox_user
 
 
 async def get_accounts(user: hikari.User) -> list[RobloxUser]:
@@ -292,7 +292,7 @@ async def get_accounts(user: hikari.User) -> list[RobloxUser]:
         user (hikari.User): The user to get linked accounts for.
 
     Returns:
-        list[RobloxAccount]: The linked Roblox accounts for this user.
+        list[RobloxUser]: The linked Roblox accounts for this user.
     """
 
     user_id = str(user.id)
@@ -315,26 +315,27 @@ async def get_accounts(user: hikari.User) -> list[RobloxUser]:
     return accounts
 
 
-async def reverse_lookup(roblox_account: RobloxUser, exclude_user_id: int | None = None) -> list[str]:
+async def reverse_lookup(roblox_user: RobloxUser, exclude_user_id: int | None = None) -> list[str]:
     """Find Discord IDs linked to a roblox id.
 
     Args:
-        roblox_account (RobloxAccount): The roblox account that will be matched against.
+        roblox_user (RobloxUser): The roblox account that will be matched against.
         exclude_user_id (int | None, optional): Discord user ID that will not be included in the output.
             Defaults to None.
 
     Returns:
         list[str]: All the discord IDs linked to this roblox_id.
     """
+
     cursor = mongo.bloxlink["users"].find(
-        {"$or": [{"robloxID": roblox_account.id}, {"robloxAccounts.accounts": roblox_account.id}]},
+        {"$or": [{"robloxID": roblox_user.id}, {"robloxAccounts.accounts": roblox_user.id}]},
         {"_id": 1},
     )
 
     return [x["_id"] async for x in cursor if str(exclude_user_id) != str(x["_id"])]
 
-async def get_user_from_string(target: str) -> RobloxUser:
-    """Get a RobloxAccount from a given target string (either an ID or username)
+async def get_user_from_string(target: Annotated[str, "Roblox username or ID"]) -> RobloxUser:
+    """Get a RobloxUser from a given target string (either an ID or username)
 
     Args:
         target (str): Roblox ID or username of the account to sync.
@@ -346,6 +347,7 @@ async def get_user_from_string(target: str) -> RobloxUser:
     Returns:
         RobloxAccount: The synced RobloxAccount of the user requested.
     """
+
     account = None
 
     if target.isdigit():
@@ -355,7 +357,7 @@ async def get_user_from_string(target: str) -> RobloxUser:
             pass
 
     # Fallback to parse input as a username if the input was not a valid id.
-    if account is None:
+    if not account:
         try:
             account = await get_user(roblox_username=target)
         except RobloxNotFound as exc:
@@ -370,10 +372,8 @@ async def get_user_from_string(target: str) -> RobloxUser:
     return account
 
 
-
-@define(kw_only=True)
 class MemberSerializable(BaseModel):
-    id: hikari.Snowflake = field(converter=int)
+    id: hikari.Snowflake
     username: str = None
     avatar_url: str = None
     display_name: str = None

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import re
-from attrs import define, field
-from typing import TYPE_CHECKING
-from ..fetch import fetch, fetch_typed
+from typing import TYPE_CHECKING, Annotated
+from pydantic import BaseModel, Field
+from ..fetch import fetch_typed
 from ..exceptions import RobloxAPIError, RobloxNotFound
 
 from .base import RobloxEntity
@@ -15,46 +15,44 @@ GROUP_API = "https://groups.roblox.com/v1/groups"
 ROBLOX_GROUP_REGEX = re.compile(r"roblox.com/groups/(\d+)/")
 
 
-@define(slots=True, kw_only=True)
-class GroupRoleset:
+class GroupRoleset(BaseModel):
     """Representation of a roleset in a Roblox group."""
 
     name: str
     rank: int # User-assigned rank ID
     id: int # Roblox-assigned roleset ID
-    memberCount: int = field(alias="member_count", default=None)
+    member_count: int = Field(alias="memberCount", default=None)
 
-@define(slots=True, kw_only=True)
-class RobloxRolesetResponse:
+
+class RobloxRoleset(BaseModel):
     """Representation of the response from the Roblox roleset API."""
 
-    groupId: int
+    group_id: int = Field(alias="groupId")
     roles: list[GroupRoleset]
 
-@define(slots=True, kw_only=True)
-class RobloxGroupOwnerResponse:
+
+class RobloxGroupOwner(BaseModel):
     """Representation of a group owner in a Roblox group."""
 
-    userId: int
+    user_id: int = Field(alias="userId")
     username: str
-    displayName: str
-    hasVerifiedBadge: bool
+    display_name: str = Field(alias="displayName")
+    has_verified_badge: bool = Field(alias="hasVerifiedBadge")
 
-@define(slots=True, kw_only=True)
-class RobloxGroupResponse:
+
+class RobloxGroupResponse(BaseModel):
     """Representation of the response from the Roblox group API."""
 
     id: int
     name: str
     description: str
-    memberCount: int
-    owner: RobloxGroupOwnerResponse
+    member_count: int = Field(alias="memberCount")
+    owner: RobloxGroupOwner
     shout: str | None
-    publicEntryAllowed: bool
-    hasVerifiedBadge: bool
+    public_entry_allowed: bool = Field(alias="publicEntryAllowed")
+    has_verified_badge: bool = Field(alias="hasVerifiedBadge")
 
 
-@define(kw_only=True, slots=True)
 class RobloxGroup(RobloxEntity):
     """Representation of a Group on Roblox.
 
@@ -67,11 +65,16 @@ class RobloxGroup(RobloxEntity):
     This is in addition to attributes provided by RobloxEntity.
     """
 
-    member_count: int = None
+    member_count: int = Field(alias="memberCount")
     rolesets: dict[int, GroupRoleset] = None
     user_roleset: GroupRoleset = None
+    shout: str | None
+    has_verified_badge: bool = Field(alias="hasVerifiedBadge")
+    owner: RobloxGroupOwner = None
+    public_entry_allowed: bool = Field(alias="publicEntryAllowed")
+    has_verified_badge: bool = Field(alias="hasVerifiedBadge")
 
-    def __attrs_post_init__(self):
+    def model_post_init(self, __context):
         self.url = f"https://www.roblox.com/groups/{self.id}"
 
     async def sync(self):
@@ -80,14 +83,14 @@ class RobloxGroup(RobloxEntity):
             return
 
         if self.rolesets is None:
-            roleset_data, _ = await fetch_typed(f"{GROUP_API}/{self.id}/roles", RobloxRolesetResponse)
+            roleset_data, _ = await fetch_typed(f"{GROUP_API}/{self.id}/roles", RobloxRoleset)
             self.rolesets = {int(roleset.rank): GroupRoleset(**roleset) for roleset in roleset_data.roles}
 
-        group_data, _ = await fetch_typed(f"{GROUP_API}/{self.id}", RobloxGroupResponse)
+        group_data, _ = await fetch_typed(f"{GROUP_API}/{self.id}", RobloxGroup)
 
         self.name = group_data.name
         self.description = group_data.description
-        self.member_count = group_data.memberCount
+        self.member_count = group_data.member_count
 
         self.synced = True
 
@@ -105,11 +108,6 @@ class RobloxGroup(RobloxEntity):
             if user_group:
                 self.user_roleset = user_group.user_roleset
 
-
-    def __str__(self) -> str:
-        name = f"**{self.name}**" if self.name else "*(Unknown Group)*"
-        return f"{name} ({self.id})"
-
     def roleset_name_string(self, roleset_id: int, bold_name=True, include_id=True) -> str:
         """Generate a nice string for a roleset name with failsafe capabilities.
 
@@ -121,9 +119,8 @@ class RobloxGroup(RobloxEntity):
         Returns:
             str: The roleset string as requested.
         """
-        roleset_name = self.rolesets.get(roleset_id, "")
-        if not roleset_name:
-            return str(roleset_id)
+
+        roleset_name = self.rolesets.get(roleset_id).name if self.rolesets else str(roleset_id)
 
         if bold_name:
             roleset_name = f"**{roleset_name}**"
@@ -131,11 +128,16 @@ class RobloxGroup(RobloxEntity):
         return f"{roleset_name} ({roleset_id})" if include_id else roleset_name
 
 
-async def get_group(group_id_or_url: str | int) -> RobloxGroup:
+    def __str__(self) -> str:
+        name = f"**{self.name}**" if self.name else "*(Unknown Group)*"
+        return f"{name} ({self.id})"
+
+
+async def get_group(group_id_or_url: Annotated[str | int, "Group ID or URL"]) -> RobloxGroup:
     """Get and sync a RobloxGroup.
 
     Args:
-        group_id_or_url (str): ID or URL of the group to retrieve
+        group_id_or_url (str | int): ID or URL of the group to retrieve
 
     Raises:
         RobloxNotFound: Raises RobloxNotFound when the Roblox API has an error.
@@ -152,7 +154,7 @@ async def get_group(group_id_or_url: str | int) -> RobloxGroup:
     else:
         group_id = group_id_or_url
 
-    group: RobloxGroup = RobloxGroup(id=group_id)
+    group = RobloxGroup(id=group_id)
 
     try:
         await group.sync()  # this will raise if the group doesn't exist

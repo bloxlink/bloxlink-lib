@@ -1,36 +1,14 @@
-from attrs import define, fields
+from pydantic import BaseModel
 from typing import Literal
-from datetime import datetime
 from abc import ABC, abstractmethod
 
 
-@define(slots=True, kw_only=True)
-class BaseModel: # pylint: disable=too-many-instance-attributes
-    """Base representation of a model."""
 
-    def to_dict(self) -> dict[str | int, str | int]:
-        """Convert the object into a dict of values."""
-
-        converted_fields = {}
-
-        for field in fields(self.__class__):
-            # convert types to strings
-            match getattr(self, field.name):
-                case datetime():
-                    converted_fields[field.name] = getattr(self, field.name).isoformat()
-
-            if hasattr(getattr(self, field.name), "to_dict"):
-                converted_fields[field.name] = getattr(self, field.name).to_dict()
-
-        return {field.name: converted_fields.get(field.name) or getattr(self, field.name) for field in fields(self.__class__)}
-
-
-@define(slots=True)
-class RobloxEntity(ABC):
+class RobloxEntity(BaseModel, ABC):
     """Representation of an entity on Roblox.
 
     Attributes:
-        id (str, optional): Roblox given ID of the entity.
+        id (str): Roblox given ID of the entity.
         name (str, optional): Name of the entity.
         description (str, optional): The description of the entity (if any).
         synced (bool): If this entity has been synced with Roblox or not. False by default.
@@ -68,22 +46,22 @@ def create_entity(
         case "asset":
             # from resources.api.roblox.assets import RobloxAsset  # pylint: disable=import-outside-toplevel
 
-            # return RobloxAsset(entity_id)
+            # return RobloxAsset(id=entity_id)
             raise NotImplementedError()
 
         case "badge":
             # from resources.api.roblox.badges import RobloxBadge  # pylint: disable=import-outside-toplevel
 
-            # return RobloxBadge(entity_id)
+            # return RobloxBadge(id=entity_id)
             raise NotImplementedError()
 
         case "gamepass":
             # from resources.api.roblox.gamepasses import RobloxGamepass  # pylint: disable=import-outside-toplevel
 
-            # return RobloxGamepass(entity_id)
+            # return RobloxGamepass(id=entity_id)
             raise NotImplementedError()
 
         case "group":
             from .groups import RobloxGroup  # pylint: disable=import-outside-toplevel
 
-            return RobloxGroup(entity_id)
+            return RobloxGroup(id=entity_id)

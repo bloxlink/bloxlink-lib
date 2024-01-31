@@ -1,8 +1,9 @@
 from __future__ import annotations
-from typing import Literal, TypedDict, NotRequired, TYPE_CHECKING
-from attrs import define, field, asdict
+from typing import Literal, NotRequired, TYPE_CHECKING
 
-from ..models.base import BaseModel, RobloxEntity, create_entity
+from pydantic import BaseModel, Field
+
+from ..models.base import RobloxEntity, create_entity
 
 if TYPE_CHECKING:
     from .guilds import RoleSerializable
@@ -14,22 +15,26 @@ POP_OLD_BINDS: bool = False
 VALID_BIND_TYPES = Literal["group", "asset", "badge", "gamepass", "verified", "unverified"]
 
 
-class GroupBindData(TypedDict):
+class GroupBindData(BaseModel):
     """Represents the data required for a group bind."""
 
-    min: NotRequired[int]
-    max: NotRequired[int]
-    roleset: NotRequired[int]
     everyone: bool
     guest: bool
+    min: int = None
+    max: int = None
+    roleset: int = None
 
-class BindCriteria(TypedDict):
+class BindCriteria(BaseModel):
     """Represents the criteria required for a bind. If anything is set, it must ALL be met."""
 
     type: VALID_BIND_TYPES
-    id: NotRequired[int]
+    id: int = None
 
-    group: NotRequired[GroupBindData]
+    group: GroupBindData = None
+    # asset
+    # badge
+    # gamepass
+
 
 class BindToDict(TypedDict):
     """Represents the top level of a bind."""
@@ -40,7 +45,7 @@ class BindToDict(TypedDict):
 
     criteria: BindCriteria
 
-@define(slots=True, kw_only=True)
+
 class GuildBind(BaseModel):
     """Represents a role binding from the database.
 
@@ -55,13 +60,13 @@ class GuildBind(BaseModel):
     """
 
     nickname: str = None
-    roles: list[str] = field(factory=list, converter=lambda roles: roles or [])
-    removeRoles: list[str] = field(factory=list, converter=lambda remove_roles: remove_roles or [])
+    roles: list[str] = Field(default_factory=list)
+    remove_roles: list[str] = Field(default_factory=list, alias="removeRoles")
 
     criteria: BindCriteria
-    entity: RobloxEntity = None
+    entity: RobloxEntity = Field(exclude=True, default=None)
 
-    def __attrs_post_init__(self):
+    def model_post_init(self, __context):
         self.entity = self.entity or create_entity(self.criteria["type"], self.criteria["id"])
 
     async def satisfies_for(self, guild_roles: dict[str, RoleSerializable], member: MemberSerializable, roblox_user: RobloxUser | None = None) -> tuple[bool, list[RoleSerializable]]:
@@ -118,12 +123,6 @@ class GuildBind(BaseModel):
 
 
         return False
-
-    def to_dict(self) -> BindToDict:
-        data = asdict(self)
-        data.pop("entity", None)
-
-        return data
 
 
 # async def get_binds(guild_id: int | str) -> list[GuildBind]:

@@ -1,16 +1,21 @@
-from typing import Mapping, Self
-from attrs import define, field
+from typing import Mapping, Self, Type
+from pydantic import BaseModel, Field, field_validator
 import hikari
-from .base import BaseModel
+# from .base import BaseModel
 import bloxlink_lib.models.binds as binds_module
 
 
-@define(slots=True)
-class GuildData:
+class GuildData(BaseModel):
     """Representation of the stored settings for a guild"""
 
     id: int
-    binds: list[binds_module.GuildBind] = field(factory=list, converter=lambda bind_list: [binds_module.GuildBind(**b) for b in bind_list])
+    binds: list[binds_module.GuildBind] = Field(default_factory=list)
+
+    @field_validator("binds", mode="before")
+    @classmethod
+    def transform_binds(cls: Type[Self], binds: list) -> list[binds_module.GuildBind]:
+        return [binds_module.GuildBind(**b) for b in binds]
+
 
     verifiedRoleEnabled: bool = True
     verifiedRoleName: str = "Verified"  # deprecated
@@ -21,26 +26,26 @@ class GuildData:
     unverifiedRole: str = None
 
     ageLimit: int = None
-    autoRoles: bool = None
-    autoVerification: bool = None
-    disallowAlts: bool = None
-    disallowBanEvaders: str = None  # Site sets it to "ban" when enabled. Null when disabled.
-    dynamicRoles: bool = None
+    autoRoles: bool = True
+    autoVerification: bool = True
+    disallowAlts: bool = False
+    disallowBanEvaders: str = False  # Site sets it to "ban" when enabled. Null when disabled.
+    dynamicRoles: bool = True
     groupLock: dict = None
-    highTrafficServer: bool = None
+    highTrafficServer: bool = False
 
     nicknameTemplate: str = "{smart-name}"
 
-    premium: dict = field(factory=dict) # deprecated
+    premium: dict = Field(default_factory=dict) # deprecated
 
-    affiliate: dict = None
+    affiliate: dict = None # deprecated
 
     # Old bind fields.
     roleBinds: dict = None
     groupIDs: dict = None
     converted_binds: bool = False
 
-    def __attrs_post_init__(self):
+    def model_post_init(self, __context):
         # merge verified roles into binds
         if self.verifiedRole:
             self.binds.append(binds_module.GuildBind(criteria={"type": "verified"}, roles=[self.verifiedRole]))
@@ -52,9 +57,8 @@ class GuildData:
         #     self.binds.append(GuildBind(criteria={"type": "verified"}, roles=[self.verifiedRole]))
 
 
-@define(kw_only=True)
 class RoleSerializable(BaseModel):
-    id: hikari.Snowflake = field(converter=int)
+    id: hikari.Snowflake
     name: str = None
     color: int = None
     is_hoisted: bool = None
@@ -81,11 +85,15 @@ class RoleSerializable(BaseModel):
             is_mentionable=role.is_mentionable
         )
 
-@define(kw_only=True)
 class GuildSerializable(BaseModel):
-    id: hikari.Snowflake = field(converter=int)
+    id: hikari.Snowflake
     name: str = None
-    roles: Mapping[hikari.Snowflake, RoleSerializable] = field(converter=lambda roles: {int(r_id): RoleSerializable.from_hikari(r) for r_id, r in roles.items()})
+    roles: Mapping[hikari.Snowflake, RoleSerializable] = Field(default_factory=dict)
+
+    @field_validator("roles", mode="before")
+    @classmethod
+    def transform_roles(cls: Type[Self], roles: list) -> Mapping[hikari.Snowflake, RoleSerializable]:
+        return {int(r_id): RoleSerializable.from_hikari(r) for r_id, r in roles.items()}
 
     @staticmethod
     def from_hikari(guild: hikari.RESTGuild | Self) -> 'GuildSerializable':

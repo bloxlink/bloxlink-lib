@@ -85,7 +85,7 @@ class RoleSerializable(BaseModel):
 class GuildSerializable(BaseModel):
     id: hikari.Snowflake = field(converter=int)
     name: str = None
-    roles: Mapping[hikari.Snowflake, RoleSerializable] = field(converter=lambda roles: {int(r_id): RoleSerializable.from_hikari(r).to_dict() for r_id, r in roles.items()})
+    roles: Mapping[hikari.Snowflake, RoleSerializable] = field(converter=lambda roles: {int(r_id): RoleSerializable.from_hikari(r) for r_id, r in roles.items()})
 
     @staticmethod
     def from_hikari(guild: hikari.RESTGuild | Self) -> 'GuildSerializable':

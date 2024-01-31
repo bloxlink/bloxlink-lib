@@ -11,12 +11,18 @@ class BaseModel: # pylint: disable=too-many-instance-attributes
     def to_dict(self) -> dict[str | int, str | int]:
         """Convert the object into a dict of values."""
 
+        converted_fields = {}
+
         for field in fields(self.__class__):
+            # convert types to strings
             match getattr(self, field.name):
                 case datetime():
-                    setattr(self, field.name, getattr(self, field.name).isoformat())
+                    converted_fields[field.name] = getattr(self, field.name).isoformat()
 
-        return {field.name: getattr(self, field.name) for field in fields(self.__class__)}
+            if hasattr(getattr(self, field.name), "to_dict"):
+                converted_fields[field.name] = getattr(self, field.name).to_dict()
+
+        return {field.name: converted_fields.get(field.name) or getattr(self, field.name) for field in fields(self.__class__)}
 
 
 @define(slots=True)

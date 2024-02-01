@@ -4,6 +4,7 @@ from typing import Literal, TYPE_CHECKING
 from pydantic import BaseModel, Field
 
 from ..models.base import RobloxEntity, create_entity
+from ..database import fetch_guild_data
 
 if TYPE_CHECKING:
     from .guilds import RoleSerializable
@@ -125,58 +126,58 @@ class GuildBind(BaseModel):
         return False
 
 
-# async def get_binds(guild_id: int | str) -> list[GuildBind]:
-#     """Get the current guild binds.
+async def get_binds(guild_id: int | str) -> list[GuildBind]:
+    """Get the current guild binds.
 
-#     Old binds will be included by default, but will not be saved in the database in the
-#     new format unless the POP_OLD_BINDS flag is set to True. While it is False, old formatted binds will
-#     be left as is.
-#     """
+    Old binds will be included by default, but will not be saved in the database in the
+    new format unless the POP_OLD_BINDS flag is set to True. While it is False, old formatted binds will
+    be left as is.
+    """
 
-#     guild_id = str(guild_id)
-#     guild_data = await guilds.fetch_guild_data(
-#         guild_id, "binds", "groupIDs", "roleBinds", "converted_binds"
-#     )
+    guild_id = str(guild_id)
+    guild_data = await fetch_guild_data(guild_id, "binds")
 
-#     # Convert and save old bindings in the new format
-#     # if not guild_data.converted_binds and (
-#     #     guild_data.groupIDs is not None or guild_data.roleBinds is not None
-#     # ):
-#     #     old_binds = []
+    return guild_data.binds
 
-#     #     if guild_data.groupIDs:
-#     #         old_binds.extend(convert_v3_binds_to_v4(guild_data.groupIDs, "group"))
+    # Convert and save old bindings in the new format
+    # if not guild_data.converted_binds and (
+    #     guild_data.groupIDs is not None or guild_data.roleBinds is not None
+    # ):
+    #     old_binds = []
 
-#     #     if guild_data.roleBinds:
-#     #         gamepasses = guild_data.roleBinds.get("gamePasses")
-#     #         if gamepasses:
-#     #             old_binds.extend(convert_v3_binds_to_v4(gamepasses, "gamepass"))
+    #     if guild_data.groupIDs:
+    #         old_binds.extend(convert_v3_binds_to_v4(guild_data.groupIDs, "group"))
 
-#     #         assets = guild_data.roleBinds.get("assets")
-#     #         if assets:
-#     #             old_binds.extend(convert_v3_binds_to_v4(assets, "asset"))
+    #     if guild_data.roleBinds:
+    #         gamepasses = guild_data.roleBinds.get("gamePasses")
+    #         if gamepasses:
+    #             old_binds.extend(convert_v3_binds_to_v4(gamepasses, "gamepass"))
 
-#     #         badges = guild_data.roleBinds.get("badges")
-#     #         if badges:
-#     #             old_binds.extend(convert_v3_binds_to_v4(badges, "badge"))
+    #         assets = guild_data.roleBinds.get("assets")
+    #         if assets:
+    #             old_binds.extend(convert_v3_binds_to_v4(assets, "asset"))
 
-#     #         group_ranks = guild_data.roleBinds.get("groups")
-#     #         if group_ranks:
-#     #             old_binds.extend(convert_v3_binds_to_v4(group_ranks, "group"))
+    #         badges = guild_data.roleBinds.get("badges")
+    #         if badges:
+    #             old_binds.extend(convert_v3_binds_to_v4(badges, "badge"))
 
-#     #     if old_binds:
-#     #         # Prevent duplicates from being made. Can't use sets because dicts aren't hashable
-#     #         guild_data.binds.extend(bind for bind in old_binds if bind not in guild_data.binds)
+    #         group_ranks = guild_data.roleBinds.get("groups")
+    #         if group_ranks:
+    #             old_binds.extend(convert_v3_binds_to_v4(group_ranks, "group"))
 
-#     #         await update_guild_data(guild_id, binds=guild_data.binds, converted_binds=True)
-#     #         guild_data.converted_binds = True
+    #     if old_binds:
+    #         # Prevent duplicates from being made. Can't use sets because dicts aren't hashable
+    #         guild_data.binds.extend(bind for bind in old_binds if bind not in guild_data.binds)
 
-#     # if POP_OLD_BINDS and guild_data.converted_binds:
-#     #     await update_guild_data(guild_id, groupIDs=None, roleBinds=None, converted_binds=None)
+    #         await update_guild_data(guild_id, binds=guild_data.binds, converted_binds=True)
+    #         guild_data.converted_binds = True
 
-#     return [
-#         GuildBind(**bind) for bind in guild_data.binds
-#     ]
+    # if POP_OLD_BINDS and guild_data.converted_binds:
+    #     await update_guild_data(guild_id, groupIDs=None, roleBinds=None, converted_binds=None)
+
+    # return [
+    #     GuildBind(**bind) for bind in guild_data.binds
+    # ]
 
 
 # def convert_v3_binds_to_v4(items: dict, bind_type: str) -> list:

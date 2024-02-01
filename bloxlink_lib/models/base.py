@@ -1,8 +1,9 @@
-from pydantic import BaseModel
-from typing import Literal
+from pydantic import BaseModel, BeforeValidator, WithJsonSchema
+from typing import Literal, Annotated
 from abc import ABC, abstractmethod
 
 
+Snowflake = Annotated[int, BeforeValidator(int), WithJsonSchema({"type": 'int'})]
 
 class RobloxEntity(BaseModel, ABC):
     """Representation of an entity on Roblox.

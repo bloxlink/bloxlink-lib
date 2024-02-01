@@ -2,7 +2,6 @@ from typing import Sequence, Self, Annotated, Literal
 from pydantic import BaseModel, Field
 import math
 from datetime import datetime
-import urlib
 import hikari
 from dateutil import parser
 from ..fetch import fetch, fetch_typed, StatusCodes
@@ -10,6 +9,7 @@ from ..config import CONFIG
 from ..exceptions import RobloxNotFound, RobloxAPIError, UserNotVerified
 from ..database import fetch_user_data, mongo
 from .groups import RobloxGroup, GroupRoleset
+from .base import Snowflake
 
 VALID_INFO_SERVER_SCOPES: list[Literal["groups", "badges"]] = ["groups", "badges"]
 
@@ -373,7 +373,7 @@ async def get_user_from_string(target: Annotated[str, "Roblox username or ID"]) 
 
 
 class MemberSerializable(BaseModel):
-    id: hikari.Snowflake
+    id: Snowflake
     username: str = None
     avatar_url: str = None
     display_name: str = None

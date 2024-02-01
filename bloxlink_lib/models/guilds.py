@@ -1,7 +1,7 @@
-from typing import Mapping, Self, Type
-from pydantic import BaseModel, Field, field_validator
+from typing import Mapping, Self, Type, Annotated
+from pydantic import BaseModel, Field, field_validator, WithJsonSchema, BeforeValidator
 import hikari
-# from .base import BaseModel
+from .base import Snowflake
 import bloxlink_lib.models.binds as binds_module
 
 
@@ -63,7 +63,7 @@ class RoleSerializable(BaseModel):
     color: int = None
     is_hoisted: bool = None
     position: int = None
-    permissions: hikari.Permissions = None
+    permissions: Snowflake = None
     is_managed: bool = None
     is_mentionable: bool = None
 
@@ -86,7 +86,7 @@ class RoleSerializable(BaseModel):
         )
 
 class GuildSerializable(BaseModel):
-    id: hikari.Snowflake
+    id: Snowflake
     name: str = None
     roles: Mapping[hikari.Snowflake, RoleSerializable] = Field(default_factory=dict)
 

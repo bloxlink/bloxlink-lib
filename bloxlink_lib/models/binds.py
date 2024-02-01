@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Literal, NotRequired, TYPE_CHECKING
+from typing import Literal, TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
@@ -36,14 +36,14 @@ class BindCriteria(BaseModel):
     # gamepass
 
 
-class BindToDict(TypedDict):
-    """Represents the top level of a bind."""
+# class BindToDict(BaseModel):
+#     """Represents the top level of a bind."""
 
-    nickname: str
-    roles: list
-    removeRoles: list
+#     nickname: str
+#     roles: list
+#     removeRoles: list
 
-    criteria: BindCriteria
+#     criteria: BindCriteria
 
 
 class GuildBind(BaseModel):

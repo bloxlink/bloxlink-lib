@@ -5,6 +5,12 @@ from abc import ABC, abstractmethod
 
 Snowflake = Annotated[int, BeforeValidator(int), WithJsonSchema({"type": 'int'})]
 
+
+class BaseModelArbitraryTypes(BaseModel):
+    class Config:
+        arbitrary_types_allowed = True # TODO: remove this
+
+
 class RobloxEntity(BaseModel, ABC):
     """Representation of an entity on Roblox.
 

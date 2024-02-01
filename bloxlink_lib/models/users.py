@@ -379,7 +379,7 @@ class MemberSerializable(BaseModel):
     display_name: str = None
     is_bot: bool = None
     joined_at: str = None
-    role_ids: Sequence[hikari.Snowflake] = None
+    role_ids: Sequence[Snowflake] = None
     guild_id: int = None
     avatar_hash: str = None
     nickname: str = None

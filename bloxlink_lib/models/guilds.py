@@ -58,7 +58,7 @@ class GuildData(BaseModel):
 
 
 class RoleSerializable(BaseModel):
-    id: hikari.Snowflake
+    id: Snowflake
     name: str = None
     color: int = None
     is_hoisted: bool = None
@@ -88,11 +88,11 @@ class RoleSerializable(BaseModel):
 class GuildSerializable(BaseModel):
     id: Snowflake
     name: str = None
-    roles: Mapping[hikari.Snowflake, RoleSerializable] = Field(default_factory=dict)
+    roles: Mapping[Snowflake, RoleSerializable] = Field(default_factory=dict)
 
     @field_validator("roles", mode="before")
     @classmethod
-    def transform_roles(cls: Type[Self], roles: list) -> Mapping[hikari.Snowflake, RoleSerializable]:
+    def transform_roles(cls: Type[Self], roles: list) -> Mapping[Snowflake, RoleSerializable]:
         return {int(r_id): RoleSerializable.from_hikari(r) for r_id, r in roles.items()}
 
     @staticmethod

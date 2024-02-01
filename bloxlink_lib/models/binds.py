@@ -132,7 +132,7 @@ class GuildBind(BaseModel):
         return False
 
 
-async def get_binds(guild_id: int | str) -> list[GuildBind]:
+async def get_binds(guild_id: int | str, category: VALID_BIND_TYPES = None) -> list[GuildBind]:
     """Get the current guild binds.
 
     Old binds will be included by default, but will not be saved in the database in the
@@ -143,7 +143,7 @@ async def get_binds(guild_id: int | str) -> list[GuildBind]:
     guild_id = str(guild_id)
     guild_data = await database.fetch_guild_data(guild_id, "binds")
 
-    return guild_data.binds
+    return list(filter([b for b in guild_data.binds if b.type == category] if category else guild_data.binds))
 
     # Convert and save old bindings in the new format
     # if not guild_data.converted_binds and (

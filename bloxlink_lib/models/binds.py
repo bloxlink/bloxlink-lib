@@ -67,10 +67,14 @@ class GuildBind(BaseModel):
     criteria: BindCriteria
     entity: RobloxEntity = Field(exclude=True, default=None)
     type: Literal["group", "asset", "badge", "gamepass", "verified", "unverified"] | None = Field(exclude=True, default=None)
+    subtype: Literal["linked_group", "full_group"] | None = Field(exclude=True, default=None)
 
     def model_post_init(self, __context):
         self.entity = self.entity or create_entity(self.criteria["type"], self.criteria["id"])
         self.type = self.criteria.type
+
+        if self.type == "group":
+            self.subtype = "linked_group" if (self.criteria.group.roleset or (self.criteria.group.min and self.criteria.group.max)) else "full_group"
 
     async def satisfies_for(self, guild_roles: dict[str, RoleSerializable], member: MemberSerializable, roblox_user: RobloxUser | None = None) -> tuple[bool, list[RoleSerializable]]:
         """Check if a user satisfies the requirements for this bind."""

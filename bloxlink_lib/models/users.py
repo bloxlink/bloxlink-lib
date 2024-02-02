@@ -77,13 +77,13 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
     username: str = None
 
     # these fields are provided after sync() is called
-    banned: bool = Field(alias="isBanned")
+    banned: bool = Field(alias="isBanned", default=None)
     age_days: int = None
     groups: dict[str, RobloxGroup] = None
     avatar: str = None
     description: str = None
-    profile_link: str = Field(alias="profileLink")
-    display_name: str = Field(alias="displayName")
+    profile_link: str = Field(alias="profileLink", default=None)
+    display_name: str = Field(alias="displayName", default=None)
     created: str = None
     badges: list = None
     short_age_string: str = None

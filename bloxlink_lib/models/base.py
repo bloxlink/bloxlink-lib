@@ -19,13 +19,13 @@ class BaseModelConfig:
 class BaseModelArbitraryTypes(PydanticBaseModel):
     """Base model with arbitrary types allowed."""
 
-    Config = BaseModelConfig(arbitrary_types_allowed=True)
+    Config = type(BaseModelConfig(arbitrary_types_allowed=True))
 
 
 class BaseModel(PydanticBaseModel):
     """Base model with a set configuration."""
 
-    Config = BaseModelConfig()
+    Config = BaseModelConfig
 
 
 class RobloxEntity(BaseModel, ABC):

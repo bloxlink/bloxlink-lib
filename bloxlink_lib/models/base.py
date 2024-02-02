@@ -1,6 +1,6 @@
 from typing import Literal, Annotated
 from abc import ABC, abstractmethod
-from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema
+from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict
 
 
 
@@ -19,13 +19,13 @@ class BaseModelConfig:
 class BaseModelArbitraryTypes(PydanticBaseModel):
     """Base model with arbitrary types allowed."""
 
-    Config = type(BaseModelConfig(arbitrary_types_allowed=True))
+    model_config = ConfigDict(arbitrary_types_allowed=True, populate_by_name=True)
 
 
 class BaseModel(PydanticBaseModel):
     """Base model with a set configuration."""
 
-    Config = BaseModelConfig
+    model_config = ConfigDict(arbitrary_types_allowed=True, populate_by_name=True)
 
 
 class RobloxEntity(BaseModel, ABC):

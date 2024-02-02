@@ -3,7 +3,7 @@ import logging
 from enum import IntEnum
 from typing import Literal, Type, Union, Tuple, Any
 from aiohttp import ClientResponse
-from pydantic import BaseModel
+from bloxlink_lib.models.base import BaseModel
 from pydantic_core import to_json
 import aiohttp
 from requests.utils import requote_uri

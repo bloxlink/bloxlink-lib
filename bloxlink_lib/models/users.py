@@ -1,5 +1,5 @@
-from typing import Sequence, Self, Annotated, Literal, TypedDict, Type
-from pydantic import BaseModel, Field, field_validator
+from typing import Sequence, Self, Annotated, Literal
+from pydantic import Field
 import math
 from datetime import datetime
 import hikari
@@ -9,7 +9,7 @@ from ..config import CONFIG
 from ..exceptions import RobloxNotFound, RobloxAPIError, UserNotVerified
 from ..database import fetch_user_data, mongo
 from .groups import RobloxGroup, GroupRoleset
-from .base import Snowflake
+from .base import Snowflake, BaseModel
 
 VALID_INFO_SERVER_SCOPES: list[Literal["groups", "badges"]] = ["groups", "badges"]
 
@@ -74,10 +74,10 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
 
     # must provide one of these
     id: int
-    username: str | None = Field(default=None)
+    username: str | None = Field(default=None, alias="name")
 
     # these fields are provided after sync() is called
-    banned: bool | None = Field(alias="isBanned", default=None)
+    banned: bool = Field(alias="isBanned")
     age_days: int = None
     groups: dict[str, RobloxGroup] = Field(alias="groupsv2", default=None)
 
@@ -139,10 +139,11 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
             self.description = roblox_user_data.description
             self.username = roblox_user_data.username
             self.banned = roblox_user_data.banned
-            self.profile_link = roblox_user_data.profile_link
             self.badges = roblox_user_data.badges
             self.display_name = roblox_user_data.display_name
             self.created = roblox_user_data.created
+            self.avatar = roblox_user_data.avatar
+            self.profile_link = roblox_user_data.profile_link
 
             await self.parse_groups(roblox_user_data.groups, sync_groups)
 

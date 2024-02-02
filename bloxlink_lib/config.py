@@ -1,6 +1,6 @@
-from pydantic import BaseModel
 from dotenv import dotenv_values
 from os import getcwd
+from .models.base import BaseModel
 
 
 class Config(BaseModel):

@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import re
 from typing import TYPE_CHECKING, Annotated
-from pydantic import BaseModel, Field
+from pydantic import Field
 from ..fetch import fetch_typed
 from ..exceptions import RobloxAPIError, RobloxNotFound
 
-from .base import RobloxEntity
+from .base import RobloxEntity, BaseModel
 
 if TYPE_CHECKING:
     from .users import RobloxUser

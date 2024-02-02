@@ -1,9 +1,9 @@
 from __future__ import annotations
 from typing import Literal, TYPE_CHECKING
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
-from ..models.base import RobloxEntity, create_entity
+from ..models.base import RobloxEntity, create_entity, BaseModel
 import bloxlink_lib.database as database
 
 if TYPE_CHECKING:

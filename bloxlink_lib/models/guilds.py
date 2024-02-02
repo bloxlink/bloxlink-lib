@@ -1,7 +1,7 @@
-from typing import Mapping, Self, Type, Annotated
-from pydantic import BaseModel, Field, field_validator, WithJsonSchema, BeforeValidator
+from typing import Mapping, Self, Type
+from pydantic import Field, field_validator
 import hikari
-from .base import Snowflake
+from .base import Snowflake, BaseModel
 import bloxlink_lib.models.binds as binds_module
 
 

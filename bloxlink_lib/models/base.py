@@ -1,29 +1,31 @@
 from typing import Literal, Annotated
 from abc import ABC, abstractmethod
-from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict
+from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema
 
 
 
 Snowflake = Annotated[int, BeforeValidator(int), WithJsonSchema({"type": 'int'})]
 
 
-BaseModelConfig = ConfigDict(
-    populate_by_name=True
-)
+class BaseModelConfig:
+    """Configuration for a base model."""
+
+    populate_by_name = True
+
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
 
 
 class BaseModelArbitraryTypes(PydanticBaseModel):
     """Base model with arbitrary types allowed."""
 
-    model_config = BaseModelConfig.update(
-        arbitrary_types_allowed=True
-    )
+    Config = BaseModelConfig(arbitrary_types_allowed=True)
 
 
 class BaseModel(PydanticBaseModel):
     """Base model with a set configuration."""
 
-    model_config = BaseModelConfig
+    Config = BaseModelConfig()
 
 
 class RobloxEntity(BaseModel, ABC):

@@ -105,7 +105,6 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
                 True retrieves all available data; otherwise, a list can be passed with either
                 "groups", "presences", and/or "badges" in it.
             cache (bool, optional): Should we check the object for values before retrieving. Defaults to True.
-            sync_groups (bool, optional): Should we sync the groups of this user. Requires a REST call for each group. Defaults to False.
         """
 
         if includes is not None and any((x is False or x not in [*VALID_INFO_SERVER_SCOPES, True, None]) for x in includes):
@@ -144,8 +143,6 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
             self.profile_link = roblox_user_data.profile_link
             self.groups = roblox_user_data.groups
 
-            # await self.parse_groups(roblox_user_data.groups, sync_groups)
-
             self.parse_age()
 
             avatar = roblox_user_data.avatar
@@ -173,34 +170,6 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
             else:
                 ending = f"day{((self.age_days > 1 or self.age_days == 0) and 's') or ''}"
                 self.short_age_string = f"{self.age_days} {ending} ago"
-
-    async def parse_groups(self, group_json: dict[str, RobloxUserGroups] | None, sync_groups: bool = False):
-        """Determine what groups this user is in from a json response.
-
-        Args:
-            group_json (dict | None): JSON input from Roblox representing a user's groups.
-            sync_groups (bool, optional): Should we sync the groups of this user. Requires a REST call for each group. Defaults to False.
-        """
-
-        if group_json is None:
-            return
-
-        self.groups = {}
-
-        for group_id, group_data in group_json.items():
-            group_meta = group_data.group
-            group_role = group_data.role
-
-            group = RobloxGroup(
-                id=str(group_id),
-                name=group_meta["name"],
-                user_roleset=group_role,
-            )
-
-            if sync_groups:
-                await group.sync()
-
-            self.groups[group.id] = group
 
 
 async def get_user_account(

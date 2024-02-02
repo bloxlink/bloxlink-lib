@@ -7,25 +7,17 @@ from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSc
 Snowflake = Annotated[int, BeforeValidator(int), WithJsonSchema({"type": 'int'})]
 
 
-class BaseModelConfig:
-    """Configuration for a base model."""
-
-    populate_by_name = True
-
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
-
-
 class BaseModelArbitraryTypes(PydanticBaseModel):
     """Base model with arbitrary types allowed."""
 
-    model_config = ConfigDict(arbitrary_types_allowed=True, populate_by_name=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True,
+                              populate_by_name=True)
 
 
 class BaseModel(PydanticBaseModel):
     """Base model with a set configuration."""
 
-    model_config = ConfigDict(arbitrary_types_allowed=True, populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class RobloxEntity(BaseModel, ABC):

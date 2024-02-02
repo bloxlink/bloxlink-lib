@@ -21,7 +21,7 @@ class GroupRoleset(BaseModel):
     name: str
     rank: int # User-assigned rank ID
     id: int # Roblox-assigned roleset ID
-    member_count: int = Field(alias="memberCount", default=None)
+    member_count: int | None = Field(alias="memberCount", default=None)
 
 
 class RobloxRoleset(BaseModel):

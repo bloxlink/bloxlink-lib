@@ -70,7 +70,7 @@ class GuildBind(BaseModel):
     subtype: Literal["linked_group", "full_group"] | None = Field(exclude=True, default=None)
 
     def model_post_init(self, __context):
-        self.entity = self.entity or create_entity(self.criteria["type"], self.criteria["id"])
+        self.entity = self.entity or create_entity(self.criteria.type, self.criteria.id)
         self.type = self.criteria.type
 
         if self.type == "group":

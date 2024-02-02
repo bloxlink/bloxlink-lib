@@ -123,12 +123,10 @@ async def fetch[T](
                 if parse_as == "BYTES":
                     return await response.read(), response
 
-                print(parse_as, isinstance(parse_as, BaseModel))
-
                 if issubclass(parse_as, BaseModel):
                     json_response = await response.json()
                     # Filter only relevant fields before constructing the pydantic instance
-                    relevant_fields = {field_name: json_response[field_name] for field_name in parse_as.model_fields.keys() if field_name in json_response}
+                    relevant_fields = {field_name: json_response.get(field_name, json_response.get(field.alias)) for field_name, field in parse_as.model_fields.items() if field_name in json_response or field.alias in json_response}
                     return parse_as(**relevant_fields), response
 
                 if isinstance(parse_as, dict):

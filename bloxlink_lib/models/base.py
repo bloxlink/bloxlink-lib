@@ -30,7 +30,7 @@ class RobloxEntity(BaseModel, ABC):
         synced (bool): If this entity has been synced with Roblox or not. False by default.
     """
 
-    id: str
+    id: int
     name: str = None
     description: str = None
     synced: bool = False

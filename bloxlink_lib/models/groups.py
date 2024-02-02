@@ -65,14 +65,14 @@ class RobloxGroup(RobloxEntity):
     This is in addition to attributes provided by RobloxEntity.
     """
 
-    member_count: int = Field(alias="memberCount")
+    member_count: int = Field(alias="memberCount", default=None)
     rolesets: dict[int, GroupRoleset] = None
     user_roleset: GroupRoleset = None
-    shout: str | None
-    has_verified_badge: bool = Field(alias="hasVerifiedBadge")
+    shout: str = Field(default=None)
+    has_verified_badge: bool = Field(alias="hasVerifiedBadge", default=None)
     owner: RobloxGroupOwner = None
-    public_entry_allowed: bool = Field(alias="publicEntryAllowed")
-    has_verified_badge: bool = Field(alias="hasVerifiedBadge")
+    public_entry_allowed: bool = Field(alias="publicEntryAllowed", default=None)
+    has_verified_badge: bool = Field(alias="hasVerifiedBadge", default=None)
 
     def model_post_init(self, __context):
         self.url = f"https://www.roblox.com/groups/{self.id}"

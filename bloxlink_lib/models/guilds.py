@@ -1,5 +1,5 @@
-from typing import Mapping, Self, Type
-from pydantic import Field, field_validator
+from typing import Mapping, Self, Type, Annotated
+from pydantic import Field, field_validator, BeforeValidator, AfterValidator
 import hikari
 from .base import Snowflake, BaseModel
 import bloxlink_lib.models.binds as binds_module
@@ -9,11 +9,13 @@ class GuildData(BaseModel):
     """Representation of the stored settings for a guild"""
 
     id: int
-    binds: list[binds_module.GuildBind] = Field(default_factory=list)
+    binds: list[binds_module.GuildBind] = Annotated[dict, Field(default_factory=list)]
 
     @field_validator("binds", mode="before")
     @classmethod
     def transform_binds(cls: Type[Self], binds: list) -> list[binds_module.GuildBind]:
+        print("transforming binds", binds)
+        print([binds_module.GuildBind(**b) for b in binds])
         return [binds_module.GuildBind(**b) for b in binds]
 
 

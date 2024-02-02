@@ -1,9 +1,10 @@
 import asyncio
 import logging
 from enum import IntEnum
-from typing import Literal, Type, Union, Tuple
+from typing import Literal, Type, Union, Tuple, Any
 from aiohttp import ClientResponse
 from pydantic import BaseModel
+from pydantic_core import to_json
 import aiohttp
 from requests.utils import requote_uri
 
@@ -27,6 +28,11 @@ class StatusCodes(IntEnum):
     INTERNAL_SERVER_ERROR = 500
     SERVICE_UNAVAILABLE = 503
     GATEWAY_TIMEOUT = 504
+
+
+
+def _bytes_to_str_wrapper(data: Any) -> str:
+    return to_json(data).decode("utf-8")
 
 
 async def fetch[T](
@@ -73,7 +79,7 @@ async def fetch[T](
     headers = headers or {}
 
     if not session:
-        session = aiohttp.ClientSession()
+        session = aiohttp.ClientSession(json_serialize=_bytes_to_str_wrapper)
 
     url = requote_uri(url)
 
@@ -117,7 +123,9 @@ async def fetch[T](
                 if parse_as == "BYTES":
                     return await response.read(), response
 
-                if isinstance(parse_as, BaseModel):
+                print(parse_as, isinstance(parse_as, BaseModel))
+
+                if issubclass(parse_as, BaseModel):
                     json_response = await response.json()
                     # Filter only relevant fields before constructing the pydantic instance
                     relevant_fields = {field_name: json_response[field_name] for field_name in parse_as.model_fields.keys() if field_name in json_response}

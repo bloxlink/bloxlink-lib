@@ -1,5 +1,5 @@
-from typing import Sequence, Self, Annotated, Literal
-from pydantic import BaseModel, Field
+from typing import Sequence, Self, Annotated, Literal, TypedDict, Type
+from pydantic import BaseModel, Field, field_validator
 import math
 from datetime import datetime
 import hikari
@@ -73,19 +73,22 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
     """Representation of a user on Roblox."""
 
     # must provide one of these
-    id: str
+    id: int
     username: str = None
 
     # these fields are provided after sync() is called
     banned: bool = Field(alias="isBanned", default=None)
     age_days: int = None
-    groups: dict[str, RobloxGroup] = None
-    avatar: str = None
+    groups: dict[str, RobloxGroup] | None = Field(alias="groupsv2", default=None)
+
+    avatar: RobloxUserAvatar = None
+    avatar_url: str | None = None
+
     description: str = None
     profile_link: str = Field(alias="profileLink", default=None)
     display_name: str = Field(alias="displayName", default=None)
     created: str = None
-    badges: list = None
+    badges: list | None = None
     short_age_string: str = None
 
     _complete: bool = False
@@ -134,7 +137,7 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
         if user_data_response.status == StatusCodes.OK:
             self.id = roblox_user_data.id
             self.description = roblox_user_data.description
-            self.username = roblox_user_data.name
+            self.username = roblox_user_data.username
             self.banned = roblox_user_data.banned
             self.profile_link = roblox_user_data.profile_link
             self.badges = roblox_user_data.badges
@@ -145,13 +148,13 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
 
             self.parse_age()
 
-            avatar = roblox_user_data.get("avatar")
+            avatar = roblox_user_data.avatar
 
             if avatar:
-                avatar_url, avatar_response = await fetch("GET", avatar["bustThumbnail"])
+                avatar_url, avatar_response = await fetch("GET", avatar.bust_thumbnail)
 
                 if avatar_response.status == StatusCodes.OK:
-                    self.avatar = avatar_url.get("data", [{}])[0].get("imageUrl")
+                    self.avatar_url = avatar_url.get("data", [{}])[0].get("imageUrl")
 
     def parse_age(self):
         """Set a human-readable string representing how old this account is."""
@@ -161,8 +164,6 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
         today = datetime.today()
         roblox_user_age = parser.parse(self.created).replace(tzinfo=None)
         self.age_days = (today - roblox_user_age).days
-
-        self._data.update({"age_days": self.age_days})
 
         if not self.short_age_string:
             if self.age_days >= 365:
@@ -378,11 +379,11 @@ class MemberSerializable(BaseModel):
     avatar_url: str = None
     display_name: str = None
     is_bot: bool = None
-    joined_at: str = None
+    joined_at: datetime = None
     role_ids: Sequence[Snowflake] = None
-    guild_id: int = None
+    guild_id: int | None = None
     avatar_hash: str = None
-    nickname: str = None
+    nickname: str | None = None
 
     @staticmethod
     def from_hikari(member: hikari.InteractionMember | Self) -> 'MemberSerializable':

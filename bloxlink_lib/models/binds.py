@@ -130,7 +130,7 @@ class GuildBind(BaseModel):
 
 
 
-        return False
+        return False, ineligible_roles
 
 
 async def get_binds(guild_id: int | str, category: VALID_BIND_TYPES = None) -> list[GuildBind]:

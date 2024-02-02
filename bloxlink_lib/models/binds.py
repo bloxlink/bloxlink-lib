@@ -70,11 +70,8 @@ class GuildBind(BaseModel):
     subtype: Literal["linked_group", "full_group"] | None = Field(exclude=True, default=None)
 
     def model_post_init(self, __context):
-        print("post init 1")
         self.entity = self.entity or create_entity(self.criteria.type, self.criteria.id)
-        print("post init 2")
         self.type = self.criteria.type
-        print("post init 3")
 
         if self.type == "group":
             self.subtype = "linked_group" if (self.criteria.group.roleset or (self.criteria.group.min and self.criteria.group.max)) else "full_group"
@@ -97,13 +94,14 @@ class GuildBind(BaseModel):
 
 
         # user is verified
-        await roblox_user.sync()
+        await roblox_user.sync(["groups"])
 
         match self.criteria.type:
             case "verified":
                 return True, ineligible_roles
 
             case "group":
+                print(self.criteria.id, roblox_user)
                 if self.criteria.id in roblox_user.groups:
                     if self.criteria.group.everyone:
                         return True, ineligible_roles

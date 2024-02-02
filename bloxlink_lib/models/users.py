@@ -44,7 +44,7 @@ class RobloxGroupResponse(BaseModel):
     has_verified_badge: bool = Field(alias="hasVerifiedBadge")
 
 
-class GroupWithUserRolesetResponse(BaseModel):
+class RobloxUserGroups(BaseModel):
     """Type definition for a Roblox user's groups from the Bloxlink Info API."""
 
     group: RobloxGroupResponse
@@ -68,7 +68,6 @@ class GroupWithUserRolesetResponse(BaseModel):
 #     groups: dict[str, GroupWithUserRolesetResponse] = Field(alias="groupsv2")
 
 
-
 class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
     """Representation of a user on Roblox."""
 
@@ -79,7 +78,7 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
     # these fields are provided after sync() is called
     banned: bool = Field(alias="isBanned", default=False)
     age_days: int = None
-    groups: dict[str, RobloxGroup] | None = Field(alias="groupsv2", default=None)
+    groups: dict[str, RobloxUserGroups] | None = Field(default=None)
 
     avatar: RobloxUserAvatar = None
     avatar_url: str | None = None
@@ -97,8 +96,7 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
         self,
         includes: list[Literal["groups", "badges"]] | bool | None = None,
         *,
-        cache: bool = True,
-        sync_groups: bool = False,
+        cache: bool = True
     ):
         """Retrieve and sync information about this user from Roblox. Requires a username or id to be set.
 
@@ -110,7 +108,7 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
             sync_groups (bool, optional): Should we sync the groups of this user. Requires a REST call for each group. Defaults to False.
         """
 
-        if any((x is False or x not in [*VALID_INFO_SERVER_SCOPES, True, None]) for x in includes):
+        if includes is not None and any((x is False or x not in [*VALID_INFO_SERVER_SCOPES, True, None]) for x in includes):
             raise ValueError("Invalid includes provided.")
 
         if includes is None:
@@ -131,7 +129,7 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
         roblox_user_data, user_data_response = await fetch_typed(
             f"{CONFIG.ROBLOX_INFO_SERVER}/roblox/info",
             RobloxUser, # seems redundant but it's so that we can use type hinting
-            params={"id": self.id, "includes": ",".join(includes)},
+            params={"id": self.id, "include": ",".join(includes)},
         )
 
         if user_data_response.status == StatusCodes.OK:
@@ -144,8 +142,9 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
             self.created = roblox_user_data.created
             self.avatar = roblox_user_data.avatar
             self.profile_link = roblox_user_data.profile_link
+            self.groups = roblox_user_data.groups
 
-            await self.parse_groups(roblox_user_data.groups, sync_groups)
+            # await self.parse_groups(roblox_user_data.groups, sync_groups)
 
             self.parse_age()
 
@@ -175,7 +174,7 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
                 ending = f"day{((self.age_days > 1 or self.age_days == 0) and 's') or ''}"
                 self.short_age_string = f"{self.age_days} {ending} ago"
 
-    async def parse_groups(self, group_json: dict[str, GroupWithUserRolesetResponse] | None, sync_groups: bool = False):
+    async def parse_groups(self, group_json: dict[str, RobloxUserGroups] | None, sync_groups: bool = False):
         """Determine what groups this user is in from a json response.
 
         Args:

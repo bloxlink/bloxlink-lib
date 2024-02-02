@@ -100,13 +100,13 @@ class RobloxGroup(RobloxEntity):
         await self.sync()
 
         if self.user_roleset is None:
-            await roblox_user.sync(sync_groups=False)
+            await roblox_user.sync(["groups"], sync_groups=False)
             print(roblox_user.groups)
 
             user_group = roblox_user.groups.get(self.id)
 
             if user_group:
-                self.user_roleset = user_group.user_roleset
+                self.user_roleset = user_group.role
 
     def roleset_name_string(self, roleset_id: int, bold_name=True, include_id=True) -> str:
         """Generate a nice string for a roleset name with failsafe capabilities.

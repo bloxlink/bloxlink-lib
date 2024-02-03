@@ -135,13 +135,13 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
             self.id = roblox_user_data.id
             self.description = roblox_user_data.description
             self.username = roblox_user_data.username
-            self.banned = roblox_user_data.banned
-            self.badges = roblox_user_data.badges
-            self.display_name = roblox_user_data.display_name
-            self.created = roblox_user_data.created
-            self.avatar = roblox_user_data.avatar
-            self.profile_link = roblox_user_data.profile_link
-            self.groups = roblox_user_data.groups
+            self.banned = self.banned or roblox_user_data.banned
+            self.badges = self.badges or roblox_user_data.badges
+            self.display_name = self.display_name or roblox_user_data.display_name
+            self.created = self.created or roblox_user_data.created
+            self.avatar = self.avatar or roblox_user_data.avatar
+            self.profile_link = self.profile_link or roblox_user_data.profile_link
+            self.groups = self.groups or roblox_user_data.groups
 
             self.parse_age()
 

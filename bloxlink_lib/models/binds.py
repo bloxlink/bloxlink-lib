@@ -1,7 +1,7 @@
 from __future__ import annotations
-from typing import Literal, TYPE_CHECKING
+from typing import Any, Literal, TYPE_CHECKING
 
-from pydantic import Field
+from pydantic import Field, ValidationError
 
 from ..models.base import RobloxEntity, create_entity, BaseModel
 import bloxlink_lib.database as database
@@ -19,11 +19,26 @@ VALID_BIND_TYPES = Literal["group", "asset", "badge", "gamepass", "verified", "u
 class GroupBindData(BaseModel):
     """Represents the data required for a group bind."""
 
-    everyone: bool
+    # conditions
+    everyone: bool = False
     guest: bool
     min: int = None
     max: int = None
     roleset: int = None
+    ####################
+
+    dynamicRoles: bool = False # full group bind
+
+    def model_post_init(self, __context: Any) -> None:
+        if (self.min or self.max) and not all([self.min, self.max]):
+            raise ValidationError("Both min and max range must be set.")
+
+        if self.roleset and (self.min or self.max):
+            raise ValidationError("Either a Roleset or range can be set.")
+
+        if self.everyone and (self.guest or self.min or self.max or self.roleset):
+            raise ValidationError("Everyone condition cannot have any other conditions.")
+
 
 class BindCriteria(BaseModel):
     """Represents the criteria required for a bind. If anything is set, it must ALL be met."""
@@ -35,16 +50,6 @@ class BindCriteria(BaseModel):
     # asset
     # badge
     # gamepass
-
-
-# class BindToDict(BaseModel):
-#     """Represents the top level of a bind."""
-
-#     nickname: str
-#     roles: list
-#     removeRoles: list
-
-#     criteria: BindCriteria
 
 
 class GuildBind(BaseModel):
@@ -61,7 +66,7 @@ class GuildBind(BaseModel):
     """
 
     nickname: str = None
-    roles: list[str] = Field(default_factory=list)
+    roles: list[str] | None = None # for group binds, None means we find the matching roleset name from the Discord roles.
     remove_roles: list[str] = Field(default_factory=list, alias="removeRoles")
 
     criteria: BindCriteria
@@ -101,7 +106,7 @@ class GuildBind(BaseModel):
                 return True, ineligible_roles
 
             case "group":
-                print(self.criteria.id, roblox_user)
+                group: RobloxGroup = self.entity
 
                 if self.criteria.id in roblox_user.groups:
                     if self.criteria.group.everyone:
@@ -109,8 +114,6 @@ class GuildBind(BaseModel):
 
                     if self.criteria.group.guest:
                         return False, ineligible_roles
-
-                    group: RobloxGroup = self.entity
 
                     await group.sync_for(roblox_user)
 

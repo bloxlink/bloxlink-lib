@@ -115,7 +115,7 @@ class GuildBind(BaseModel):
                         await group.sync_for(roblox_user)
 
                         user_roleset = group.user_roleset
-                        roleset_role = find(lambda r: r["name"] == user_roleset.name, guild_roles.values())
+                        roleset_role = find(lambda r: r.name == user_roleset.name, guild_roles.values())
 
                         if roleset_role:
                             additional_roles.append(str(roleset_role.id))

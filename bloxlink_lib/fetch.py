@@ -11,7 +11,7 @@ from requests.utils import requote_uri
 from .exceptions import RobloxAPIError, RobloxDown, RobloxNotFound
 from .config import CONFIG
 
-__all__ = ("fetch", "StatusCodes")
+__all__ = ("StatusCodes", "fetch", "fetch_typed")
 
 
 session = None

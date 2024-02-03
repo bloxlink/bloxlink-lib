@@ -102,6 +102,7 @@ class GuildBind(BaseModel):
 
             case "group":
                 print(self.criteria.id, roblox_user)
+
                 if self.criteria.id in roblox_user.groups:
                     if self.criteria.group.everyone:
                         return True, ineligible_roles
@@ -112,8 +113,6 @@ class GuildBind(BaseModel):
                     group: RobloxGroup = self.entity
 
                     await group.sync_for(roblox_user)
-
-                    print(group)
 
                     if (self.criteria.group.min and self.criteria.group.max) and (self.criteria.group.min <= group.user_roleset.rank <= self.criteria.group.max):
                         return True, ineligible_roles

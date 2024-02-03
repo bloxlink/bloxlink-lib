@@ -101,7 +101,6 @@ class RobloxGroup(RobloxEntity):
 
         if self.user_roleset is None:
             await roblox_user.sync(["groups"])
-            print(roblox_user.groups)
 
             user_group = roblox_user.groups.get(self.id)
 

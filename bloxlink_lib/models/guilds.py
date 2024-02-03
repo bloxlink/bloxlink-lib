@@ -14,8 +14,6 @@ class GuildData(BaseModel):
     @field_validator("binds", mode="before")
     @classmethod
     def transform_binds(cls: Type[Self], binds: list) -> list[binds_module.GuildBind]:
-        print("transforming binds", binds)
-        print([binds_module.GuildBind(**b) for b in binds])
         return [binds_module.GuildBind(**b) for b in binds]
 
 

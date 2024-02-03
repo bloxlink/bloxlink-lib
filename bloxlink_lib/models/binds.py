@@ -112,6 +112,7 @@ class GuildBind(BaseModel):
                 group: RobloxGroup = self.entity
 
                 if self.criteria.id in roblox_user.groups:
+                    # full group bind. check for a matching roleset
                     if self.criteria.group.dynamicRoles:
                         await group.sync_for(roblox_user)
 
@@ -139,9 +140,19 @@ class GuildBind(BaseModel):
 
                     return True, additional_roles, missing_roles, ineligible_roles
 
-                # Not in group. Return whether the bind is for guests only
-                return self.criteria.group.guest, missing_roles, ineligible_roles
 
+                # Not in group.
+                # check if the user has any group rolesets they shouldn't have
+                if self.criteria.group.dynamicRoles:
+                    await group.sync()
+
+                    for roleset in group.rolesets.values():
+                        for role_id in member.role_ids:
+                            if role_id in guild_roles and guild_roles[role_id].name == roleset.name:
+                                ineligible_roles.append(str(role_id))
+
+                # Return whether the bind is for guests only
+                return self.criteria.group.guest, missing_roles, ineligible_roles
 
 
         return False, additional_roles, missing_roles, ineligible_roles

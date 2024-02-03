@@ -132,16 +132,16 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
         )
 
         if user_data_response.status == StatusCodes.OK:
-            self.id = roblox_user_data.id
-            self.description = roblox_user_data.description
-            self.username = roblox_user_data.username
-            self.banned = self.banned or roblox_user_data.banned
-            self.badges = self.badges or roblox_user_data.badges
-            self.display_name = self.display_name or roblox_user_data.display_name
-            self.created = self.created or roblox_user_data.created
-            self.avatar = self.avatar or roblox_user_data.avatar
-            self.profile_link = self.profile_link or roblox_user_data.profile_link
-            self.groups = self.groups or roblox_user_data.groups
+            self.id = roblox_user_data.id or self.id
+            self.description = roblox_user_data.description or self.description
+            self.username = roblox_user_data.username or self.username
+            self.banned = roblox_user_data.banned or self.banned
+            self.badges = roblox_user_data.badges or self.badges
+            self.display_name = roblox_user_data.display_name or self.display_name
+            self.created = roblox_user_data.created or self.created
+            self.avatar = roblox_user_data.avatar or self.avatar
+            self.profile_link = roblox_user_data.profile_link or self.profile_link
+            self.groups = roblox_user_data.groups or self.groups
 
             self.parse_age()
 

@@ -5,6 +5,7 @@ from pydantic import Field, ValidationError
 
 from ..models.base import RobloxEntity, create_entity, BaseModel
 import bloxlink_lib.database as database
+from ..utils import find
 
 if TYPE_CHECKING:
     from .guilds import RoleSerializable
@@ -85,17 +86,18 @@ class GuildBind(BaseModel):
         """Check if a user satisfies the requirements for this bind."""
 
         ineligible_roles: list[str] = []
+        additional_roles: list[str] = []
 
         if not roblox_user:
             if self.criteria.type == "unverified":
-                return True, ineligible_roles
+                return True, additional_roles, ineligible_roles
 
             # user is unverified, so remove Verified role
             if self.criteria.type == "verified":
                 for role_id in filter(lambda r: int(r) in member.role_ids, self.roles):
                     ineligible_roles.append(str(guild_roles[role_id].id))
 
-            return False, ineligible_roles
+            return False, additional_roles, ineligible_roles
 
 
         # user is verified
@@ -103,36 +105,43 @@ class GuildBind(BaseModel):
 
         match self.criteria.type:
             case "verified":
-                return True, ineligible_roles
+                return True, additional_roles, ineligible_roles
 
             case "group":
                 group: RobloxGroup = self.entity
 
                 if self.criteria.id in roblox_user.groups:
+                    if self.criteria.group.dynamicRoles:
+                        await group.sync_for(roblox_user)
+
+                        user_roleset = group.user_roleset
+                        roleset_role = find(lambda r: r["name"] == user_roleset.name, guild_roles.values())
+
+                        if roleset_role:
+                            additional_roles.append(str(roleset_role.id))
+
                     if self.criteria.group.everyone:
-                        return True, ineligible_roles
+                        return True, additional_roles, ineligible_roles
 
                     if self.criteria.group.guest:
-                        return False, ineligible_roles
+                        return False, additional_roles, ineligible_roles
 
                     await group.sync_for(roblox_user)
 
                     if (self.criteria.group.min and self.criteria.group.max) and (self.criteria.group.min <= group.user_roleset.rank <= self.criteria.group.max):
-                        return True, ineligible_roles
+                        return True, additional_roles, ineligible_roles
 
                     if self.criteria.group.roleset:
-                        return group.user_roleset.rank == self.criteria.group.roleset, ineligible_roles
+                        return group.user_roleset.rank == self.criteria.group.roleset, additional_roles, ineligible_roles
 
-
-
-                    return True, ineligible_roles
+                    return True, additional_roles, ineligible_roles
 
                 # Not in group. Return whether the bind is for guests only
                 return self.criteria.group.guest, ineligible_roles
 
 
 
-        return False, ineligible_roles
+        return False, additional_roles, ineligible_roles
 
 
 async def get_binds(guild_id: int | str, category: VALID_BIND_TYPES = None) -> list[GuildBind]:

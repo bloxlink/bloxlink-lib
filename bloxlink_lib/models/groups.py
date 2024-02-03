@@ -94,13 +94,15 @@ class RobloxGroup(RobloxEntity):
 
         self.synced = True
 
-    async def sync_for(self, roblox_user: RobloxUser):
+    async def sync_for(self, roblox_user: RobloxUser, sync: bool = False):
         """Sync and retrieve the roleset of a specific user in this group."""
 
-        await self.sync()
+        if sync:
+            await self.sync()
 
         if self.user_roleset is None:
-            await roblox_user.sync(["groups"])
+            if roblox_user.groups is None:
+                await roblox_user.sync(["groups"])
 
             user_group = roblox_user.groups.get(self.id)
 

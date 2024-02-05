@@ -48,10 +48,13 @@ class BindCriteria(BaseModel):
     type: VALID_BIND_TYPES
     id: int | None = Field(default=None)
 
-    group: GroupBindData = None
-    # asset
-    # badge
-    # gamepass
+    group: GroupBindData | None = None
+
+
+class BindData(BaseModel):
+    """Represents the data required for a bind."""
+
+    displayName: str = None
 
 
 class GuildBind(BaseModel):
@@ -72,8 +75,10 @@ class GuildBind(BaseModel):
     remove_roles: list[str] = Field(default_factory=list, alias="removeRoles")
 
     criteria: BindCriteria
+    data: BindData | None = Field(default=None)
     entity: RobloxEntity | None = Field(exclude=True, default=None)
-    type: Literal["group", "asset", "badge", "gamepass", "verified", "unverified"] | None = Field(exclude=True, default=None)
+
+    type: Literal["group", "catalogAsset", "badge", "gamepass", "verified", "unverified"] | None = Field(exclude=True, default=None)
     subtype: Literal["linked_group", "full_group"] | None = Field(exclude=True, default=None)
 
     def model_post_init(self, __context):

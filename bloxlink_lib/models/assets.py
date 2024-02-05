@@ -1,5 +1,5 @@
 from typing import Literal
-from bloxlink_lib.models.badges import RobloxBadge
+# import bloxlink_lib.models.badges as badges
 from ..exceptions import RobloxAPIError, RobloxNotFound
 
 from .base import RobloxEntity
@@ -24,35 +24,35 @@ class RobloxAsset(RobloxEntity):
         return f"{name} ({self.id})"
 
 
-async def get_asset(asset_id: int, type: Literal["asset", "badge", "gamepass", "bundle"]) -> RobloxAsset:
-    """Get and sync an asset from Roblox.
+# async def get_asset(asset_id: int, type: Literal["asset", "badge", "gamepass", "bundle"]) -> RobloxAsset:
+#     """Get and sync an asset from Roblox.
 
-    Args:
-        asset_id (str): ID of the asset.
-        type (str): Type of the asset. Subset from asset, badge, gamepass, bundle.
+#     Args:
+#         asset_id (str): ID of the asset.
+#         type (str): Type of the asset. Subset from asset, badge, gamepass, bundle.
 
-    Raises:
-        RobloxNotFound: Raises RobloxNotFound when the Roblox API has an error.
+#     Raises:
+#         RobloxNotFound: Raises RobloxNotFound when the Roblox API has an error.
 
-    Returns:
-        RobloxAsset: A synced roblox asset.
-    """
+#     Returns:
+#         RobloxAsset: A synced roblox asset.
+#     """
 
-    match type:
-        case "catalogAsset":
-            raise NotImplementedError()
-        case "badge":
-            asset = RobloxBadge(id=asset_id)
-        case "gamepass":
-            raise NotImplementedError()
-        case "bundle":
-            raise NotImplementedError()
-        case _:
-            raise ValueError("Invalid asset type.")
+#     match type:
+#         case "catalogAsset":
+#             raise NotImplementedError()
+#         case "badge":
+#             asset = badges.RobloxBadge(id=asset_id)
+#         case "gamepass":
+#             raise NotImplementedError()
+#         case "bundle":
+#             raise NotImplementedError()
+#         case _:
+#             raise ValueError("Invalid asset type.")
 
-    try:
-        await asset.sync()  # this will raise if the asset doesn't exist
-    except RobloxAPIError as exc:
-        raise RobloxNotFound("This asset does not exist.") from exc
+#     try:
+#         await asset.sync()  # this will raise if the asset doesn't exist
+#     except RobloxAPIError as exc:
+#         raise RobloxNotFound("This asset does not exist.") from exc
 
-    return asset
+#     return asset

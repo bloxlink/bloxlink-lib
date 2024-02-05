@@ -70,16 +70,19 @@ class GuildBind(BaseModel):
         entity (RobloxEntity, optional): The entity that this binding represents. Defaults to None.
     """
 
+    # Fields from the database.
     nickname: str = None
-    roles: list[str] | None = None # for group binds, None means we find the matching roleset name from the Discord roles.
+    roles: list[str] = Field(default_factory=list)
     remove_roles: list[str] = Field(default_factory=list, alias="removeRoles")
 
     criteria: BindCriteria
     data: BindData | None = Field(default=None)
-    entity: RobloxEntity | None = Field(exclude=True, default=None)
 
+    # Excluded fields. These are used for the bind algorithms.
+    entity: RobloxEntity | None = Field(exclude=True, default=None)
     type: Literal["group", "catalogAsset", "badge", "gamepass", "verified", "unverified"] | None = Field(exclude=True, default=None)
     subtype: Literal["linked_group", "full_group"] | None = Field(exclude=True, default=None)
+    highest_role: RoleSerializable | None = Field(exclude=True, default=None) # highest role in the guild
 
     def model_post_init(self, __context):
         self.entity = self.entity or create_entity(self.criteria.type, self.criteria.id)
@@ -87,6 +90,13 @@ class GuildBind(BaseModel):
 
         if self.type == "group":
             self.subtype = "linked_group" if (self.criteria.group.roleset or (self.criteria.group.min and self.criteria.group.max)) else "full_group"
+
+    async def calculate_highest_role(self, guild_roles: dict[str, RoleSerializable]) -> None:
+        """Calculate the highest role in the guild for this bind."""
+
+        if self.roles and not self.highest_role:
+            self.highest_role = max(filter(lambda r: r.id in self.roles, guild_roles.values()), key=lambda r: r.position) # pylint: disable=unsupported-membership-test
+
 
     async def satisfies_for(self, guild_roles: dict[str, RoleSerializable], member: MemberSerializable, roblox_user: RobloxUser | None = None) -> tuple[bool, list[RoleSerializable], list[str], list[RoleSerializable]]:
         """Check if a user satisfies the requirements for this bind."""
@@ -108,7 +118,6 @@ class GuildBind(BaseModel):
 
 
         # user is verified
-
         match self.criteria.type:
             case "verified":
                 return True, additional_roles, missing_roles, ineligible_roles

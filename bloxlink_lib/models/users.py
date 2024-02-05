@@ -362,6 +362,8 @@ class MemberSerializable(BaseModel):
     guild_id: int | None = None
     avatar_hash: str = None
     nickname: str | None = None
+    mention: str = None
+
 
     @staticmethod
     def from_hikari(member: hikari.InteractionMember | Self) -> 'MemberSerializable':
@@ -380,5 +382,6 @@ class MemberSerializable(BaseModel):
             role_ids=member.role_ids,
             guild_id=member.guild_id,
             avatar_hash=member.avatar_hash,
-            nickname=member.nickname
+            nickname=member.nickname,
+            mention=member.mention
         )

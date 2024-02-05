@@ -59,10 +59,11 @@ def create_entity(
     """
 
     match category:
-        case "asset":
-            from bloxlink_lib.models import assets # pylint: disable=import-outside-toplevel
+        case "catalogAsset":
+            # from bloxlink_lib.models import assets # pylint: disable=import-outside-toplevel
 
-            return assets.RobloxAsset(id=entity_id)
+            # return assets.RobloxAsset(id=entity_id)
+            raise NotImplementedError()
 
         case "badge":
             from bloxlink_lib.models import badges # pylint: disable=import-outside-toplevel

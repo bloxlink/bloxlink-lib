@@ -154,7 +154,7 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
         try:
             response_data, _ = await fetch(
                 "GET",
-                f"{INVENTORY_API}/v1/users/{self.id}/items/{asset.type_number}/{asset.type}/is-owned",
+                f"{INVENTORY_API}/v1/users/{self.id}/items/{asset.type_number}/{asset.id}/is-owned",
                 parse_as="TEXT"
             )
         except RobloxAPIError:

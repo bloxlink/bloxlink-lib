@@ -95,7 +95,7 @@ class GuildBind(BaseModel):
         """Calculate the highest role in the guild for this bind."""
 
         if self.roles and not self.highest_role:
-            self.highest_role = max(filter(lambda r: r.id in self.roles, guild_roles.values()), key=lambda r: r.position) # pylint: disable=unsupported-membership-test
+            self.highest_role = max(filter(lambda r: str(r.id) in self.roles, guild_roles.values()), key=lambda r: r.position) # pylint: disable=unsupported-membership-test
 
 
     async def satisfies_for(self, guild_roles: dict[str, RoleSerializable], member: MemberSerializable, roblox_user: RobloxUser | None = None) -> tuple[bool, list[RoleSerializable], list[str], list[RoleSerializable]]:

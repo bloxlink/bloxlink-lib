@@ -1,6 +1,6 @@
-import bloxlink_lib.models.assets as assets
 from ..fetch import fetch_typed
-from .base import BaseModel
+from .base import BaseModel, get_entity
+from .assets import RobloxAsset
 
 
 
@@ -15,7 +15,7 @@ class RobloxBadgeResponse(BaseModel):
     description: str
 
 
-class RobloxBadge(assets.RobloxAsset):
+class RobloxBadge(RobloxAsset):
     """Representation of a Badge on Roblox."""
 
     type: str = "badge"
@@ -35,14 +35,14 @@ class RobloxBadge(assets.RobloxAsset):
         self.synced = True
 
 
-# async def get_badge(badge_id: int) -> RobloxBadge:
-#     """Wrapper around get_asset() to get and sync a badge from Roblox.
+async def get_badge(badge_id: int) -> RobloxBadge:
+    """Wrapper around get_asset() to get and sync a badge from Roblox.
 
-#     Args:
-#         badge_id (int): ID of the badge.
+    Args:
+        badge_id (int): ID of the badge.
 
-#     Returns:
-#         RobloxBadge: A synced roblox badge.
-#     """
+    Returns:
+        RobloxBadge: A synced roblox badge.
+    """
 
-#     return await assets.get_asset(badge_id, "badge")
+    return await get_entity("badge", badge_id)

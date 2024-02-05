@@ -57,6 +57,7 @@ def create_entity(
     Returns:
         RobloxEntity: The respective RobloxEntity implementer, unsynced.
     """
+
     match category:
         case "asset":
             from bloxlink_lib.models import assets # pylint: disable=import-outside-toplevel
@@ -78,3 +79,26 @@ def create_entity(
             from bloxlink_lib.models import groups # pylint: disable=import-outside-toplevel
 
             return groups.RobloxGroup(id=entity_id)
+
+        case _:
+            raise ValueError("Invalid category.")
+
+
+async def get_entity(
+    category: Literal["asset", "badge", "gamepass", "group"] | str, entity_id: int
+) -> RobloxEntity:
+    """Get and sync a Roblox entity.
+
+    Args:
+        category (str): Type of Roblox entity to get. Subset from asset, badge, group, gamepass.
+        entity_id (int): ID of the entity on Roblox.
+
+    Returns:
+        RobloxEntity: The respective RobloxEntity implementer, synced.
+    """
+
+    entity = create_entity(category, entity_id)
+
+    await entity.sync()
+
+    return entity

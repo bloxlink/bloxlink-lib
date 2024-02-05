@@ -1,4 +1,6 @@
-from typing import Sequence, Self, Annotated, Literal
+from __future__ import annotations
+
+from typing import Sequence, Self, Annotated, Literal, TYPE_CHECKING, TypedDict
 from pydantic import Field
 import math
 from datetime import datetime
@@ -8,11 +10,14 @@ from ..fetch import fetch, fetch_typed, StatusCodes
 from ..config import CONFIG
 from ..exceptions import RobloxNotFound, RobloxAPIError, UserNotVerified
 from ..database import fetch_user_data, mongo
-from .groups import RobloxGroup, GroupRoleset
+from .groups import GroupRoleset
 from .base import Snowflake, BaseModel
 
-VALID_INFO_SERVER_SCOPES: list[Literal["groups", "badges"]] = ["groups", "badges"]
+if TYPE_CHECKING:
+    from .assets import RobloxAsset
 
+VALID_INFO_SERVER_SCOPES: list[Literal["groups", "badges"]] = ["groups", "badges"]
+INVENTORY_API = "https://inventory.roblox.com"
 
 
 class UserData(BaseModel):
@@ -49,23 +54,6 @@ class RobloxUserGroups(BaseModel):
 
     group: RobloxGroupResponse
     role: GroupRoleset
-
-
-# class RobloxUserInformationResponse(BaseModel):
-#     """Type definition for a Roblox user from the Bloxlink Info API."""
-
-#     id: str
-#     name: str
-#     description: str
-#     is_banned: bool = Field(alias="isBanned")
-#     profile_link: str = Field(alias="profileLink")
-#     badges: list
-#     display_name: str = Field(alias="displayName")
-#     created: str
-#     avatar: RobloxUserAvatar
-#     has_verified_badge: bool = Field(alias="hasVerifiedBadge")
-#     has_display_name: bool = Field(alias="hasDisplayName")
-#     groups: dict[str, GroupWithUserRolesetResponse] = Field(alias="groupsv2")
 
 
 class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
@@ -152,6 +140,27 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
 
                 if avatar_response.status == StatusCodes.OK:
                     self.avatar_url = avatar_url.get("data", [{}])[0].get("imageUrl")
+
+    async def owns_asset(self, asset: RobloxAsset) -> bool:
+        """Check if the user owns a specific asset.
+
+        Args:
+            asset (RobloxAsset): The asset to check for.
+
+        Returns:
+            bool: If the user owns the asset or not.
+        """
+
+        try:
+            response_data, _ = await fetch(
+                "GET",
+                f"{INVENTORY_API}/v1/users/{self.id}/items/{asset.type_number}/{asset.type}/is-owned",
+                parse_as="TEXT"
+            )
+        except RobloxAPIError:
+            return False
+
+        return response_data == "true"
 
     def parse_age(self):
         """Set a human-readable string representing how old this account is."""

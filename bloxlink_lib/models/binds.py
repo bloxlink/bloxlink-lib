@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from .guilds import RoleSerializable
     from .users import MemberSerializable, RobloxUser
     from .groups import RobloxGroup
+    from .assets import RobloxAsset
 
 POP_OLD_BINDS: bool = False
 
@@ -102,7 +103,6 @@ class GuildBind(BaseModel):
 
 
         # user is verified
-        await roblox_user.sync(["groups"])
 
         match self.criteria.type:
             case "verified":
@@ -110,6 +110,8 @@ class GuildBind(BaseModel):
 
             case "group":
                 group: RobloxGroup = self.entity
+
+                await roblox_user.sync(["groups"])
 
                 if self.criteria.id in roblox_user.groups:
                     # full group bind. check for a matching roleset
@@ -152,7 +154,12 @@ class GuildBind(BaseModel):
                                 ineligible_roles.append(str(role_id))
 
                 # Return whether the bind is for guests only
-                return self.criteria.group.guest, missing_roles, ineligible_roles
+                return self.criteria.group.guest, additional_roles, missing_roles, ineligible_roles
+
+            case "badge" | "gamepass" | "catalogAsset":
+                asset: RobloxAsset = self.entity
+
+                return await roblox_user.owns_asset(asset), additional_roles, missing_roles, ineligible_roles
 
 
         return False, additional_roles, missing_roles, ineligible_roles

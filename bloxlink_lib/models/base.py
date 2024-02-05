@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict
 
 
-
 Snowflake = Annotated[int, BeforeValidator(int), WithJsonSchema({"type": 'int'})]
 
 
@@ -60,16 +59,14 @@ def create_entity(
     """
     match category:
         case "asset":
-            # from resources.api.roblox.assets import RobloxAsset  # pylint: disable=import-outside-toplevel
+            from .assets import RobloxAsset  # pylint: disable=import-outside-toplevel
 
-            # return RobloxAsset(id=entity_id)
-            raise NotImplementedError()
+            return RobloxAsset(id=entity_id)
 
         case "badge":
-            # from resources.api.roblox.badges import RobloxBadge  # pylint: disable=import-outside-toplevel
+            from .badges import RobloxBadge  # pylint: disable=import-outside-toplevel
 
-            # return RobloxBadge(id=entity_id)
-            raise NotImplementedError()
+            return RobloxBadge(id=entity_id)
 
         case "gamepass":
             # from resources.api.roblox.gamepasses import RobloxGamepass  # pylint: disable=import-outside-toplevel

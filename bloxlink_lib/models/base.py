@@ -47,7 +47,7 @@ class RobloxEntity(BaseModel, ABC):
 
 def create_entity(
     category: Literal["asset", "badge", "gamepass", "group"] | str, entity_id: int
-) -> RobloxEntity:
+) -> RobloxEntity | None:
     """Create a respective Roblox entity from a category and ID.
 
     Args:
@@ -55,10 +55,8 @@ def create_entity(
         entity_id (int): ID of the entity on Roblox.
 
     Returns:
-        RobloxEntity: The respective RobloxEntity implementer, unsynced.
+        RobloxEntity: The respective RobloxEntity implementer, unsynced, or None if the category is invalid.
     """
-
-    print(category, entity_id)
 
     match category:
         case "catalogAsset":
@@ -83,8 +81,7 @@ def create_entity(
 
             return groups.RobloxGroup(id=entity_id)
 
-        case _:
-            raise ValueError("Invalid category.")
+    return None
 
 
 async def get_entity(

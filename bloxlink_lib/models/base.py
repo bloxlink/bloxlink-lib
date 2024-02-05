@@ -1,8 +1,6 @@
 from typing import Literal, Annotated
 from abc import ABC, abstractmethod
 from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict
-import bloxlink_lib.models.badges as badges
-import bloxlink_lib.models.assets as assets
 import bloxlink_lib.models.groups as groups
 
 
@@ -62,9 +60,11 @@ def create_entity(
     """
     match category:
         case "asset":
+            import bloxlink_lib.models.assets as assets
             return assets.RobloxAsset(id=entity_id)
 
         case "badge":
+            import bloxlink_lib.models.badges as badges
             return badges.RobloxBadge(id=entity_id)
 
         case "gamepass":

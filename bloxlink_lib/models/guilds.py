@@ -33,6 +33,7 @@ class GuildData(BaseModel):
     dynamicRoles: bool = True
     groupLock: dict = None
     highTrafficServer: bool = False
+    allowOldRoles: bool = False
 
     nicknameTemplate: str = "{smart-name}"
 

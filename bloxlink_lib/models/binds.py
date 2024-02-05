@@ -91,7 +91,7 @@ class GuildBind(BaseModel):
         if self.type == "group":
             self.subtype = "linked_group" if (self.criteria.group.roleset or (self.criteria.group.min and self.criteria.group.max)) else "full_group"
 
-    async def calculate_highest_role(self, guild_roles: dict[str, RoleSerializable]) -> None:
+    def calculate_highest_role(self, guild_roles: dict[str, RoleSerializable]) -> None:
         """Calculate the highest role in the guild for this bind."""
 
         if self.roles and not self.highest_role:

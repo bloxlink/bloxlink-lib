@@ -36,7 +36,7 @@ class RobloxBadge(RobloxAsset):
 
 
 async def get_badge(badge_id: int) -> RobloxBadge:
-    """Wrapper around get_asset() to get and sync a badge from Roblox.
+    """Wrapper around get_entity() to get and sync a badge from Roblox.
 
     Args:
         badge_id (int): ID of the badge.

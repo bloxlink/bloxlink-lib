@@ -58,6 +58,8 @@ def create_entity(
         RobloxEntity: The respective RobloxEntity implementer, unsynced.
     """
 
+    print(category, entity_id)
+
     match category:
         case "catalogAsset":
             # from bloxlink_lib.models import assets # pylint: disable=import-outside-toplevel

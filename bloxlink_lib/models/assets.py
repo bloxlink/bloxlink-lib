@@ -14,13 +14,13 @@ class RobloxAsset(RobloxEntity):
     This includes catalog assets, badges, gamepasses, and bundles.
     """
 
-    type: Literal["asset", "badge", "gamepass", "bundle"] = None
+    type: Literal["catalogAsset", "badge", "gamepass", "bundle"] = None
     type_number: int = None
 
 
     def model_post_init(self, __context: Any) -> None:
         match self.type:
-            case "asset":
+            case "catalogAsset":
                 self.type_number = 0
             case "gamepass":
                 self.type_number = 1

@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, Literal
 # import bloxlink_lib.models.badges as badges
 # from ..exceptions import RobloxAPIError, RobloxNotFound
 
@@ -17,6 +17,19 @@ class RobloxAsset(RobloxEntity):
     type: Literal["asset", "badge", "gamepass", "bundle"] = None
     type_number: int = None
 
+
+    def model_post_init(self, __context: Any) -> None:
+        match self.type:
+            case "asset":
+                self.type_number = 0
+            case "gamepass":
+                self.type_number = 1
+            case "badge":
+                self.type_number = 2
+            case "bundle":
+                self.type_number = 3
+            case _:
+                raise ValueError("Invalid asset type.")
 
     def __str__(self) -> str:
         name = f"**{self.name}**" if self.name else f"*(Unknown {self.type.capitalize()})*"

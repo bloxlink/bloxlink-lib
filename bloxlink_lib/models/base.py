@@ -71,10 +71,9 @@ def create_entity(
             return badges.RobloxBadge(id=entity_id)
 
         case "gamepass":
-            # from resources.api.roblox.gamepasses import RobloxGamepass  # pylint: disable=import-outside-toplevel
+            from bloxlink_lib.models import gamepasses # pylint: disable=import-outside-toplevel
 
-            # return RobloxGamepass(id=entity_id)
-            raise NotImplementedError()
+            return gamepasses.RobloxGamepass(id=entity_id)
 
         case "group":
             from bloxlink_lib.models import groups # pylint: disable=import-outside-toplevel

@@ -19,7 +19,6 @@ class RobloxBadge(RobloxAsset):
     """Representation of a Badge on Roblox."""
 
     type: str = "badge"
-    type_number: int = 2
 
     async def sync(self):
         """Load badge data from Roblox"""

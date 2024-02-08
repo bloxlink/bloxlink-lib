@@ -181,6 +181,21 @@ class GuildBind(BaseModel):
         return False, additional_roles, missing_roles, ineligible_roles
 
 
+async def count_binds(guild_id: int | str, bind_id: int = None) -> int:
+    """Count the number of binds that this guild_id has created.
+
+    Args:
+        guild_id (int | str): ID of the guild.
+        bind_id (int, optional): ID of the entity to filter by when counting. Defaults to None.
+
+    Returns:
+        int: The number of bindings this guild has created.
+    """
+
+    guild_data = await get_binds(guild_id)
+
+    return len(guild_data) if not bind_id else sum(1 for b in guild_data if b.id == int(bind_id)) or 0
+
 async def get_binds(guild_id: int | str, category: VALID_BIND_TYPES = None) -> list[GuildBind]:
     """Get the current guild binds.
 

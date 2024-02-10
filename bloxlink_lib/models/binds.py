@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Literal, TYPE_CHECKING
+from typing import Any, Literal, TYPE_CHECKING, TypedDict, NotRequired
 
 from pydantic import Field, ValidationError
 
@@ -18,6 +18,25 @@ POP_OLD_BINDS: bool = False
 VALID_BIND_TYPES = Literal["group", "asset", "badge", "gamepass", "verified", "unverified"]
 
 
+# TypedDict definitions used for function kwargs
+class GroupBindDataDict(TypedDict, total=False):
+    everyone: bool
+    guest: bool
+    min: int
+    max: int
+    roleset: int
+    dynamicRoles: bool
+
+class BindCriteriaDict(TypedDict):
+    type: VALID_BIND_TYPES
+    id: NotRequired[int]
+    group: NotRequired[GroupBindData]
+
+class BindDataDict(TypedDict):
+    displayName: str
+
+
+# Pydantic definitions
 class GroupBindData(BaseModel):
     """Represents the data required for a group bind."""
 
@@ -40,7 +59,6 @@ class GroupBindData(BaseModel):
 
         if self.everyone and (self.guest or self.min or self.max or self.roleset):
             raise ValidationError("Everyone condition cannot have any other conditions.")
-
 
 class BindCriteria(BaseModel):
     """Represents the criteria required for a bind. If anything is set, it must ALL be met."""

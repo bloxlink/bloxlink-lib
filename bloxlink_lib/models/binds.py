@@ -214,7 +214,7 @@ async def count_binds(guild_id: int | str, bind_id: int = None) -> int:
 
     return len(guild_data) if not bind_id else sum(1 for b in guild_data if b.id == int(bind_id)) or 0
 
-async def get_binds(guild_id: int | str, category: VALID_BIND_TYPES = None) -> list[GuildBind]:
+async def get_binds(guild_id: int | str, category: VALID_BIND_TYPES = None, bind_id: int = None) -> list[GuildBind]:
     """Get the current guild binds.
 
     Old binds will be included by default, but will not be saved in the database in the
@@ -225,7 +225,7 @@ async def get_binds(guild_id: int | str, category: VALID_BIND_TYPES = None) -> l
     guild_id = str(guild_id)
     guild_data = await database.fetch_guild_data(guild_id, "binds")
 
-    return list(filter([b for b in guild_data.binds if b.type == category] if category else guild_data.binds))
+    return list(filter(lambda b: b.type == category and ((bind_id and b.criteria.id == bind_id) or True), guild_data.binds) if category else guild_data.binds)
 
     # Convert and save old bindings in the new format
     # if not guild_data.converted_binds and (

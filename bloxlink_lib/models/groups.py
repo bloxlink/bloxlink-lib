@@ -68,7 +68,6 @@ class RobloxGroup(RobloxEntity):
     member_count: int = Field(alias="memberCount", default=None)
     rolesets: dict[int, GroupRoleset] = None
     user_roleset: GroupRoleset = None
-    shout: str = Field(default=None)
     has_verified_badge: bool = Field(alias="hasVerifiedBadge", default=None)
     owner: RobloxGroupOwner = None
     public_entry_allowed: bool = Field(alias="publicEntryAllowed", default=None)
@@ -84,7 +83,7 @@ class RobloxGroup(RobloxEntity):
 
         if self.rolesets is None:
             roleset_data, _ = await fetch_typed(f"{GROUP_API}/{self.id}/roles", RobloxRoleset)
-            self.rolesets = {int(roleset.rank): GroupRoleset(**roleset) for roleset in roleset_data.roles}
+            self.rolesets = {int(roleset.rank): roleset for roleset in roleset_data.roles}
 
         group_data, _ = await fetch_typed(f"{GROUP_API}/{self.id}", RobloxGroup)
 

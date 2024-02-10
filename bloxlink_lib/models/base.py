@@ -29,7 +29,7 @@ class RobloxEntity(BaseModel, ABC):
         synced (bool): If this entity has been synced with Roblox or not. False by default.
     """
 
-    id: int
+    id: int | None
     name: str = None
     description: str = None
     synced: bool = False
@@ -45,8 +45,15 @@ class RobloxEntity(BaseModel, ABC):
         return f"{name} ({self.id})"
 
 
+class EmptyEntity(RobloxEntity):
+    """Empty Roblox entity. Used for verified and unverified binds."""
+
+    async def sync(self):
+        pass
+
+
 def create_entity(
-    category: Literal["catalogAsset", "badge", "gamepass", "group"] | str, entity_id: int
+    category: Literal["catalogAsset", "badge", "gamepass", "group", "verified", "unverified"] | str, entity_id: int
 ) -> RobloxEntity | None:
     """Create a respective Roblox entity from a category and ID.
 
@@ -78,6 +85,10 @@ def create_entity(
             from bloxlink_lib.models import groups # pylint: disable=import-outside-toplevel
 
             return groups.RobloxGroup(id=entity_id)
+
+        case "verified" | "unverified":
+            # this is creates an empty entity
+            return EmptyEntity(id=entity_id)
 
     return None
 

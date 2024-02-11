@@ -172,7 +172,8 @@ class GuildBind(BaseModel):
                         return True, additional_roles, missing_roles, ineligible_roles
 
                     if self.criteria.group.roleset:
-                        return group.user_roleset.rank == self.criteria.group.roleset, additional_roles, missing_roles, ineligible_roles
+                        roleset = self.criteria.group.roleset
+                        return group.user_roleset.rank == roleset or (roleset < 0 and group.user_roleset.rank <= abs(roleset)), additional_roles, missing_roles, ineligible_roles
 
                     return True, additional_roles, missing_roles, ineligible_roles
 

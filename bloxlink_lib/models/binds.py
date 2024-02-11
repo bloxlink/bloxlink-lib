@@ -89,7 +89,7 @@ class GuildBind(BaseModel):
     """
 
     # Fields from the database.
-    nickname: str = None
+    nickname: str | None = None
     roles: list[str] = Field(default_factory=list)
     remove_roles: list[str] = Field(default_factory=list, alias="removeRoles")
 

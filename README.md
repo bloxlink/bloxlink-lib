@@ -13,7 +13,7 @@ Contains the generic code used with Bloxlink. This code is not dependent on a pl
 * Use the library:
 ```py
 
-from bloxlink_lib import get_user, RobloxGroup, fetch_typed, get_binds
+from bloxlink_lib import get_user, RobloxGroup, fetch_typed, get_binds, BaseModel
 
 # retrieve Roblox objects either using get_[identity_type] functions or using the classes:
 roblox_user = await get_user(username="Roblox")
@@ -24,10 +24,9 @@ await roblox_group.sync()
 print(roblox_group)
 
 # fetch an item from the internet
-import pydantic
 from typing import Any
 
-class Response:
+class Response(BaseModel):
     success: bool
     error: str = None
     object: Any

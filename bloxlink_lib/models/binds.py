@@ -298,7 +298,7 @@ class GuildBind(BaseModel):
         """
 
         if self.type == "group":
-            if self.subtype == "linked_group":
+            if self.subtype == "full_group":
                 return "- _All users in **this** group receive the role matching their group rank name._"
 
         role_mentions = ", ".join(f"<@&{val}>" for val in self.roles)

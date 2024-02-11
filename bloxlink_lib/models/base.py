@@ -1,6 +1,7 @@
-from typing import Literal, Annotated
+from typing import Literal, Annotated, Tuple, Type
 from abc import ABC, abstractmethod
 from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict
+from pydantic.fields import FieldInfo
 
 
 Snowflake = Annotated[int, BeforeValidator(int), WithJsonSchema({"type": 'int'})]
@@ -18,6 +19,20 @@ class BaseModel(PydanticBaseModel):
 
     model_config = ConfigDict(populate_by_name=True)
 
+    @staticmethod
+    def model_fields_index(cls: Type[PydanticBaseModel | BaseModelArbitraryTypes]) -> list[Tuple[str, FieldInfo]]:
+        """Returns a list of the model's fields with the name as a tuple.
+
+        Useful if the field index is necessary.
+
+        """
+
+        fields_with_names: list[Tuple[str, FieldInfo]] = []
+
+        for field_name, field in cls.model_fields.items():
+            fields_with_names.append((field_name, field))
+
+        return fields_with_names
 
 class RobloxEntity(BaseModel, ABC):
     """Representation of an entity on Roblox.

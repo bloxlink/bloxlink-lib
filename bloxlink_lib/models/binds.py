@@ -327,7 +327,7 @@ async def build_binds_desc(
 
     guild_binds = await get_binds(guild_id, category=bind_type, bind_id=bind_id)
 
-    bind_strings = [bind.description for bind in guild_binds[:5]]
+    bind_strings = [str(bind) for bind in guild_binds[:5]]
     output = "\n".join(bind_strings)
 
     if len(guild_binds) > 5:

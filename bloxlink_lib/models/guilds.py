@@ -108,3 +108,5 @@ class GuildSerializable(BaseModel):
             name=guild.name,
             roles=guild.roles
         )
+
+binds_module.GuildBind.model_rebuild()

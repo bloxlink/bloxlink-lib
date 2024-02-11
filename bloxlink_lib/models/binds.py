@@ -5,7 +5,6 @@ from pydantic import Field, ValidationError
 
 from ..models.base import RobloxEntity, create_entity, BaseModel
 import bloxlink_lib.database as database
-import bloxlink_lib.models.guilds as guilds
 from ..utils import find
 
 if TYPE_CHECKING:
@@ -101,7 +100,7 @@ class GuildBind(BaseModel):
     entity: RobloxEntity | None = Field(exclude=True, default=None)
     type: Literal["group", "catalogAsset", "badge", "gamepass", "verified", "unverified"] | None = Field(exclude=True, default=None)
     subtype: Literal["linked_group", "full_group"] | None = Field(exclude=True, default=None)
-    highest_role: guilds.RoleSerializable | None = Field(exclude=True, default=None) # highest role in the guild
+    highest_role: RoleSerializable | None = Field(exclude=True, default=None) # highest role in the guild
 
     def model_post_init(self, __context):
         self.entity = self.entity or create_entity(self.criteria.type, self.criteria.id)

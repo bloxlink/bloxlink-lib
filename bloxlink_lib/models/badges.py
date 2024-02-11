@@ -12,7 +12,7 @@ class RobloxBadgeResponse(BaseModel):
 
     id: int
     name: str
-    description: str
+    description: str | None
 
 
 class RobloxBadge(RobloxAsset):

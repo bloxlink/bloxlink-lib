@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 POP_OLD_BINDS: bool = False
 
-VALID_BIND_TYPES = Literal["group", "asset", "badge", "gamepass", "verified", "unverified"]
+VALID_BIND_TYPES = Literal["group", "catalogAsset", "badge", "gamepass", "verified", "unverified"]
 
 
 # TypedDict definitions used for function kwargs
@@ -311,6 +311,9 @@ class GuildBind(BaseModel):
             f"role{'s' if len(self.roles) > 1  else ''} {role_mentions}"
             f"{'' if len(self.remove_roles) == 0 else f', and have these roles removed: {remove_role_mentions}'}_"
         )
+
+    def __eq__(self, other: GuildBind) -> bool:
+        return self.criteria == other.criteria
 
 async def build_binds_desc(
     guild_id: int | str,

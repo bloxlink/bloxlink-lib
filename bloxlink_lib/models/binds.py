@@ -306,6 +306,37 @@ class GuildBind(BaseModel):
             f"{'' if len(self.remove_roles) == 0 else f', and have these roles removed: {remove_role_mentions}'}_"
         )
 
+async def build_binds_desc(
+    guild_id: int | str,
+    bind_id: int | str = None,
+    bind_type: VALID_BIND_TYPES = None,
+) -> str:
+    """Get a string-based representation of all bindings (matching the bind_id and bind_type).
+
+    Output is limited to 5 bindings, after that the user is told to visit the website to see the rest.
+
+    Args:
+        guild_id (int | str): ID of the guild.
+        bind_id (int | str, optional): The entity ID to filter binds from. Defaults to None.
+        bind_type (ValidBindType, optional): The type of bind to filter the response by.
+            Defaults to None.
+
+    Returns:
+        str: Sentence representation of the first five binds matching the filters.
+    """
+
+    guild_binds = await get_binds(guild_id, category=bind_type, bind_id=bind_id)
+
+    bind_strings = [bind.description for bind in guild_binds[:5]]
+    output = "\n".join(bind_strings)
+
+    if len(guild_binds) > 5:
+        output += (
+            f"\n_... and {len(guild_binds) - 5} more. "
+            f"Click [here](https://www.blox.link/dashboard/guilds/{guild_id}/binds) to view the rest!_"
+        )
+    return output
+
 async def count_binds(guild_id: int | str, bind_id: int = None) -> int:
     """Count the number of binds that this guild_id has created.
 

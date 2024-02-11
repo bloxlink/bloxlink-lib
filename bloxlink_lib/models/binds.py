@@ -107,7 +107,7 @@ class GuildBind(BaseModel):
         self.type = self.criteria.type
 
         if self.type == "group":
-            self.subtype = "linked_group" if (self.criteria.group.roleset or (self.criteria.group.min and self.criteria.group.max)) else "full_group"
+            self.subtype = "full_group" if self.criteria.group.dynamicRoles else "linked_group"
 
     def calculate_highest_role(self, guild_roles: dict[str, RoleSerializable]) -> None:
         """Calculate the highest role in the guild for this bind."""
@@ -209,8 +209,6 @@ class GuildBind(BaseModel):
 
         match self.type:
             case "group":
-                print(self.criteria.group)
-
                 if self.criteria.group.min and self.criteria.group.max:
                     return "People with a rank between"
 
@@ -300,9 +298,8 @@ class GuildBind(BaseModel):
             str: The sentence description of this binding.
         """
 
-        if self.type == "group":
-            if self.subtype == "full_group":
-                return "- _All users in **this** group receive the role matching their group rank name._"
+        if self.type == "group" and self.subtype == "full_group":
+            return "- _All users in **this** group receive the role matching their group rank name._"
 
         role_mentions = ", ".join(f"<@&{val}>" for val in self.roles)
         remove_role_mentions = ", ".join(f"<@&{val}>" for val in self.remove_roles)

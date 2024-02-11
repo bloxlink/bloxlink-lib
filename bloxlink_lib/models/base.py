@@ -46,7 +46,7 @@ class RobloxEntity(BaseModel, ABC):
 
     id: int | None
     name: str = None
-    description: str = None
+    description: str | None = None
     synced: bool = False
     url: str = None
 

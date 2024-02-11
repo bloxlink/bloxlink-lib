@@ -209,6 +209,8 @@ class GuildBind(BaseModel):
 
         match self.type:
             case "group":
+                print(self.criteria.group)
+
                 if self.criteria.group.min and self.criteria.group.max:
                     return "People with a rank between"
 

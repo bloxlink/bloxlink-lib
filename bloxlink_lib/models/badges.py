@@ -26,7 +26,7 @@ class RobloxBadge(RobloxAsset):
         if self.synced:
             return
 
-        badge_data, _ = await fetch_typed(f"{BADGE_API}/{self.id}", RobloxBadgeResponse)
+        badge_data, _ = await fetch_typed(RobloxBadgeResponse, f"{BADGE_API}/{self.id}")
 
         self.name = badge_data.name
         self.description = badge_data.description

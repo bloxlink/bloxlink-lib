@@ -139,7 +139,7 @@ async def fetch[T](
         logging.debug(f"URL {url} timed out")
         raise RobloxDown() from None
 
-async def fetch_typed[T](url: str, parse_as: Type[T], method="GET", **kwargs) -> Tuple[T, ClientResponse]:
+async def fetch_typed[T](parse_as: Type[T], url: str, method="GET", **kwargs) -> Tuple[T, ClientResponse]:
     """Fetch data from a URL and parse it as a dataclass.
 
     Args:

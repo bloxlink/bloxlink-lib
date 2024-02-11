@@ -114,8 +114,8 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
                 includes.remove("badges")
 
         roblox_user_data, user_data_response = await fetch_typed(
+            RobloxUser,
             f"{CONFIG.ROBLOX_INFO_SERVER}/roblox/info",
-            RobloxUser, # seems redundant but it's so that we can use type hinting
             params={"id": self.id, "include": ",".join(includes)},
         )
 

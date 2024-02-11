@@ -27,7 +27,7 @@ class RobloxCatalogAsset(RobloxAsset):
         if self.synced:
             return
 
-        asset_data, _ = await fetch_typed(f"{ASSET_API}/{self.id}/details", RobloxCatalogAssetResponse)
+        asset_data, _ = await fetch_typed(RobloxCatalogAssetResponse, f"{ASSET_API}/{self.id}/details")
 
         self.name = asset_data.name
         self.description = asset_data.description

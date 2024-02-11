@@ -84,10 +84,10 @@ class RobloxGroup(RobloxEntity):
             return
 
         if self.rolesets is None:
-            roleset_data, _ = await fetch_typed(f"{GROUP_API}/{self.id}/roles", RobloxRoleset)
+            roleset_data, _ = await fetch_typed(RobloxRoleset, f"{GROUP_API}/{self.id}/roles")
             self.rolesets = {int(roleset.rank): roleset for roleset in roleset_data.roles}
 
-        group_data, _ = await fetch_typed(f"{GROUP_API}/{self.id}", RobloxGroup)
+        group_data, _ = await fetch_typed(RobloxGroup, f"{GROUP_API}/{self.id}")
 
         self.name = group_data.name
         self.description = group_data.description

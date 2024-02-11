@@ -333,6 +333,10 @@ async def build_binds_desc(
 
     guild_binds = await get_binds(guild_id, category=bind_type, bind_id=bind_id)
 
+    # sync the first 5 binds
+    for bind in guild_binds[:5]:
+        await bind.entity.sync()
+
     bind_strings = [str(bind) for bind in guild_binds[:5]]
     output = "\n".join(bind_strings)
 

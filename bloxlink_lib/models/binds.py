@@ -42,7 +42,7 @@ class GroupBindData(BaseModel):
 
     # conditions
     everyone: bool = False
-    guest: bool
+    guest: bool = False
     min: int = None
     max: int = None
     roleset: int = None

@@ -5,6 +5,9 @@ from .base import Snowflake, BaseModel
 import bloxlink_lib.models.binds as binds_module
 
 
+binds_module.GuildBind.model_rebuild() # RoleSerializable is not defined when the schema is first built, so we need to re-build it. TODO: make better
+
+
 class GuildData(BaseModel):
     """Representation of the stored settings for a guild"""
 
@@ -108,5 +111,3 @@ class GuildSerializable(BaseModel):
             name=guild.name,
             roles=guild.roles
         )
-
-binds_module.GuildBind.model_rebuild()

@@ -220,12 +220,12 @@ class GuildBind(BaseModel):
 
                 if self.criteria.group.roleset:
                     if self.criteria.group.roleset < 0:
-                        return "People with a rank greater than or equal t"
+                        return "People with a rank greater than or equal to"
 
                     return "People with the rank"
 
                 if self.criteria.group.guest:
-                    return "People who are not in **this group**"
+                    return "People who are NOT in **this group**"
 
                 if self.criteria.group.everyone:
                     return "People who are in **this group**"

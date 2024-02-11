@@ -4,6 +4,7 @@ from typing import Any, Literal, TYPE_CHECKING, TypedDict, NotRequired
 from pydantic import Field, ValidationError
 
 from ..models.base import RobloxEntity, create_entity, BaseModel
+from ..exceptions import RobloxAPIError, RobloxNotFound
 import bloxlink_lib.database as database
 from ..utils import find
 
@@ -198,6 +199,112 @@ class GuildBind(BaseModel):
 
         return False, additional_roles, missing_roles, ineligible_roles
 
+    @property
+    def prefix(self) -> str:
+        """Generate the prefix string for a bind's description.
+
+        Returns:
+            str: The prefix string for a bind's description.
+        """
+
+        match self.type:
+            case "group":
+                if self.criteria.group.min and self.criteria.group.max:
+                    return "People with a rank between"
+
+                if self.criteria.group.min:
+                    return "People with a rank greater than or equal to"
+
+                if self.criteria.group.max:
+                    return "People with a rank less than or equal to"
+
+                if self.criteria.group.roleset:
+                    if self.criteria.group.roleset < 0:
+                        return "People with a rank greater than or equal t"
+
+                    return "People with the rank"
+
+                if self.criteria.group.guest:
+                    return "People who are not in **this group**"
+
+                if self.criteria.group.everyone:
+                    return "People who are in **this group**"
+
+            case "verified":
+                return "People who have verified their Roblox account"
+
+            case "unverified":
+                return "People who have not verified their Roblox account"
+
+            case _:
+                return f"People who own the {self.type}"
+
+    @property
+    def content(self) -> str:
+        """Generate the content string for a bind's description.
+
+        This will be the content that describes the rolesets to be given,
+        or the name of the other entity that the bind is for.
+
+        Returns:
+            str: The content string for a bind's description.
+                Roleset bindings like guest and everyone do not have content to display,
+                as the given prefix string contains the content.
+        """
+
+        if self.type != "group":
+            return str(self.entity).replace("**", "")
+
+        group: RobloxGroup = self.entity
+        content: str = None
+
+        if self.criteria.group.min and self.criteria.group.max:
+            min_str = group.roleset_name_string(self.criteria.group.min, bold_name=False)
+            max_str = group.roleset_name_string(self.max, bold_name=False)
+            content = f"{min_str}** and **{max_str}"
+
+        elif self.criteria.group.min:
+            content = group.roleset_name_string(self.criteria.group.min, bold_name=False)
+
+        elif self.criteria.group.max:
+            content = group.roleset_name_string(self.criteria.group.max, bold_name=False)
+
+        elif self.criteria.group.roleset:
+            content = group.roleset_name_string(abs(self.criteria.group.roleset), bold_name=False)
+
+        return content
+
+    def __str__(self) -> str:
+        """Builds a sentence-formatted string for a binding.
+
+        Results in the layout of: <USERS> <CONTENT ID/RANK> receive the role(s) <ROLE LIST>, and have the roles
+        removed <REMOVE ROLE LIST>
+
+        The remove role list is only appended if it there are roles to remove.
+
+        Example output:
+            All users in this group receive the role matching their group rank name.
+            People with the rank Developers (200) receive the role @a
+            People with a rank greater than or equal to Supporter (1) receive the role @b
+
+        Returns:
+            str: The sentence description of this binding.
+        """
+
+        if self.type == "group":
+            if self.subtype == "linked_group":
+                return "- _All users in **this** group receive the role matching their group rank name._"
+
+        role_mentions = ", ".join(f"<@&{val}>" for val in self.roles)
+        remove_role_mentions = ", ".join(f"<@&{val}>" for val in self.remove_roles)
+
+        content = self.content
+
+        return (
+            f"- _{self.prefix} {f'**{content}**' if content else ''} receive the "
+            f"role{'s' if len(self.roles) > 1  else ''} {role_mentions}"
+            f"{'' if len(self.remove_roles) == 0 else f', and have these roles removed: {remove_role_mentions}'}_"
+        )
 
 async def count_binds(guild_id: int | str, bind_id: int = None) -> int:
     """Count the number of binds that this guild_id has created.

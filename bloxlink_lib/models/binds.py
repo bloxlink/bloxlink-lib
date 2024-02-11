@@ -199,7 +199,7 @@ class GuildBind(BaseModel):
         return False, additional_roles, missing_roles, ineligible_roles
 
     @property
-    def prefix(self) -> str:
+    def _prefix(self) -> str:
         """Generate the prefix string for a bind's description.
 
         Returns:
@@ -239,7 +239,7 @@ class GuildBind(BaseModel):
                 return f"People who own the {self.type}"
 
     @property
-    def content(self) -> str:
+    def _content(self) -> str:
         """Generate the content string for a bind's description.
 
         This will be the content that describes the rolesets to be given,
@@ -304,10 +304,10 @@ class GuildBind(BaseModel):
         role_mentions = ", ".join(f"<@&{val}>" for val in self.roles)
         remove_role_mentions = ", ".join(f"<@&{val}>" for val in self.remove_roles)
 
-        content = self.content
+        content = self._content
 
         return (
-            f"- _{self.prefix}{' ' if content else ''} {f'**{content}**' if content else ''}{' ' if content else ''}receive the "
+            f"- _{self._prefix}{' ' if content else ''} {f'**{content}**' if content else ''}{' ' if content else ''}receive the "
             f"role{'s' if len(self.roles) > 1  else ''} {role_mentions}"
             f"{'' if len(self.remove_roles) == 0 else f', and have these roles removed: {remove_role_mentions}'}_"
         )

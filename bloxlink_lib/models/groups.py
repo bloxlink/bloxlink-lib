@@ -23,6 +23,8 @@ class GroupRoleset(BaseModel):
     id: int # Roblox-assigned roleset ID
     member_count: int | None = Field(alias="memberCount", default=None)
 
+    def __str__(self) -> str:
+        return self.name
 
 class RobloxRoleset(BaseModel):
     """Representation of the response from the Roblox roleset API."""

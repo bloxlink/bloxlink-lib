@@ -122,12 +122,15 @@ class RobloxGroup(RobloxEntity):
             str: The roleset string as requested.
         """
 
-        roleset_name = self.rolesets.get(roleset_id).name if self.rolesets else str(roleset_id)
+        roleset_name = self.rolesets[roleset_id].name if self.synced else ""
 
-        if bold_name:
+        if bold_name and roleset_name:
             roleset_name = f"**{roleset_name}**"
 
-        return f"{roleset_name} ({roleset_id})" if include_id else roleset_name
+        if self.synced:
+            return f"{roleset_name} ({roleset_id})" if include_id else roleset_name
+
+        return f"({roleset_id})"
 
 
     def __str__(self) -> str:

@@ -308,7 +308,7 @@ class GuildBind(BaseModel):
         content = self.content
 
         return (
-            f"- _{self.prefix} {f'**{content}**' if content else ''} receive the "
+            f"- _{self.prefix}{' ' if content else ''} {f'**{content}**' if content else ''}{' ' if content else ''}receive the "
             f"role{'s' if len(self.roles) > 1  else ''} {role_mentions}"
             f"{'' if len(self.remove_roles) == 0 else f', and have these roles removed: {remove_role_mentions}'}_"
         )

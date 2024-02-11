@@ -252,25 +252,32 @@ class GuildBind(BaseModel):
                 as the given prefix string contains the content.
         """
 
-        if self.type != "group":
-            return str(self.entity).replace("**", "")
-
-        group: RobloxGroup = self.entity
         content: str = None
 
-        if self.criteria.group.min and self.criteria.group.max:
-            min_str = group.roleset_name_string(self.criteria.group.min, bold_name=False)
-            max_str = group.roleset_name_string(self.max, bold_name=False)
-            content = f"{min_str}** and **{max_str}"
+        match self.type:
+            case "group":
+                group: RobloxGroup = self.entity
 
-        elif self.criteria.group.min:
-            content = group.roleset_name_string(self.criteria.group.min, bold_name=False)
+                if self.criteria.group.min and self.criteria.group.max:
+                    min_str = group.roleset_name_string(self.criteria.group.min, bold_name=False)
+                    max_str = group.roleset_name_string(self.max, bold_name=False)
 
-        elif self.criteria.group.max:
-            content = group.roleset_name_string(self.criteria.group.max, bold_name=False)
+                    content = f"{min_str}** and **{max_str}"
 
-        elif self.criteria.group.roleset:
-            content = group.roleset_name_string(abs(self.criteria.group.roleset), bold_name=False)
+                elif self.criteria.group.min:
+                    content = group.roleset_name_string(self.criteria.group.min, bold_name=False)
+
+                elif self.criteria.group.max:
+                    content = group.roleset_name_string(self.criteria.group.max, bold_name=False)
+
+                elif self.criteria.group.roleset:
+                    content = group.roleset_name_string(abs(self.criteria.group.roleset), bold_name=False)
+
+            case "verified" | "unverified":
+                content = ""
+
+            case _:
+                content = str(self.entity).replace("**", "")
 
         return content
 

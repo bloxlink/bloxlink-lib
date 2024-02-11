@@ -369,7 +369,7 @@ async def get_binds(guild_id: int | str, category: VALID_BIND_TYPES = None, bind
     guild_id = str(guild_id)
     guild_data = await database.fetch_guild_data(guild_id, "binds")
 
-    return list(filter(lambda b: b.type == category and ((bind_id and b.criteria.id == bind_id) or True), guild_data.binds) if category else guild_data.binds)
+    return list(filter(lambda b: b.type == category and ((bind_id and b.criteria.id == bind_id) or not bind_id), guild_data.binds) if category else guild_data.binds)
 
     # Convert and save old bindings in the new format
     # if not guild_data.converted_binds and (

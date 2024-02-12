@@ -63,8 +63,7 @@ class RobloxEntity(BaseModel, ABC):
 class BloxlinkEntity(RobloxEntity):
     """Entity for Bloxlink-specific operations."""
 
-    type: Literal["verified", "unverified"] = None
-    id = None
+    type: Literal["verified", "unverified"]
 
     async def sync(self):
         pass

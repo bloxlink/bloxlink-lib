@@ -60,11 +60,17 @@ class RobloxEntity(BaseModel, ABC):
         return f"{name} ({self.id})"
 
 
-class EmptyEntity(RobloxEntity):
-    """Empty Roblox entity. Used for verified and unverified binds."""
+class BloxlinkEntity(RobloxEntity):
+    """Entity for Bloxlink-specific operations."""
+
+    type: Literal["verified", "unverified"] = None
+    id = None
 
     async def sync(self):
         pass
+
+    def __str__(self) -> str:
+        return "Verified Users" if self.type == "verified" else "Unverified Users"
 
 
 def create_entity(
@@ -102,8 +108,7 @@ def create_entity(
             return groups.RobloxGroup(id=entity_id)
 
         case "verified" | "unverified":
-            # this is creates an empty entity
-            return EmptyEntity(id=entity_id)
+            return BloxlinkEntity(type=category)
 
     return None
 

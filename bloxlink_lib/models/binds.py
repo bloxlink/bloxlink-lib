@@ -99,7 +99,7 @@ class GuildBind(BaseModel):
     # Excluded fields. These are used for the bind algorithms.
     entity: RobloxEntity | None = Field(exclude=True, default=None)
     type: Literal["group", "catalogAsset", "badge", "gamepass", "verified", "unverified"] | None = Field(exclude=True, default=None)
-    subtype: Literal["linked_group", "full_group"] | None = Field(exclude=True, default=None)
+    subtype: Literal["role_bind", "full_group"] | None = Field(exclude=True, default=None)
     highest_role: RoleSerializable | None = Field(exclude=True, default=None) # highest role in the guild
 
     def model_post_init(self, __context):
@@ -107,7 +107,7 @@ class GuildBind(BaseModel):
         self.type = self.criteria.type
 
         if self.type == "group":
-            self.subtype = "full_group" if self.criteria.group.dynamicRoles else "linked_group"
+            self.subtype = "full_group" if self.criteria.group.dynamicRoles else "role_bind"
 
     def calculate_highest_role(self, guild_roles: dict[str, RoleSerializable]) -> None:
         """Calculate the highest role in the guild for this bind."""

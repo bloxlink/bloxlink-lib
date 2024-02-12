@@ -212,11 +212,8 @@ class GuildBind(BaseModel):
                 if self.criteria.group.min and self.criteria.group.max:
                     return "People with a rank between"
 
-                if self.criteria.group.min:
-                    return "People with a rank greater than or equal to"
-
-                if self.criteria.group.max:
-                    return "People with a rank less than or equal to"
+                if self.criteria.group.min and self.criteria.group.max:
+                    return "People with a rank in-between the range"
 
                 if self.criteria.group.roleset:
                     if self.criteria.group.roleset < 0:
@@ -264,11 +261,8 @@ class GuildBind(BaseModel):
 
                     content = f"{min_str}** and **{max_str}"
 
-                elif self.criteria.group.min:
-                    content = group.roleset_name_string(self.criteria.group.min, bold_name=False)
-
-                elif self.criteria.group.max:
-                    content = group.roleset_name_string(self.criteria.group.max, bold_name=False)
+                elif self.criteria.group.min and self.criteria.group.max:
+                    content = f"{group.roleset_name_string(self.criteria.group.min, bold_name=False)} to {group.roleset_name_string(self.criteria.group.max, bold_name=False)}"
 
                 elif self.criteria.group.roleset:
                     content = group.roleset_name_string(abs(self.criteria.group.roleset), bold_name=False)

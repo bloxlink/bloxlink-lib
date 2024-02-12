@@ -64,6 +64,7 @@ class BloxlinkEntity(RobloxEntity):
     """Entity for Bloxlink-specific operations."""
 
     type: Literal["verified", "unverified"]
+    id: None = None
 
     async def sync(self):
         pass

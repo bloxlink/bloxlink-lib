@@ -274,7 +274,7 @@ class GuildBind(BaseModel):
         """Similar to str() but does not give details about the roles"""
 
         if self.type == "group" and self.subtype == "full_group":
-            return "All users in **this** group receive the role matching their group rank name"
+            return "All users receive a role matching their group rank name"
 
         content = self.description_content
 
@@ -302,7 +302,7 @@ class GuildBind(BaseModel):
         extended_description = self.short_description
 
         if self.type == "group" and self.subtype == "full_group":
-            return f"- _{extended_description}_"
+            return "- _All users in **this** group receive the role matching their group rank name_" # extended_description is not used in case we want the description to be shorter
 
         role_mentions = ", ".join(f"<@&{val}>" for val in self.roles)
         remove_role_mentions = ", ".join(f"<@&{val}>" for val in self.remove_roles)

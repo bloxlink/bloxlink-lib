@@ -256,12 +256,6 @@ class GuildBind(BaseModel):
                 group: RobloxGroup = self.entity
 
                 if self.criteria.group.min and self.criteria.group.max:
-                    min_str = group.roleset_name_string(self.criteria.group.min, bold_name=False)
-                    max_str = group.roleset_name_string(self.max, bold_name=False)
-
-                    content = f"{min_str}** and **{max_str}"
-
-                elif self.criteria.group.min and self.criteria.group.max:
                     content = f"{group.roleset_name_string(self.criteria.group.min, bold_name=False)} to {group.roleset_name_string(self.criteria.group.max, bold_name=False)}"
 
                 elif self.criteria.group.roleset:
@@ -274,6 +268,19 @@ class GuildBind(BaseModel):
                 content = str(self.entity).replace("**", "")
 
         return content
+
+    @property
+    def short_description(self) -> str:
+        """Similar to str() but does not give details about the roles"""
+
+        if self.type == "group" and self.subtype == "full_group":
+            return "All users in **this** group receive the role matching their group rank name"
+
+        content = self.description_content
+
+        return (
+            f"{self.description_prefix}{' ' if content else ''}{f'**{content}** ' if content else ''}"
+        )
 
     def __str__(self) -> str:
         """Builds a sentence-formatted string for a binding.
@@ -292,16 +299,16 @@ class GuildBind(BaseModel):
             str: The sentence description of this binding.
         """
 
+        extended_description = self.short_description
+
         if self.type == "group" and self.subtype == "full_group":
-            return "- _All users in **this** group receive the role matching their group rank name._"
+            return f"- _{extended_description}_"
 
         role_mentions = ", ".join(f"<@&{val}>" for val in self.roles)
         remove_role_mentions = ", ".join(f"<@&{val}>" for val in self.remove_roles)
 
-        content = self.description_content
-
         return (
-            f"- _{self.description_prefix}{' ' if content else ''}{f'**{content}** ' if content else ''} receive the "
+            f"- _{extended_description} receive the "
             f"role{'s' if len(self.roles) > 1  else ''} {role_mentions}"
             f"{'' if len(self.remove_roles) == 0 else f', and have these roles removed: {remove_role_mentions}'}_"
         )

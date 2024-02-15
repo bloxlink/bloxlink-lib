@@ -49,10 +49,16 @@ class GuildData(BaseModel):
     def model_post_init(self, __context):
         # merge verified roles into binds
         if self.verifiedRole:
-            self.binds.append(binds_module.GuildBind(criteria={"type": "verified"}, roles=[self.verifiedRole]))
+            verified_role_bind = binds_module.GuildBind(criteria={"type": "verified"}, roles=[self.verifiedRole])
+
+            if verified_role_bind not in self.binds:
+                self.binds.append(verified_role_bind)
 
         if self.unverifiedRole:
-            self.binds.append(binds_module.GuildBind(criteria={"type": "unverified"}, roles=[self.unverifiedRole]))
+            unverified_role_bind = binds_module.GuildBind(criteria={"type": "unverified"}, roles=[self.unverifiedRole])
+
+            if unverified_role_bind not in self.binds:
+                self.binds.append(unverified_role_bind)
 
         # if self.verifiedRoleName:
         #     self.binds.append(GuildBind(criteria={"type": "verified"}, roles=[self.verifiedRole]))

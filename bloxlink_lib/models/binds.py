@@ -118,7 +118,7 @@ class GuildBind(BaseModel):
             if filtered_binds:
                 self.highest_role = max(filtered_binds, key=lambda r: r.position)
 
-    async def satisfies_for(self, guild_roles: dict[str, RoleSerializable], member: MemberSerializable, roblox_user: RobloxUser | None = None) -> tuple[bool, list[RoleSerializable], list[str], list[RoleSerializable]]:
+    async def satisfies_for(self, guild_roles: dict[int, RoleSerializable], member: MemberSerializable, roblox_user: RobloxUser | None = None) -> tuple[bool, list[RoleSerializable], list[str], list[RoleSerializable]]:
         """Check if a user satisfies the requirements for this bind."""
 
         ineligible_roles: list[str] = []
@@ -366,7 +366,7 @@ async def count_binds(guild_id: int | str, bind_id: int = None) -> int:
 
     return len(guild_data) if not bind_id else sum(1 for b in guild_data if b.id == int(bind_id)) or 0
 
-async def get_binds(guild_id: int | str, category: VALID_BIND_TYPES = None, bind_id: int = None) -> list[GuildBind]:
+async def get_binds(guild_id: int | str, category: VALID_BIND_TYPES = None, bind_id: int = None, guild_roles: dict[int, RoleSerializable] = None) -> list[GuildBind]:
     """Get the current guild binds.
 
     Old binds will be included by default, but will not be saved in the database in the
@@ -375,7 +375,13 @@ async def get_binds(guild_id: int | str, category: VALID_BIND_TYPES = None, bind
     """
 
     guild_id = str(guild_id)
-    guild_data = await database.fetch_guild_data(guild_id, "binds")
+    guild_data = await database.fetch_guild_data(guild_id, "binds", "verifiedRole", "unverifiedRole", "verifiedRoleName", "unverifiedRoleName") # needed to polyfill the binds
+
+    # check the guild roles for a verified role
+    if guild_roles and not any(b.criteria.type == "verified" for b in guild_data.binds):
+        pass
+
+
 
     return list(filter(lambda b: b.type == category and ((bind_id and b.criteria.id == bind_id) or not bind_id), guild_data.binds) if category else guild_data.binds)
 

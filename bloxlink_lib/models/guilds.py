@@ -1,4 +1,4 @@
-from typing import Mapping, Self, Type, Annotated
+from typing import Mapping, Self, Type
 from pydantic import Field, field_validator
 import hikari
 from .base import Snowflake, BaseModel
@@ -9,7 +9,7 @@ class GuildData(BaseModel):
     """Representation of the stored settings for a guild"""
 
     id: int
-    binds: list[binds_module.GuildBind] = Annotated[dict, Field(default_factory=list)]
+    binds: list[binds_module.GuildBind] = Field(default_factory=list)
 
     @field_validator("binds", mode="before")
     @classmethod

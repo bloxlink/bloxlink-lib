@@ -375,13 +375,27 @@ async def get_binds(guild_id: int | str, category: VALID_BIND_TYPES = None, bind
     """
 
     guild_id = str(guild_id)
-    guild_data = await database.fetch_guild_data(guild_id, "binds", "verifiedRole", "unverifiedRole", "verifiedRoleName", "unverifiedRoleName") # needed to polyfill the binds
+    guild_data = await database.fetch_guild_data(guild_id, "binds", "verifiedRole", "unverifiedRole", "verifiedRoleName", "unverifiedRoleName", "unverifiedRoleEnabled", "unverifiedRoleEnabled") # some are needed to polyfill the binds
 
     # check the guild roles for a verified role
-    if guild_roles and not any(b.criteria.type == "verified" for b in guild_data.binds):
-        pass
+    if guild_roles and (guild_data.unverifiedRoleEnabled or guild_data.verifiedRoleEnabled) and not any(b.criteria.type == "verified" for b in guild_data.binds):
+        verified_role_name = guild_data.verifiedRoleName
+        unverified_role_name = guild_data.unverifiedRoleName
+        verified_role_enabled = guild_data.verifiedRoleEnabled
+        unverified_role_enabled = guild_data.unverifiedRoleEnabled
 
-
+        if verified_role_name or unverified_role_name:
+            for role in guild_roles.values():
+                if verified_role_enabled and role.name == verified_role_name:
+                    guild_data.binds.append(GuildBind(
+                        criteria=BindCriteria(type="verified"),
+                        roles=[str(role.id)],
+                    ))
+                elif unverified_role_enabled and role.name == unverified_role_name:
+                    guild_data.binds.append(GuildBind(
+                        criteria=BindCriteria(type="unverified"),
+                        roles=[str(role.id)],
+                    ))
 
     return list(filter(lambda b: b.type == category and ((bind_id and b.criteria.id == bind_id) or not bind_id), guild_data.binds) if category else guild_data.binds)
 

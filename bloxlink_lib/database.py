@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 from os.path import exists
 from typing import Type, TYPE_CHECKING
 
@@ -50,6 +51,12 @@ def connect_database():
         )
 
 
+async def redis_pipeline(*commands):
+    """Execute the Redis commands atomically."""
+
+    return await redis.pipeline().execute(*commands)
+
+
 async def fetch_item[T](domain: str, constructor: Type[T], item_id: str, *aspects) -> T:
     """
     Fetch an item from local cache, then redis, then database.
@@ -71,10 +78,17 @@ async def fetch_item[T](domain: str, constructor: Type[T], item_id: str, *aspect
         if item and not isinstance(item, (list, dict)):
             if aspects:
                 items = {x: item[x] for x in aspects if item.get(x) and not isinstance(item[x], dict)}
+
                 if items:
-                    await redis.hset(f"{domain}:{item_id}", items)
+                    await redis_pipeline(
+                        redis.hset(f"{domain}:{item_id}", items),
+                        redis.expire(f"{domain}:{item_id}", datetime.timedelta(hours=1).seconds)
+                    )
             else:
-                await redis.hset(f"{domain}:{item_id}", item)
+                await redis_pipeline(
+                    redis.hset(f"{domain}:{item_id}", item),
+                    redis.expire(f"{domain}:{item_id}", datetime.timedelta(hours=1).seconds)
+                )
 
     if item.get("_id"):
         item.pop("_id")
@@ -110,7 +124,10 @@ async def update_item(domain: str, item_id: str, **aspects) -> None:
             redis_set_aspects[aspect_name] = aspect_value
 
     if redis_set_aspects:
-        await redis.hset(f"{domain}:{item_id}", mapping=redis_set_aspects)
+        await redis_pipeline(
+            redis.hset(f"{domain}:{item_id}", mapping=redis_set_aspects),
+            redis.expire(f"{domain}:{item_id}", datetime.timedelta(hours=1).seconds)
+        )
 
     if redis_unset_aspects:
         await redis.hdel(f"{domain}:{item_id}", *redis_unset_aspects.keys())

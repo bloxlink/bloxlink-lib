@@ -19,6 +19,16 @@ class Config(BaseModel):
     DISCORD_PROXY_URL: str = None
     ROBLOX_INFO_SERVER: str
 
+    def model_post_init(self, __context):
+        # easier to validate with python expressions instead of attrs validators
+        if self.REDIS_URL is None and (
+            self.REDIS_HOST is None or self.REDIS_PORT is None
+        ):
+            raise ValueError("REDIS_URL or REDIS_HOST/REDIS_PORT/REDIS_PASSWORD must be set")
+
+        if all([self.REDIS_HOST, self.REDIS_PORT, self.REDIS_PASSWORD, self.REDIS_URL]):
+            raise ValueError("REDIS_URL and REDIS_HOST/REDIS_PORT/REDIS_PASSWORD cannot both be set")
+
 
 CONFIG: Config = Config(
     **{field:value for field, value in dotenv_values(f"{getcwd()}/.env").items() if field in Config.__annotations__}

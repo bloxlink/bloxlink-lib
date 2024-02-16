@@ -2,8 +2,6 @@ from os import getcwd
 from dotenv import dotenv_values
 from .models.base import BaseModel
 
-__all__ = ("CONFIG",)
-
 class Config(BaseModel):
     """Type definition for config values."""
 
@@ -18,6 +16,7 @@ class Config(BaseModel):
     REDIS_PASSWORD: str = None
     #############################
     PROXY_URL: str = None
+    DISCORD_PROXY_URL: str = None
     ROBLOX_INFO_SERVER: str
 
 

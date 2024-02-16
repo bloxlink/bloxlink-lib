@@ -1,4 +1,4 @@
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Sequence
 import importlib
 import logging
 import asyncio
@@ -57,7 +57,7 @@ def load_module(import_name: str) -> None:
 
     logging.info(f"Loaded module {import_name}")
 
-def load_modules(paths: list[str], starting_path: str =".") -> None:
+def load_modules(paths: Sequence[str], starting_path: str =".") -> None:
     """Utility function to import python modules.
 
     Args:

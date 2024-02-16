@@ -83,9 +83,11 @@ async def fetch[T](
 
     url = requote_uri(url)
 
-    for k, v in params.items():
+    for k, v in dict(params).items():
         if isinstance(v, bool):
             params[k] = "true" if v else "false"
+        elif v is None:
+            del params[k]
 
     try:
         async with session.request(

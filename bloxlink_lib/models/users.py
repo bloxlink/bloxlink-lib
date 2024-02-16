@@ -60,7 +60,7 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
     """Representation of a user on Roblox."""
 
     # must provide one of these
-    id: int
+    id: int | None = None
     username: str | None = Field(default=None, alias="name")
 
     # these fields are provided after sync() is called
@@ -116,7 +116,7 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
         roblox_user_data, user_data_response = await fetch_typed(
             RobloxUser,
             f"{CONFIG.ROBLOX_INFO_SERVER}/roblox/info",
-            params={"id": self.id, "include": ",".join(includes)},
+            params={"id": self.id, "username": self.username, "include": ",".join(includes)},
         )
 
         if user_data_response.status == StatusCodes.OK:

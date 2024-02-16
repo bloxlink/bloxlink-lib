@@ -60,7 +60,7 @@ def load_module(import_name: str) -> ModuleType:
 
     return module
 
-def load_modules(paths: Sequence[str], starting_path: str =".") -> list[ModuleType]:
+def load_modules(*paths: tuple[str], starting_path: str=".") -> list[ModuleType]:
     """Utility function to import python modules.
 
     Args:

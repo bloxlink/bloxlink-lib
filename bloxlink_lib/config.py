@@ -1,4 +1,5 @@
 from os import getcwd
+from typing import Literal
 from dotenv import dotenv_values
 from .models.base import BaseModel
 
@@ -18,6 +19,8 @@ class Config(BaseModel):
     PROXY_URL: str = None
     DISCORD_PROXY_URL: str = None
     ROBLOX_INFO_SERVER: str
+    #############################
+    LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
 
     def model_post_init(self, __context):
         # easier to validate with python expressions instead of attrs validators

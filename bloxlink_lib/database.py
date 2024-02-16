@@ -23,6 +23,8 @@ def connect_database():
     global mongo # pylint: disable=global-statement
     global redis # pylint: disable=global-statement
 
+    loop = asyncio.get_event_loop()
+
     if CONFIG.MONGO_CA_FILE:
         ca_file = exists("cert.crt")
 
@@ -50,7 +52,7 @@ def connect_database():
             health_check_interval=30,
         )
 
-    asyncio.create_task(_heartbeat_loop())
+    loop.create_task(_heartbeat_loop())
 
 
 async def _heartbeat_loop():

@@ -4,6 +4,7 @@ import logging
 import asyncio
 from os import listdir
 from inspect import iscoroutinefunction
+from types import ModuleType
 
 def find[T](predicate: Callable, iterable: Iterable[T]) -> T | None:
     """Finds the first element in an iterable that matches the predicate."""
@@ -24,7 +25,7 @@ def find[T](predicate: Callable, iterable: Iterable[T]) -> T | None:
 
     return None
 
-def load_module(import_name: str) -> None:
+def load_module(import_name: str) -> ModuleType:
     """Utility function to import python modules.
 
     Args:
@@ -57,12 +58,16 @@ def load_module(import_name: str) -> None:
 
     logging.info(f"Loaded module {import_name}")
 
-def load_modules(paths: Sequence[str], starting_path: str =".") -> None:
+    return module
+
+def load_modules(paths: Sequence[str], starting_path: str =".") -> list[ModuleType]:
     """Utility function to import python modules.
 
     Args:
         paths (list[str]): Paths of modules to import
     """
+
+    modules: list[ModuleType] = []
 
     for directory in paths:
         files = [
@@ -75,4 +80,9 @@ def load_modules(paths: Sequence[str], starting_path: str =".") -> None:
             if filename in ("__main__", "__init__"):
                 continue
 
-            load_module(f"{directory.replace('/','.')}.{filename}")
+            module = load_module(f"{directory.replace('/','.')}.{filename}")
+
+            if module:
+                modules.append(module)
+
+    return modules

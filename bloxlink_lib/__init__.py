@@ -9,3 +9,4 @@ from .exceptions import *
 from .models.binds import *
 from .utils import *
 from .fetch import *
+from .config import *

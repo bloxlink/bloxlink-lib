@@ -2,16 +2,17 @@ import asyncio
 import logging
 from enum import IntEnum
 from typing import Literal, Type, Union, Tuple, Any
-from aiohttp import ClientResponse
-from bloxlink_lib.models.base import BaseModel
-from pydantic_core import to_json
-import aiohttp
+import importlib
+from inspect import iscoroutinefunction
 from requests.utils import requote_uri
+import aiohttp
+from pydantic_core import to_json
+from bloxlink_lib.models.base import BaseModel
 
 from .exceptions import RobloxAPIError, RobloxDown, RobloxNotFound
 from .config import CONFIG
 
-__all__ = ("StatusCodes", "fetch", "fetch_typed")
+__all__ = ("StatusCodes", "fetch", "fetch_typed", "load_module")
 
 
 session = None
@@ -45,7 +46,7 @@ async def fetch[T](
     parse_as: Literal["JSON", "BYTES", "TEXT"] | BaseModel | Type[T] = "JSON",
     raise_on_failure: bool = True,
     timeout: float = 10,
-) -> Union[Tuple[dict, ClientResponse], Tuple[str, ClientResponse], Tuple[bytes, ClientResponse], Tuple[T, ClientResponse], ClientResponse]:
+) -> Union[Tuple[dict, aiohttp.ClientResponse], Tuple[str, aiohttp.ClientResponse], Tuple[bytes, aiohttp.ClientResponse], Tuple[T, aiohttp.ClientResponse], aiohttp.ClientResponse]:
     """Make a REST request with the ability to proxy.
 
     Only Roblox URLs are proxied, all other requests to other domains are sent as is.
@@ -152,3 +153,36 @@ async def fetch_typed[T](parse_as: Type[T], url: str, method="GET", **kwargs) ->
         T: The dataclass instance of the response.
     """
     return await fetch(url=url, parse_as=parse_as, method=method, **kwargs)
+
+def load_module(import_name: str) -> None:
+    """Utility function to import python modules.
+
+    Args:
+        import_name (str): Name of the module to import
+    """
+
+    logging.info(f"Attempting to load module {import_name}")
+
+    try:
+        module = importlib.import_module(import_name)
+
+    except (ImportError, ModuleNotFoundError) as e:
+        logging.error(f"Failed to import {import_name}: {e}")
+        raise
+
+    except Exception as e:
+        logging.error(f"Module {import_name} errored: {e}")
+        raise
+
+    if hasattr(module, "__setup__"):
+        try:
+            if iscoroutinefunction(module.__setup__):
+                asyncio.run(module.__setup__())
+            else:
+                module.__setup__()
+
+        except Exception as e:
+            logging.error(f"Module {import_name} errored: {e}")
+            raise e
+
+    logging.info(f"Loaded module {import_name}")

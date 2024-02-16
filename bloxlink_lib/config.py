@@ -1,11 +1,13 @@
-from dotenv import dotenv_values
 from os import getcwd
+from dotenv import dotenv_values
 from .models.base import BaseModel
 
+__all__ = ("CONFIG",)
 
 class Config(BaseModel):
     """Type definition for config values."""
 
+    DISCORD_TOKEN: str
     #############################
     MONGO_URL: str
     MONGO_CA_FILE: str = None

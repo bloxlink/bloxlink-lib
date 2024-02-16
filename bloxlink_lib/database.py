@@ -20,8 +20,8 @@ if TYPE_CHECKING:
 
 
 def connect_database():
-    global mongo
-    global redis
+    global mongo # pylint: disable=global-statement
+    global redis # pylint: disable=global-statement
 
     if CONFIG.MONGO_CA_FILE:
         ca_file = exists("cert.crt")
@@ -49,6 +49,18 @@ def connect_database():
             retry_on_timeout=True,
             health_check_interval=30,
         )
+
+    asyncio.create_task(_heartbeat_loop())
+
+
+async def _heartbeat_loop():
+    while True:
+        try:
+            await asyncio.wait_for(redis.ping(), timeout=10)
+        except redis.ConnectionError as e:
+            raise SystemError("Failed to connect to Redis.") from e
+
+        await asyncio.sleep(5)
 
 
 async def redis_pipeline(*commands):

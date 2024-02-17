@@ -7,6 +7,7 @@ from typing import Type, TYPE_CHECKING
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from redis.asyncio import Redis
+from redis import ConnectionError as RedisConnectionError
 
 from bloxlink_lib.models import users
 from bloxlink_lib.models import guilds
@@ -59,7 +60,7 @@ async def _heartbeat_loop():
     while True:
         try:
             await asyncio.wait_for(redis.ping(), timeout=10)
-        except redis.ConnectionError as e:
+        except RedisConnectionError as e:
             raise SystemError("Failed to connect to Redis.") from e
 
         await asyncio.sleep(5)

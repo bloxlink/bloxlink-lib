@@ -2,9 +2,10 @@ from typing import Callable, Iterable, Awaitable
 import importlib
 import logging
 import asyncio
-from os import listdir
+from os import listdir, getenv
 from inspect import iscoroutinefunction
 from types import ModuleType
+from .config import CONFIG
 
 def find[T](predicate: Callable, iterable: Iterable[T]) -> T | None:
     """Finds the first element in an iterable that matches the predicate."""
@@ -99,3 +100,23 @@ def create_task_log_exception(awaitable: Awaitable) -> asyncio.Task:
             logging.exception(e)
 
     return asyncio.create_task(_log_exception(awaitable))
+
+def get_node_id() -> int:
+    """Gets the node ID from the hostname."""
+
+    hostname = getenv("HOSTNAME", "bloxlink-0")
+
+    try:
+        node_id = int(hostname.split("-")[-1])
+    except ValueError:
+        node_id = 0
+
+    return node_id
+
+def get_node_count() -> int:
+    """Gets the node count."""
+
+    shards_per_node = CONFIG.SHARDS_PER_NODE
+    shard_count = CONFIG.SHARD_COUNT
+
+    return shard_count // shards_per_node

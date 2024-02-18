@@ -124,15 +124,7 @@ async def fetch[T](
                 if parse_as == "BYTES":
                     return await response.read(), response
 
-                if issubclass(parse_as, BaseModel):
-                    json_response = await response.json()
-                    # Filter only relevant fields before constructing the pydantic instance
-                    relevant_fields = {field_name: json_response.get(field_name, json_response.get(field.alias)) for field_name, field in parse_as.model_fields.items() if field_name in json_response or field.alias in json_response}
-                    return parse_as(**relevant_fields), response
-
-                if isinstance(parse_as, dict):
-                    json_response = await response.json()
-                    return {key: json_response[value] for key, value in parse_as.items()}, response
+                return parse_into(await response.json(), parse_as), response
 
             return response
 
@@ -151,3 +143,23 @@ async def fetch_typed[T](parse_as: Type[T], url: str, method="GET", **kwargs) ->
         T: The dataclass instance of the response.
     """
     return await fetch(url=url, parse_as=parse_as, method=method, **kwargs)
+
+
+def parse_into[T](data: dict, model: Type[T]) -> T:
+    """Parse a dictionary into a dataclass.
+
+    Args:
+        data (dict): The dictionary to parse.
+        model (Type[T]): The dataclass to parse the dictionary into.
+
+    Returns:
+        T: The dataclass instance of the response.
+    """
+
+    if issubclass(model, BaseModel):
+        # Filter only relevant fields before constructing the pydantic instance
+        relevant_fields = {field_name: data.get(field_name, data.get(field.alias)) for field_name, field in model.model_fields.items() if field_name in data or field.alias in data}
+
+        return model(**relevant_fields)
+
+    return model(**data)

@@ -5,7 +5,7 @@ import asyncio
 from os import listdir, getenv
 from inspect import iscoroutinefunction
 from types import ModuleType
-from models.base import BaseModel
+from .models.base import BaseModel
 from .config import CONFIG
 
 def find[T](predicate: Callable, iterable: Iterable[T]) -> T | None:

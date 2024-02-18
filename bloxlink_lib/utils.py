@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, Sequence
+from typing import Callable, Iterable, Awaitable
 import importlib
 import logging
 import asyncio
@@ -86,3 +86,16 @@ def load_modules(*paths: tuple[str], starting_path: str=".") -> list[ModuleType]
                 modules.append(module)
 
     return modules
+
+def create_task_log_exception(awaitable: Awaitable) -> asyncio.Task:
+    """Creates a task that logs exceptions."""
+    # https://stackoverflow.com/questions/30361824/asynchronous-exception-handling-in-python
+
+    async def _log_exception(awaitable):
+        try:
+            return await awaitable
+
+        except Exception as e: # pylint: disable=broad-except
+            logging.exception(e)
+
+    return asyncio.create_task(_log_exception(awaitable))

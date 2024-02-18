@@ -1,10 +1,11 @@
-from typing import Callable, Iterable, Awaitable
+from typing import Callable, Iterable, Awaitable, Type
 import importlib
 import logging
 import asyncio
 from os import listdir, getenv
 from inspect import iscoroutinefunction
 from types import ModuleType
+from models.base import BaseModel
 from .config import CONFIG
 
 def find[T](predicate: Callable, iterable: Iterable[T]) -> T | None:
@@ -120,3 +121,22 @@ def get_node_count() -> int:
     shard_count = CONFIG.SHARD_COUNT
 
     return shard_count // shards_per_node
+
+def parse_into[T: BaseModel | dict](data: dict, model: Type[T]) -> T:
+    """Parse a dictionary into a dataclass.
+
+    Args:
+        data (dict): The dictionary to parse.
+        model (Type[T]): The dataclass to parse the dictionary into.
+
+    Returns:
+        T: The dataclass instance of the response.
+    """
+
+    if issubclass(model, BaseModel):
+        # Filter only relevant fields before constructing the pydantic instance
+        relevant_fields = {field_name: data.get(field_name, data.get(field.alias)) for field_name, field in model.model_fields.items() if field_name in data or field.alias in data}
+
+        return model(**relevant_fields)
+
+    return model(**data)

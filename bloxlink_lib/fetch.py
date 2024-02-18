@@ -6,6 +6,7 @@ from requests.utils import requote_uri
 import aiohttp
 from pydantic_core import to_json
 from bloxlink_lib.models.base import BaseModel
+from bloxlink_lib.utils import parse_into
 
 from .exceptions import RobloxAPIError, RobloxDown, RobloxNotFound
 from .config import CONFIG
@@ -143,23 +144,3 @@ async def fetch_typed[T](parse_as: Type[T], url: str, method="GET", **kwargs) ->
         T: The dataclass instance of the response.
     """
     return await fetch(url=url, parse_as=parse_as, method=method, **kwargs)
-
-
-def parse_into[T](data: dict, model: Type[T]) -> T:
-    """Parse a dictionary into a dataclass.
-
-    Args:
-        data (dict): The dictionary to parse.
-        model (Type[T]): The dataclass to parse the dictionary into.
-
-    Returns:
-        T: The dataclass instance of the response.
-    """
-
-    if issubclass(model, BaseModel):
-        # Filter only relevant fields before constructing the pydantic instance
-        relevant_fields = {field_name: data.get(field_name, data.get(field.alias)) for field_name, field in model.model_fields.items() if field_name in data or field.alias in data}
-
-        return model(**relevant_fields)
-
-    return model(**data)

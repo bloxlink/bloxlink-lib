@@ -61,7 +61,7 @@ def connect_database():
 async def redis_set(key: str, value: Any, expire: datetime.timedelta=None):
     """Set a value in Redis."""
 
-    await redis.set(key, json.dumps(value), ex=expire.total_seconds() if expire else None)
+    await redis.set(key, json.dumps(value), ex=int(expire.total_seconds()) if expire else None)
 
 async def _heartbeat_loop():
     while True:

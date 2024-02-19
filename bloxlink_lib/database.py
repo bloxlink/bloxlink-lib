@@ -64,7 +64,7 @@ async def redis_set(key: str, value: BaseModel | Any, expire: datetime.timedelta
     """Set a value in Redis. Accepts BaseModels and expirations as datetimes."""
 
     await redis._old_set(key, # pylint: disable=protected-access
-                         value.model_dump_json() if isinstance(value, BaseModel) else json.dumps(value),
+                         value.model_dump_json() if isinstance(value, BaseModel) else (json.dumps(value) if isinstance(value, (list, dict)) else value),
                          ex=int(expire.total_seconds()) if expire and isinstance(expire, datetime.timedelta) else expire,
                          **kwargs)
 

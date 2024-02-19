@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import datetime
+import json
 from os.path import exists
-from typing import Type, TYPE_CHECKING
+from typing import Type, TYPE_CHECKING, Any
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from redis.asyncio import Redis
@@ -53,8 +54,14 @@ def connect_database():
             health_check_interval=30,
         )
 
+    redis.set = redis_set
+
     loop.create_task(_heartbeat_loop())
 
+async def redis_set(key: str, value: Any, expire: datetime.timedelta=None):
+    """Set a value in Redis."""
+
+    await redis.set(key, json.dumps(value), ex=expire.total_seconds() if expire else None)
 
 async def _heartbeat_loop():
     while True:

@@ -102,12 +102,12 @@ async def fetch_item[T](domain: str, constructor: Type[T], item_id: str, *aspect
                 if items:
                     async with redis.pipeline() as pipeline:
                         await pipeline.hmset(f"{domain}:{item_id}", items)
-                        await pipeline.expire(f"{domain}:{item_id}", datetime.timedelta(hours=1).seconds)
+                        await pipeline.expire(f"{domain}:{item_id}", datetime.timedelta(hours=1).total_seconds())
                         await pipeline.execute()
             else:
                 async with redis.pipeline() as pipeline:
                     await pipeline.hmset(f"{domain}:{item_id}", item)
-                    await pipeline.expire(f"{domain}:{item_id}", datetime.timedelta(hours=1).seconds)
+                    await pipeline.expire(f"{domain}:{item_id}", datetime.timedelta(hours=1).total_seconds())
                     await pipeline.execute()
 
     if item.get("_id"):
@@ -144,10 +144,10 @@ async def update_item(domain: str, item_id: str, **aspects) -> None:
             redis_set_aspects[aspect_name] = aspect_value
 
     if redis_set_aspects:
-        await redis_pipeline(
-            redis.hset(f"{domain}:{item_id}", mapping=redis_set_aspects),
-            redis.expire(f"{domain}:{item_id}", datetime.timedelta(hours=1).seconds)
-        )
+        async with redis.pipeline() as pipeline:
+            await pipeline.hset(f"{domain}:{item_id}", mapping=redis_set_aspects)
+            await pipeline.expire(f"{domain}:{item_id}", datetime.timedelta(hours=1).total_seconds())
+            await pipeline.execute()
 
     if redis_unset_aspects:
         await redis.hdel(f"{domain}:{item_id}", *redis_unset_aspects.keys())

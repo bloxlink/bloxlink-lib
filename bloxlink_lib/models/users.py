@@ -361,7 +361,6 @@ class MemberSerializable(BaseModel):
     joined_at: datetime = None
     role_ids: Sequence[Snowflake] = None
     guild_id: int | None = None
-    avatar_hash: str = None
     nickname: str | None = None
     mention: str = None
 
@@ -382,7 +381,6 @@ class MemberSerializable(BaseModel):
             joined_at=member.joined_at,
             role_ids=member.role_ids,
             guild_id=member.guild_id,
-            avatar_hash=member.avatar_hash,
             nickname=member.nickname,
             mention=member.mention
         )
@@ -403,7 +401,6 @@ class MemberSerializable(BaseModel):
             joined_at=member.joined_at,
             role_ids=[role.id for role in member.roles],
             guild_id=member.guild.id,
-            avatar_hash=hash(member.avatar),
             nickname=member.nick,
             mention=member.mention
         )

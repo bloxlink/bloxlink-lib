@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Sequence, Self, Annotated, Literal, TYPE_CHECKING, TypedDict
+from typing import Sequence, Self, Annotated, Literal, TYPE_CHECKING
 from pydantic import Field
 import math
 from datetime import datetime
 import hikari
+import discord
 from dateutil import parser
 from ..fetch import fetch, fetch_typed, StatusCodes
 from ..config import CONFIG
@@ -383,5 +384,26 @@ class MemberSerializable(BaseModel):
             guild_id=member.guild_id,
             avatar_hash=member.avatar_hash,
             nickname=member.nickname,
+            mention=member.mention
+        )
+
+    @staticmethod
+    def from_discordpy(member: discord.Member | Self) -> 'MemberSerializable':
+        """Convert a Discord.py member into a MemberSerializable object."""
+
+        if isinstance(member, MemberSerializable):
+            return member
+
+        return MemberSerializable(
+            id=member.id,
+            username=member.name,
+            avatar_url=member.avatar.url,
+            display_name=member.display_name,
+            is_bot=member.bot,
+            joined_at=member.joined_at,
+            role_ids=[role.id for role in member.roles],
+            guild_id=member.guild.id,
+            avatar_hash=hash(member.avatar),
+            nickname=member.nick,
             mention=member.mention
         )

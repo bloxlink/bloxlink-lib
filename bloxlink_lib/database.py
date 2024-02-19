@@ -10,8 +10,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from redis.asyncio import Redis
 from redis import ConnectionError as RedisConnectionError
 
-from bloxlink_lib.models import users
-from bloxlink_lib.models import guilds
+from bloxlink_lib.models import users, guilds
+from bloxlink_lib import BaseModel
 from .config import CONFIG
 
 mongo: AsyncIOMotorClient = None
@@ -58,10 +58,10 @@ def connect_database():
 
     loop.create_task(_heartbeat_loop())
 
-async def redis_set(key: str, value: Any, expire: datetime.timedelta=None):
-    """Set a value in Redis."""
+async def redis_set(key: str, value: BaseModel | Any, expire: datetime.timedelta | int=None):
+    """Set a value in Redis. Accepts BaseModels and expirations as datetimes."""
 
-    await redis.set(key, json.dumps(value), ex=int(expire.total_seconds()) if expire else None)
+    await redis.set(key, value.model_dump_json() if issubclass(value, BaseModel) else json.dumps(value), ex=int(expire.total_seconds()) if expire and isinstance(expire, datetime.timedelta) else expire)
 
 async def _heartbeat_loop():
     while True:

@@ -77,13 +77,6 @@ async def _heartbeat_loop():
 
         await asyncio.sleep(5)
 
-
-async def redis_pipeline(*commands):
-    """Execute the Redis commands atomically."""
-
-    return await redis.pipeline().execute(*commands)
-
-
 async def fetch_item[T](domain: str, constructor: Type[T], item_id: str, *aspects) -> T:
     """
     Fetch an item from local cache, then redis, then database.
@@ -107,15 +100,15 @@ async def fetch_item[T](domain: str, constructor: Type[T], item_id: str, *aspect
                 items = {x: item[x] for x in aspects if item.get(x) and not isinstance(item[x], dict)}
 
                 if items:
-                    await redis_pipeline(
-                        redis.hset(f"{domain}:{item_id}", items),
-                        redis.expire(f"{domain}:{item_id}", datetime.timedelta(hours=1).seconds)
-                    )
+                    async with redis.pipeline() as pipeline:
+                        await pipeline.hmset(f"{domain}:{item_id}", items)
+                        await pipeline.expire(f"{domain}:{item_id}", datetime.timedelta(hours=1).seconds)
+                        await pipeline.execute()
             else:
-                await redis_pipeline(
-                    redis.hset(f"{domain}:{item_id}", item),
-                    redis.expire(f"{domain}:{item_id}", datetime.timedelta(hours=1).seconds)
-                )
+                async with redis.pipeline() as pipeline:
+                    await pipeline.hmset(f"{domain}:{item_id}", item)
+                    await pipeline.expire(f"{domain}:{item_id}", datetime.timedelta(hours=1).seconds)
+                    await pipeline.execute()
 
     if item.get("_id"):
         item.pop("_id")

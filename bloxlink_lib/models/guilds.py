@@ -25,6 +25,8 @@ class GuildData(BaseModel):
     unverifiedRoleName: str = "Unverified"  # deprecated
     unverifiedRole: str = None
 
+    verifiedDM: str = ":wave: Welcome to **{server-name}**, {roblox-name}! Visit <{verify-url}> to change your account.\nFind more Roblox Communities at https://blox.link/communities !"
+
     ageLimit: int = None
     autoRoles: bool = True
     autoVerification: bool = True

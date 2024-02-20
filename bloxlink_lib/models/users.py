@@ -364,7 +364,6 @@ class MemberSerializable(BaseModel):
     nickname: str | None = None
     mention: str = None
 
-
     @staticmethod
     def from_hikari(member: hikari.InteractionMember | Self) -> 'MemberSerializable':
         """Convert a Hikari member into a MemberSerializable object."""

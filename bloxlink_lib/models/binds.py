@@ -478,7 +478,7 @@ async def parse_template(guild_id: int, guild_name: str, member: Member | Member
     group_bind: GuildBind | None = None
 
     if not template:
-        if not (guild_id and potential_binds):
+        if not guild_id or potential_binds is None:
             raise ValueError("Guild ID and potential binds must be provided if no template is given.")
 
         # this is for nickname calculation

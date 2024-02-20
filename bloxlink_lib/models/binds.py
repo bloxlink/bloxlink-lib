@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .users import MemberSerializable, RobloxUser
     from .groups import RobloxGroup
     from .assets import RobloxAsset
+    from hikari import Member
 
 POP_OLD_BINDS: bool = False
 
@@ -121,7 +122,7 @@ class GuildBind(BaseModel):
             if len(list(filtered_binds)):
                 self.highest_role = max(filtered_binds, key=lambda r: r.position)
 
-    async def satisfies_for(self, guild_roles: dict[int, RoleSerializable], member: MemberSerializable, roblox_user: RobloxUser | None = None) -> tuple[bool, list[RoleSerializable], list[str], list[RoleSerializable]]:
+    async def satisfies_for(self, guild_roles: dict[int, RoleSerializable], member: Member | MemberSerializable, roblox_user: RobloxUser | None = None) -> tuple[bool, list[RoleSerializable], list[str], list[RoleSerializable]]:
         """Check if a user satisfies the requirements for this bind."""
 
         ineligible_roles: list[str] = []
@@ -461,7 +462,7 @@ async def get_nickname_template(guild_id, potential_binds: list[GuildBind]) -> t
     return nickname_template, highest_priority_bind
 
 
-async def parse_template(guild_id: int, guild_name: str, member: MemberSerializable, template: str = None, potential_binds: list[GuildBind] | None = None, roblox_user: RobloxUser | None = None, max_length=True) -> str | None:
+async def parse_template(guild_id: int, guild_name: str, member: Member | MemberSerializable, template: str = None, potential_binds: list[GuildBind] | None = None, roblox_user: RobloxUser | None = None, max_length=True) -> str | None:
     """
     Parse the template for the user.
 

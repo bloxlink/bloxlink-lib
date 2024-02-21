@@ -657,37 +657,3 @@ async def parse_template(guild_id: int, guild_name: str, member: Member | Member
 #                 output.append(bind_data)
 
 #     return output
-
-
-# def json_binds_to_guild_binds(bind_list: list) -> list:
-#     """Convert a bind from a dict/json representation to a GuildBind or GroupBind object.
-
-#     Args:
-#         bind_list (list): List of bindings to convert
-#         category (ValidBindType, optional): Category to filter the binds by. Defaults to None.
-#         id_filter (str, optional): ID to filter the binds by. Defaults to None.
-#             Applied after the category if both are given.
-
-#     Raises:
-#         BloxlinkException: When no matching bind type is found from the json input.
-
-#     Returns:
-#         list: The list of bindings as GroupBinds or GuildBinds, filtered by the category & id.
-#     """
-#     binds = []
-
-#     for bind in bind_list:
-#         bind_data = bind.get("bind")
-#         bind_type = bind_data.get("type")
-
-#         if bind_type == "group":
-#             classed_bind = GroupBind(**bind)
-#         elif bind_type:
-#             classed_bind = GuildBind(**bind)
-#         else:
-#             raise BloxlinkException("Invalid bind structure found.")
-
-#         binds.append(classed_bind)
-
-#     binds.sort(key=lambda e: e.bind["id"])
-#     return binds

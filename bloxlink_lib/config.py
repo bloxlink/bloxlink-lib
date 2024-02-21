@@ -1,7 +1,9 @@
-from os import getcwd
+from os import getcwd, environ
 from typing import Literal
-from dotenv import dotenv_values
+from dotenv import load_dotenv
 from .models.base import BaseModel
+
+load_dotenv(f"{getcwd()}/.env")
 
 class Config(BaseModel):
     """Type definition for config values."""
@@ -36,5 +38,5 @@ class Config(BaseModel):
 
 
 CONFIG: Config = Config(
-    **{field:value for field, value in dotenv_values(f"{getcwd()}/.env").items() if field in Config.__annotations__}
+    **{field:value for field, value in environ.items() if field in Config.__annotations__}
 )

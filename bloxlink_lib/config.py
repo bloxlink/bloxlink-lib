@@ -8,7 +8,7 @@ load_dotenv(f"{getcwd()}/.env")
 class Config(BaseModel):
     """Type definition for config values."""
 
-    DISCORD_TOKEN: str
+    DISCORD_TOKEN: str = None
     #############################
     MONGO_URL: str
     MONGO_CA_FILE: str = None
@@ -20,7 +20,7 @@ class Config(BaseModel):
     #############################
     PROXY_URL: str = None
     DISCORD_PROXY_URL: str = None
-    ROBLOX_INFO_SERVER: str
+    ROBLOX_INFO_SERVER: str = None
     #############################
     LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     SHARD_COUNT: int = 1

@@ -38,5 +38,5 @@ class Config(BaseModel):
 
 
 CONFIG: Config = Config(
-    **{field:value for field, value in environ.items() if field in Config.__annotations__}
+    **{field:value for field, value in environ.items() if field in Config.model_fields}
 )

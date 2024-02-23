@@ -7,7 +7,6 @@ from inspect import iscoroutinefunction
 from types import ModuleType
 import sentry_sdk
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
-from sentry_sdk.integrations.logging import LoggingIntegration
 from .models.base import BaseModel
 from .config import CONFIG
 

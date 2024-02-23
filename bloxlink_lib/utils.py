@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, Awaitable, Type
+from typing import Callable, Iterable, Awaitable, Type, Any, Optional, AsyncIterable, overload, TypeVar, Coroutine, Union
 import importlib
 import logging
 import asyncio
@@ -10,18 +10,57 @@ from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from .models.base import BaseModel
 from .config import CONFIG
 
-def find[T](predicate: Callable, iterable: Iterable[T]) -> T | None:
-    """Finds the first element in an iterable that matches the predicate."""
 
-    for element in iterable:
-        if isinstance(element, Iterable) and not isinstance(element, str):
-            if predicate(*element):
-                return element
-        else:
-            if predicate(element):
-                return element
+
+# find function from discord.py (https://github.com/Rapptz/discord.py/blob/master/discord/utils.py)
+T = TypeVar('T')
+_Iter = Union[Iterable[T], AsyncIterable[T]]
+Coro = Coroutine[Any, Any, T]
+
+def _find(predicate: Callable[[T], Any], iterable: Iterable[T], /) -> Optional[T]:
+    return next((element for element in iterable if predicate(element)), None)
+
+
+async def _afind(predicate: Callable[[T], Any], iterable: AsyncIterable[T], /) -> Optional[T]:
+    async for element in iterable:
+        if predicate(element):
+            return element
 
     return None
+
+
+@overload
+def find(predicate: Callable[[T], Any], iterable: AsyncIterable[T], /) -> Coro[Optional[T]]:
+    ...
+
+
+@overload
+def find(predicate: Callable[[T], Any], iterable: Iterable[T], /) -> Optional[T]:
+    ...
+
+
+def find(predicate: Callable[[T], Any], iterable: _Iter[T], /) -> Union[Optional[T], Coro[Optional[T]]]:
+    r"""A helper to return the first element found in the sequence
+    that meets the predicate.
+
+    This is different from :func:`py:filter` due to the fact it stops the moment it finds
+    a valid entry.
+
+    Parameters
+    -----------
+    predicate
+        A function that returns a boolean-like result.
+    iterable: Union[:class:`collections.abc.Iterable`, :class:`collections.abc.AsyncIterable`]
+        The iterable to search through. Using a :class:`collections.abc.AsyncIterable`,
+        makes this function return a :term:`coroutine`.
+    """
+
+    return (
+        _afind(predicate, iterable)  # type: ignore
+        if hasattr(iterable, '__aiter__')  # isinstance(iterable, collections.abc.AsyncIterable) is too slow
+        else _find(predicate, iterable)  # type: ignore
+    )
+
 
 def load_module(import_name: str) -> ModuleType:
     """Utility function to import python modules.

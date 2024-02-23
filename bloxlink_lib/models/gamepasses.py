@@ -11,7 +11,7 @@ GAMEPASS_API = "https://economy.roblox.com/v1/game-pass"
 class RobloxGamepassResponse(BaseModel):
     """Representation of the response from the Roblox Gamepass API."""
 
-    id: int
+    id: int = Field(alias="TargetId")
     name: str = Field(alias="Name")
     description: str = Field(alias="Description")
 

@@ -18,11 +18,11 @@ class GuildData(BaseModel):
 
 
     verifiedRoleEnabled: bool = True
-    verifiedRoleName: str = "Verified"  # deprecated
+    verifiedRoleName: str | None = "Verified"  # deprecated
     verifiedRole: str = None
 
     unverifiedRoleEnabled: bool = True
-    unverifiedRoleName: str = "Unverified"  # deprecated
+    unverifiedRoleName: str | None = "Unverified"  # deprecated
     unverifiedRole: str = None
 
     verifiedDM: str = ":wave: Welcome to **{server-name}**, {roblox-name}! Visit <{verify-url}> to change your account.\nFind more Roblox Communities at https://blox.link/communities !"
@@ -62,8 +62,14 @@ class GuildData(BaseModel):
             if unverified_role_bind not in self.binds:
                 self.binds.append(unverified_role_bind)
 
-        # if self.verifiedRoleName:
-        #     self.binds.append(GuildBind(criteria={"type": "verified"}, roles=[self.verifiedRole]))
+        # # convert old binds
+        # if self.roleBinds and not self.converted_binds:
+        #     self.converted_binds = True
+
+        #     for role_id, group_id in self.roleBinds.items():
+        #         self.binds.append(binds_module.GuildBind(criteria={"type": "group", "group_id": group_id}, roles=[role_id]))
+
+        #     self.roleBinds = None
 
 
 class RoleSerializable(BaseModel):

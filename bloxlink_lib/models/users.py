@@ -140,7 +140,7 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
                 avatar_url, avatar_response = await fetch("GET", avatar.bust_thumbnail)
 
                 if avatar_response.status == StatusCodes.OK:
-                    self.avatar_url = avatar_url.get("data", [{}])[0].get("imageUrl")
+                    self.avatar_url = avatar_url.get("data", [{}])[0].get("imageUrl") or None
 
     async def owns_asset(self, asset: RobloxAsset) -> bool:
         """Check if the user owns a specific asset.

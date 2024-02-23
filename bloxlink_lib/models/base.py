@@ -126,7 +126,7 @@ async def get_entity(
         RobloxEntity: The respective RobloxEntity implementer, synced.
     """
 
-    entity = create_entity(category, entity_id)
+    entity = create_entity(category, int(entity_id))
 
     await entity.sync()
 

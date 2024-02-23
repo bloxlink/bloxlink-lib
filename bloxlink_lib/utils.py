@@ -14,11 +14,12 @@ def find[T](predicate: Callable, iterable: Iterable[T]) -> T | None:
     """Finds the first element in an iterable that matches the predicate."""
 
     for element in iterable:
-        if isinstance(element, Iterable) and not isinstance(element, str):
-            if predicate(*element):
-                return element
-        else:
+        try:
             if predicate(element):
+                return element
+
+        except TypeError:
+            if predicate(*element):
                 return element
 
     return None

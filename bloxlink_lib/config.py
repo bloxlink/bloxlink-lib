@@ -21,6 +21,7 @@ class Config(BaseModel):
     PROXY_URL: str = None
     DISCORD_PROXY_URL: str = None
     ROBLOX_INFO_SERVER: str = None
+    SENTRY_DSN: str = None
     #############################
     LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     SHARD_COUNT: int = 1

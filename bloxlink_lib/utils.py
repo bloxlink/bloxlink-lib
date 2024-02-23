@@ -5,6 +5,9 @@ import asyncio
 from os import listdir, getenv
 from inspect import iscoroutinefunction
 from types import ModuleType
+import sentry_sdk
+from sentry_sdk.integrations.aiohttp import AioHttpIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
 from .models.base import BaseModel
 from .config import CONFIG
 
@@ -140,3 +143,12 @@ def parse_into[T: BaseModel | dict](data: dict, model: Type[T]) -> T:
         return model(**relevant_fields)
 
     return model(**data)
+
+def init_sentry():
+    """Initialize Sentry."""
+
+    if CONFIG.SENTRY_DSN:
+        sentry_sdk.init(
+            dsn=CONFIG.SENTRY_DSN,
+            integrations=[AioHttpIntegration(), LoggingIntegration()]
+        )

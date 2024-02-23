@@ -15,10 +15,10 @@ def find[T](predicate: Callable, iterable: Iterable[T]) -> T | None:
 
     for element in iterable:
         if isinstance(element, Iterable) and not isinstance(element, str):
-            if predicate(element):
+            if predicate(*element):
                 return element
         else:
-            if predicate(*element):
+            if predicate(element):
                 return element
 
     return None

@@ -150,7 +150,7 @@ def init_sentry():
     if CONFIG.SENTRY_DSN:
         sentry_sdk.init(
             dsn=CONFIG.SENTRY_DSN,
-            integrations=[AioHttpIntegration(), LoggingIntegration()],
+            integrations=[AioHttpIntegration()],
             enable_tracing=True,
             debug=True,
             attach_stacktrace=True

@@ -104,8 +104,7 @@ async def fetch[T](
                     raise RobloxDown()
 
                 if response.status == StatusCodes.NOT_FOUND:
-                    print(url, await response.text())
-                    raise RobloxNotFound()
+                    raise RobloxNotFound(f"{url} not found: {await response.text}")
 
                 raise RobloxAPIError(f"{url} failed with status {response.status} and body {await response.text()}")
 

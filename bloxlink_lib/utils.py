@@ -16,7 +16,7 @@ def find[T](predicate: Callable, iterable: Iterable[T]) -> T | None:
 
     for element in iterable:
         try:
-            iter(element)
+            next(element)
 
             if isinstance(element, str):
                 raise TypeError

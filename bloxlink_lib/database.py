@@ -58,7 +58,7 @@ def connect_database():
     redis._old_set = redis.set # pylint: disable=protected-access
     redis.set = redis_set
 
-    loop.create_task(_heartbeat_loop())
+    # loop.create_task(_heartbeat_loop()) # TODO: fix this
 
 async def redis_set(key: str, value: BaseModel | Any, expire: datetime.timedelta | int=None, **kwargs):
     """Set a value in Redis. Accepts BaseModels and expirations as datetimes."""

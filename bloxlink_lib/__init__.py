@@ -14,3 +14,5 @@ from .fetch import *
 from .config import *
 
 logging.basicConfig(level=CONFIG.LOG_LEVEL)
+
+init_sentry()

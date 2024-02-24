@@ -37,6 +37,9 @@ class GuildData(BaseModel):
     highTrafficServer: bool = False
     allowOldRoles: bool = False
 
+    hasBot: bool = False
+    proBot: bool = False
+
     nicknameTemplate: str = "{smart-name}"
 
     premium: dict = Field(default_factory=dict) # deprecated

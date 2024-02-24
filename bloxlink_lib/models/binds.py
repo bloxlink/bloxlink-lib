@@ -122,11 +122,11 @@ class GuildBind(BaseModel):
             if len(list(filtered_binds)):
                 self.highest_role = max(filtered_binds, key=lambda r: r.position)
 
-    async def satisfies_for(self, guild_roles: dict[int, RoleSerializable], member: Member | MemberSerializable, roblox_user: RobloxUser | None = None) -> tuple[bool, list[RoleSerializable], list[str], list[RoleSerializable]]:
+    async def satisfies_for(self, guild_roles: dict[int, RoleSerializable], member: Member | MemberSerializable, roblox_user: RobloxUser | None = None) -> tuple[bool, list[int], list[str], list[int]]:
         """Check if a user satisfies the requirements for this bind."""
 
-        ineligible_roles: list[str] = []
-        additional_roles: list[str] = []
+        ineligible_roles: list[int] = []
+        additional_roles: list[int] = []
         missing_roles: list[str] = []
 
         if not roblox_user:
@@ -136,7 +136,7 @@ class GuildBind(BaseModel):
             # user is unverified, so remove Verified role
             if self.criteria.type == "verified":
                 for role_id in filter(lambda r: int(r) in member.role_ids, self.roles):
-                    ineligible_roles.append(role_id)
+                    ineligible_roles.append(int(role_id))
 
             return False, additional_roles, missing_roles, ineligible_roles
 
@@ -160,7 +160,7 @@ class GuildBind(BaseModel):
                         roleset_role = find(lambda r: r.name == user_roleset.name, guild_roles.values())
 
                         if roleset_role:
-                            additional_roles.append(str(roleset_role.id))
+                            additional_roles.append(int(roleset_role.id))
                         else:
                             missing_roles.append(user_roleset.name)
 
@@ -190,7 +190,7 @@ class GuildBind(BaseModel):
                     for roleset in group.rolesets.values():
                         for role_id in member.role_ids:
                             if role_id in guild_roles and guild_roles[role_id].name == roleset.name:
-                                ineligible_roles.append(str(role_id))
+                                ineligible_roles.append(int(role_id))
 
                 # Return whether the bind is for guests only
                 return self.criteria.group.guest, additional_roles, missing_roles, ineligible_roles

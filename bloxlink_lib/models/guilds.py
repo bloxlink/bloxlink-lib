@@ -16,7 +16,8 @@ class UserInfoFieldMapping(BaseModel):
 class UserInfoWebhook(BaseModel):
     """Webhook settings for the userInfo webhook"""
 
-    fieldMapping: UserInfoFieldMapping
+    url: str
+    fieldMapping: UserInfoFieldMapping = None
 
 class Webhooks(BaseModel):
     """Fired when certain actions happen on Bloxlink"""

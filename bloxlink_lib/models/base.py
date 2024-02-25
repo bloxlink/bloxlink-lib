@@ -1,4 +1,4 @@
-from typing import Literal, Annotated, Tuple, Type, Iterable
+from typing import Literal, Annotated, Tuple, Type, Iterable, Self
 from abc import ABC, abstractmethod
 from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict
 from pydantic.fields import FieldInfo
@@ -77,7 +77,7 @@ class CoerciveSet[T](set[T]):
 
     def __init__(self, parse_into: T, *s: Iterable[T]):
         self.parse_into = parse_into
-        super().__init__(self.parse_into(i) for i in s)
+        super().__init__(self.parse_into(x) for i in s for x in i)
 
     def __contains__(self, item):
         return super().__contains__(self.parse_into(item))
@@ -92,19 +92,19 @@ class CoerciveSet[T](set[T]):
         return super().discard(self.parse_into(item))
 
     def update(self, *s: Iterable[T]):
-        return super().update(*(set(self.parse_into(i) for i in x) for x in s))
+        return super().update(set(self.parse_into(x) for i in s for x in i))
 
     def intersection(self, *s: Iterable[T]):
-        return super().intersection(set(self.parse_into(i) for i in s))
+        return super().intersection(set(self.parse_into(x) for i in s for x in i))
 
     def difference(self, *s: Iterable[T]):
-        return super().difference(set(self.parse_into(i) for i in s))
+        return super().difference(set(self.parse_into(x) for i in s for x in i))
 
     def symmetric_difference(self, *s: Iterable[T]):
-        return super().symmetric_difference(set(self.parse_into(i) for i in s))
+        return super().symmetric_difference(set(self.parse_into(x) for i in s for x in i))
 
-    def union(self, *s: Iterable[T]):
-        return super().union(set(self.parse_into(i) for i in s))
+    def union(self, *s: Iterable[T]) -> Self:
+        return super().union(set(self.parse_into(x) for iterable in s for x in iterable))
 
     # def isdisjoint(self, *args, **kwargs):
     #     return super().isdisjoint(*args, **kwargs)

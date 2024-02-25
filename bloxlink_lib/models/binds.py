@@ -150,9 +150,9 @@ class GuildBind(BaseModel):
                 group: RobloxGroup = self.entity
 
                 await roblox_user.sync(["groups"])
-                await group.sync_for(roblox_user)
+                await group.sync_for(roblox_user, sync=True)
 
-                user_roleset = group.user_roleset | None
+                user_roleset = group.user_roleset
 
                 # check if the user has any group roleset roles they shouldn't have
                 if self.criteria.group.dynamicRoles:

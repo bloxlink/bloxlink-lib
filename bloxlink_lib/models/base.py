@@ -1,4 +1,4 @@
-from typing import Literal, Annotated, Tuple, Type, Iterable, Self
+from typing import Literal, Annotated, Tuple, Type, Iterable, Self, Callable
 from abc import ABC, abstractmethod
 from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict
 from pydantic.fields import FieldInfo
@@ -72,7 +72,7 @@ class BloxlinkEntity(RobloxEntity):
     def __str__(self) -> str:
         return "Verified Users" if self.type == "verified" else "Unverified Users"
 
-class CoerciveSet[T](set[T]):
+class CoerciveSet[T: Callable](set[T]):
     """A set that coerces the children into another type."""
 
     def __init__(self, parse_into: T, *s: Iterable[T]):

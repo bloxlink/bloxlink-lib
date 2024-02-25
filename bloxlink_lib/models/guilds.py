@@ -12,6 +12,8 @@ class UserInfoFieldMapping(BaseModel):
     robloxID: str = "robloxID"
     guildID: str = "guildID"
     discordID: str = "discordID"
+    robloxUsername: str = "robloxUsername"
+    discordUsername: str = "discordUsername"
 
 class UserInfoWebhook(BaseModel):
     """Webhook settings for the userInfo webhook"""

@@ -133,7 +133,7 @@ class CoerciveSet[T](set[T]):
 class SnowflakeSet(CoerciveSet[int]):
     """A set of Snowflakes."""
 
-    def __init__(self, *s: Iterable[int], type: Literal["role", "user"], str_reference: dict = None):
+    def __init__(self, *s: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):
         super().__init__(int, *s)
         self.type = type
         self.str_reference = str_reference or {}

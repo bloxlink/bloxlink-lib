@@ -11,7 +11,7 @@ ASSET_API = "https://economy.roblox.com/v2/assets"
 class RobloxCatalogAssetResponse(BaseModel):
     """Representation of the response from the Roblox Asset API."""
 
-    id: int
+    id: int = Field(alias="AssetId")
     name: str = Field(alias="Name")
     description: str = Field(alias="Description")
 

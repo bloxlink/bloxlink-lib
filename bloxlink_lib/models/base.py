@@ -1,4 +1,4 @@
-from typing import Literal, Annotated, Tuple, Type
+from typing import Literal, Annotated, Tuple, Type, Iterable
 from abc import ABC, abstractmethod
 from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict
 from pydantic.fields import FieldInfo
@@ -72,6 +72,72 @@ class BloxlinkEntity(RobloxEntity):
     def __str__(self) -> str:
         return "Verified Users" if self.type == "verified" else "Unverified Users"
 
+class CoerciveSet[T](set[T]):
+    """A set that coerces the children into another type."""
+
+    def __init__(self, parse_into: T, *s: Iterable[T]):
+        self.parse_into = parse_into
+        super().__init__(self.parse_into(i) for i in s)
+
+    def __contains__(self, item):
+        return super().__contains__(self.parse_into(item))
+
+    def add(self, item):
+        return super().add(self.parse_into(item))
+
+    def remove(self, item):
+        return super().remove(self.parse_into(item))
+
+    def discard(self, item):
+        return super().discard(self.parse_into(item))
+
+    def update(self, *s: Tuple[Iterable[T]]):
+        return super().update(*(set(self.parse_into(i) for i in x) for x in s))
+
+    def intersection(self, *s: Tuple[Iterable[T]]):
+        return super().intersection(set(self.parse_into(i) for i in s))
+
+    def difference(self, *s: Tuple[Iterable[T]]):
+        return super().difference(set(self.parse_into(i) for i in s))
+
+    def symmetric_difference(self, *s: Tuple[Iterable[T]]):
+        return super().symmetric_difference(set(self.parse_into(i) for i in s))
+
+    def union(self, *s: Tuple[Iterable[T]]):
+        return super().union(set(self.parse_into(i) for i in s))
+
+    # def isdisjoint(self, *args, **kwargs):
+    #     return super().isdisjoint(*args, **kwargs)
+
+    # def issubset(self, *args, **kwargs):
+    #     return super().issubset(*args, **kwargs)
+
+    # def issuperset(self, *args, **kwargs):
+    #     return super().issuperset(*args, **kwargs)
+
+    # def __ior__(self, *args, **kwargs):
+    #     return super().__ior__(*args, **kwargs)
+
+    # def __iand__(self, *args, **kwargs):
+    #     return super().__iand__(*args, **kwargs)
+
+    # def __ixor__(self, *args, **kwargs):
+    #     return super().__ixor__(*args, **kwargs)
+
+    # def __isub__(self, *args, **kwargs):
+    #     return super().__isub__(*args, **kwargs)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({super().__repr__()})"
+
+class SnowflakeSet(CoerciveSet[int]):
+    """A set of Snowflakes."""
+
+    def __init__(self, *s: Iterable[int]):
+        super().__init__(int, *s)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({super().__repr__()})"
 
 def create_entity(
     category: Literal["catalogAsset", "badge", "gamepass", "group", "verified", "unverified"] | str, entity_id: int

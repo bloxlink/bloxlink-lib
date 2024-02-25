@@ -150,13 +150,20 @@ class GuildBind(BaseModel):
                 group: RobloxGroup = self.entity
 
                 await roblox_user.sync(["groups"])
+                await group.sync_for(roblox_user)
+
+                user_roleset = group.user_roleset | None
+
+                # check if the user has any group roleset roles they shouldn't have
+                if self.criteria.group.dynamicRoles:
+                    for roleset in group.rolesets.values():
+                        for role_id in member.role_ids:
+                            if role_id in guild_roles and guild_roles[role_id].name == roleset.name and str(roleset) != str(user_roleset):
+                                ineligible_roles.add(role_id)
 
                 if self.criteria.id in roblox_user.groups:
                     # full group bind. check for a matching roleset
                     if self.criteria.group.dynamicRoles:
-                        await group.sync_for(roblox_user)
-
-                        user_roleset = group.user_roleset
                         roleset_role = find(lambda r: r.name == user_roleset.name, guild_roles.values())
 
                         if roleset_role:
@@ -170,8 +177,6 @@ class GuildBind(BaseModel):
                     if self.criteria.group.guest:
                         return False, additional_roles, missing_roles, ineligible_roles
 
-                    await group.sync_for(roblox_user)
-
                     if (self.criteria.group.min and self.criteria.group.max) and (self.criteria.group.min <= group.user_roleset.rank <= self.criteria.group.max):
                         return True, additional_roles, missing_roles, ineligible_roles
 
@@ -181,17 +186,7 @@ class GuildBind(BaseModel):
 
                     return True, additional_roles, missing_roles, ineligible_roles
 
-
-                # Not in group.
-                # check if the user has any group rolesets they shouldn't have
-                if self.criteria.group.dynamicRoles:
-                    await group.sync()
-
-                    for roleset in group.rolesets.values():
-                        for role_id in member.role_ids:
-                            if role_id in guild_roles and guild_roles[role_id].name == roleset.name:
-                                ineligible_roles.add(role_id)
-
+                # Not in the group.
                 # Return whether the bind is for guests only
                 return self.criteria.group.guest, additional_roles, missing_roles, ineligible_roles
 

@@ -91,19 +91,19 @@ class CoerciveSet[T](set[T]):
     def discard(self, item):
         return super().discard(self.parse_into(item))
 
-    def update(self, *s: Tuple[Iterable[T]]):
+    def update(self, *s: Iterable[T]):
         return super().update(*(set(self.parse_into(i) for i in x) for x in s))
 
-    def intersection(self, *s: Tuple[Iterable[T]]):
+    def intersection(self, *s: Iterable[T]):
         return super().intersection(set(self.parse_into(i) for i in s))
 
-    def difference(self, *s: Tuple[Iterable[T]]):
+    def difference(self, *s: Iterable[T]):
         return super().difference(set(self.parse_into(i) for i in s))
 
-    def symmetric_difference(self, *s: Tuple[Iterable[T]]):
+    def symmetric_difference(self, *s: Iterable[T]):
         return super().symmetric_difference(set(self.parse_into(i) for i in s))
 
-    def union(self, *s: Tuple[Iterable[T]]):
+    def union(self, *s: Iterable[T]):
         return super().union(set(self.parse_into(i) for i in s))
 
     # def isdisjoint(self, *args, **kwargs):

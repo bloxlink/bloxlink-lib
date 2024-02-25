@@ -133,9 +133,10 @@ class CoerciveSet[T](set[T]):
 class SnowflakeSet(CoerciveSet[int]):
     """A set of Snowflakes."""
 
-    def __init__(self, *s: Iterable[int], type: Literal["role", "user"]):
+    def __init__(self, *s: Iterable[int], type: Literal["role", "user"], str_reference: dict = None):
         super().__init__(int, *s)
         self.type = type
+        self.str_reference = str_reference or {}
 
     def add(self, item):
         """Add an item to the set. If the item contains an ID, it will be parsed into an integer. Otherwise, it will be added as an int."""
@@ -148,12 +149,12 @@ class SnowflakeSet(CoerciveSet[int]):
     def __str__(self):
         match self.type:
             case "role":
-                return ", ".join(f"<@&{i}>" for i in self)
+                return ", ".join(str(self.str_reference.get(i) or f"<@&{i}>") for i in self)
 
             case "user":
-                return ", ".join(f"<@{i}>" for i in self)
+                return ", ".join(str(self.str_reference.get(i) or f"<@{i}>") for i in self)
 
-        return ", ".join(str(i) for i in self)
+        return ", ".join(str(self.str_reference.get(i) or i) for i in self)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({super().__repr__()})"

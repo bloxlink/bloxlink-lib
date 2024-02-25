@@ -136,6 +136,15 @@ class SnowflakeSet(CoerciveSet[int]):
     def __init__(self, *s: Iterable[int]):
         super().__init__(int, *s)
 
+    def add(self, item):
+        """Add an item to the set. If the item contains an ID, it will be parsed into an integer. Otherwise, it will be added as an int."""
+
+        if getattr(item, "id", None):
+            return super().add(item.id)
+
+        return super().add(item)
+
+
     def __repr__(self):
         return f"{self.__class__.__name__}({super().__repr__()})"
 

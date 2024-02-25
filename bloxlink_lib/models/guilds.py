@@ -5,6 +5,27 @@ from .base import Snowflake, BaseModel
 import bloxlink_lib.models.binds as binds_module
 
 
+
+class UserInfoFieldMapping(BaseModel):
+    """Map a field from Bloxlink-expected to developer-expected"""
+
+    robloxID: str = "robloxID"
+    guildID: str = "guildID"
+    discordID: str = "discordID"
+
+class UserInfoWebhook(BaseModel):
+    """Webhook settings for the userInfo webhook"""
+
+    fieldMapping: UserInfoFieldMapping
+
+class Webhooks(BaseModel):
+    """Fired when certain actions happen on Bloxlink"""
+
+    authentication: str
+
+    userInfo: UserInfoWebhook = None
+
+
 class GuildData(BaseModel):
     """Representation of the stored settings for a guild"""
 
@@ -36,6 +57,8 @@ class GuildData(BaseModel):
     groupLock: dict = None
     highTrafficServer: bool = False
     allowOldRoles: bool = False
+
+    webhooks: Webhooks = None
 
     hasBot: bool = False
     proBot: bool = False

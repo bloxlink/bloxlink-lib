@@ -4,7 +4,7 @@ import re
 
 from pydantic import Field, ValidationError
 
-from ..models.base import RobloxEntity, create_entity, BaseModel, SnowflakeSet
+from ..models.base import RobloxEntity, create_entity, BaseModel, SnowflakeSet, CoerciveSet
 import bloxlink_lib.database as database
 from ..utils import find
 
@@ -122,12 +122,12 @@ class GuildBind(BaseModel):
             if len(list(filtered_binds)):
                 self.highest_role = max(filtered_binds, key=lambda r: r.position)
 
-    async def satisfies_for(self, guild_roles: dict[int, RoleSerializable], member: Member | MemberSerializable, roblox_user: RobloxUser | None = None) -> tuple[bool, SnowflakeSet, list[str], SnowflakeSet]:
+    async def satisfies_for(self, guild_roles: dict[int, RoleSerializable], member: Member | MemberSerializable, roblox_user: RobloxUser | None = None) -> tuple[bool, SnowflakeSet, CoerciveSet[str], SnowflakeSet]:
         """Check if a user satisfies the requirements for this bind."""
 
         ineligible_roles = SnowflakeSet()
         additional_roles = SnowflakeSet()
-        missing_roles: list[str] = []
+        missing_roles = CoerciveSet(str)
 
         if not roblox_user:
             if self.criteria.type == "unverified":
@@ -162,7 +162,7 @@ class GuildBind(BaseModel):
                         if roleset_role:
                             additional_roles.add(roleset_role.id)
                         else:
-                            missing_roles.append(user_roleset.name)
+                            missing_roles.add(user_roleset.name)
 
                     if self.criteria.group.everyone:
                         return True, additional_roles, missing_roles, ineligible_roles

@@ -2,7 +2,7 @@ from typing import Callable, Iterable, Awaitable, Type
 import importlib
 import logging
 import asyncio
-from os import listdir, getenv
+from os import listdir, getenv, path
 from inspect import iscoroutinefunction
 from types import ModuleType
 import sentry_sdk
@@ -59,14 +59,14 @@ def load_module(import_name: str) -> ModuleType:
 
     return module
 
-def load_modules(*paths: tuple[str], starting_path: str=".") -> list[ModuleType]:
+def load_modules(*paths: tuple[str], starting_path: str=".", modules:list[ModuleType]=None) -> list[ModuleType]:
     """Utility function to import python modules.
 
     Args:
         paths (list[str]): Paths of modules to import
     """
 
-    modules: list[ModuleType] = []
+    modules: list[ModuleType] = modules or []
 
     for directory in paths:
         files = [
@@ -79,7 +79,10 @@ def load_modules(*paths: tuple[str], starting_path: str=".") -> list[ModuleType]
             if filename in ("__main__", "__init__"):
                 continue
 
-            module = load_module(f"{directory.replace('/','.')}.{filename}")
+            if path.isdir(f"{starting_path}{directory}/{filename}".replace(".", "/")):
+                load_modules(f"{directory}.{filename}", starting_path=starting_path, modules=modules)
+
+            module = load_module(f"{directory}.{filename}")
 
             if module:
                 modules.append(module)

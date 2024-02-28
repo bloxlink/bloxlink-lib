@@ -59,14 +59,14 @@ def load_module(import_name: str) -> ModuleType:
 
     return module
 
-def load_modules(*paths: tuple[str], starting_path: str=".", modules:list[ModuleType]=None) -> list[ModuleType]:
+def load_modules(*paths: tuple[str], starting_path: str=".") -> list[ModuleType]:
     """Utility function to import python modules.
 
     Args:
         paths (list[str]): Paths of modules to import
     """
 
-    modules: list[ModuleType] = modules or []
+    modules: list[ModuleType] = []
 
     for directory in paths:
         files = [
@@ -80,7 +80,7 @@ def load_modules(*paths: tuple[str], starting_path: str=".", modules:list[Module
                 continue
 
             if path.isdir(f"{starting_path}{directory}/{filename}".replace(".", "/")):
-                load_modules(f"{directory}.{filename}", starting_path=starting_path, modules=modules)
+                modules += load_modules(f"{directory}.{filename}", starting_path=starting_path)
 
             module = load_module(f"{directory}.{filename}")
 

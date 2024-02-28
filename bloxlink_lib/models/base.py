@@ -7,6 +7,12 @@ from pydantic.fields import FieldInfo
 Snowflake = Annotated[int, BeforeValidator(int), WithJsonSchema({"type": 'int'})]
 
 
+class UNDEFINED:
+    """
+    Can be used to differentiate between None and undefined
+    in function arguments.
+    """
+
 class BaseModelArbitraryTypes(PydanticBaseModel):
     """Base model with arbitrary types allowed."""
 

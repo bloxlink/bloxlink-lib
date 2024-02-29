@@ -25,7 +25,7 @@ class BaseModel(PydanticBaseModel):
 
     model_config = ConfigDict(populate_by_name=True)
 
-    @staticmethod
+    @classmethod
     def model_fields_index(cls: Type[PydanticBaseModel | BaseModelArbitraryTypes]) -> list[Tuple[str, FieldInfo]]:
         """Returns a list of the model's fields with the name as a tuple.
 

@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import re
 from typing import TYPE_CHECKING, Annotated
-from pydantic import Field
-from ..fetch import fetch_typed
-from ..exceptions import RobloxAPIError, RobloxNotFound
 
-from .base import RobloxEntity, BaseModel
+from pydantic import Field
+
+from ..exceptions import RobloxAPIError, RobloxNotFound
+from ..fetch import fetch_typed
+from .base import BaseModel, RobloxEntity
 
 if TYPE_CHECKING:
     from .users import RobloxUser
@@ -19,12 +20,13 @@ class GroupRoleset(BaseModel):
     """Representation of a roleset in a Roblox group."""
 
     name: str
-    rank: int # User-assigned rank ID
-    id: int # Roblox-assigned roleset ID
+    rank: int  # User-assigned rank ID
+    id: int  # Roblox-assigned roleset ID
     member_count: int | None = Field(alias="memberCount", default=None)
 
     def __str__(self) -> str:
         return self.name
+
 
 class RobloxRoleset(BaseModel):
     """Representation of the response from the Roblox roleset API."""
@@ -85,7 +87,9 @@ class RobloxGroup(RobloxEntity):
 
         if self.rolesets is None:
             roleset_data, _ = await fetch_typed(RobloxRoleset, f"{GROUP_API}/{self.id}/roles")
-            self.rolesets = {int(roleset.rank): roleset for roleset in roleset_data.roles if roleset.name != "Guest"}
+            self.rolesets = {
+                int(roleset.rank): roleset for roleset in roleset_data.roles if roleset.name != "Guest"
+            }
 
         group_data, _ = await fetch_typed(RobloxGroup, f"{GROUP_API}/{self.id}")
 
@@ -122,7 +126,11 @@ class RobloxGroup(RobloxEntity):
             str: The roleset string as requested.
         """
 
-        roleset_name = self.rolesets[roleset_id].name if self.synced else ""
+        roleset_name = (
+            self.rolesets[roleset_id].name
+            if self.synced and self.rolesets.get(roleset_id) is not None
+            else ""
+        )
 
         if bold_name and roleset_name:
             roleset_name = f"**{roleset_name}**"
@@ -131,7 +139,6 @@ class RobloxGroup(RobloxEntity):
             return f"{roleset_name} ({roleset_id})" if include_id else roleset_name
 
         return f"({roleset_id})"
-
 
     def __str__(self) -> str:
         name = f"**{self.name}**" if self.name else "*(Unknown Group)*"

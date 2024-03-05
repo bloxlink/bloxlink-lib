@@ -1,19 +1,22 @@
 from __future__ import annotations
-from typing import Any, Literal, TYPE_CHECKING, TypedDict, NotRequired
+
 import re
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict
 
 from pydantic import Field, ValidationError
 
-from ..models.base import RobloxEntity, create_entity, BaseModel, SnowflakeSet, CoerciveSet
 import bloxlink_lib.database as database
+
+from ..models.base import BaseModel, CoerciveSet, RobloxEntity, SnowflakeSet, create_entity
 from ..utils import find
 
 if TYPE_CHECKING:
+    from hikari import Member
+
+    from .assets import RobloxAsset
+    from .groups import RobloxGroup
     from .guilds import RoleSerializable
     from .users import MemberSerializable, RobloxUser
-    from .groups import RobloxGroup
-    from .assets import RobloxAsset
-    from hikari import Member
 
 POP_OLD_BINDS: bool = False
 
@@ -278,7 +281,7 @@ class GuildBind(BaseModel):
         content = self.description_content
 
         return (
-            f"{self.description_prefix}{' ' if content else ''}{f'**{content}** ' if content else ''}"
+            f"{self.description_prefix}{' ' if content else ''}{f'**{content}**' if content else ''}"
         )
 
     def __str__(self) -> str:

@@ -99,11 +99,12 @@ class GuildBind(BaseModel):
     nickname: str | None = None
     roles: list[str] = Field(default_factory=list)
     remove_roles: list[str] = Field(default_factory=list, alias="removeRoles")
-
+    
     criteria: BindCriteria
     data: BindData | None = Field(default=None)
 
     # Excluded fields. These are used for the bind algorithms.
+    pending_new_roles: list[str] = Field(default_factory=list)
     entity: RobloxEntity | None = Field(exclude=True, default=None)
     type: Literal["group", "catalogAsset", "badge", "gamepass", "verified", "unverified"] | None = Field(exclude=True, default=None)
     subtype: Literal["role_bind", "full_group"] | None = Field(exclude=True, default=None)
@@ -306,15 +307,13 @@ class GuildBind(BaseModel):
         if self.type == "group" and self.subtype == "full_group":
             return "- _All users in **this** group receive the role matching their group rank name_" # extended_description is not used in case we want the description to be shorter
 
-        # Mention the role if it is an ID. If it isn't, we are in the /bind command with the user creating a new role.
-        # In that case, val is the role name, append '[NEW]' to it.
-        # TODO: Future logic may say it's best to add a new_roles field that we save to and use instead.
-        role_mentions = ", ".join(f"<@&{val}>" if val.isdigit() else f"{val} [NEW]" for val in self.roles)
-        remove_role_mentions = ", ".join(f"<@&{val}>" if val.isdigit() else f"{val} [NEW]" for val in self.remove_roles)
+        role_mentions = ", ".join(f"<@&{val}>" for val in self.roles)
+        remove_role_mentions = ", ".join(f"<@&{val}>" for val in self.remove_roles)
+        new_roles_list = ", ".join(f"{val} [NEW]" for val in self.pending_new_roles)
 
         return (
             f"- _{extended_description} receive the "
-            f"role{'s' if len(self.roles) > 1  else ''} {role_mentions}"
+            f"role{'s' if len(self.roles) > 1 or len(self.pending_new_roles) > 1 else ''} {role_mentions}{new_roles_list}"
             f"{'' if len(self.remove_roles) == 0 else f', and have these roles removed: {remove_role_mentions}'}_"
         )
 

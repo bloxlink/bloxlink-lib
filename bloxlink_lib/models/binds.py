@@ -306,8 +306,11 @@ class GuildBind(BaseModel):
         if self.type == "group" and self.subtype == "full_group":
             return "- _All users in **this** group receive the role matching their group rank name_" # extended_description is not used in case we want the description to be shorter
 
-        role_mentions = ", ".join(f"<@&{val}>" for val in self.roles)
-        remove_role_mentions = ", ".join(f"<@&{val}>" for val in self.remove_roles)
+        # Mention the role if it is an ID. If it isn't, we are in the /bind command with the user creating a new role.
+        # In that case, val is the role name, append '[NEW]' to it.
+        # TODO: Future logic may say it's best to add a new_roles field that we save to and use instead.
+        role_mentions = ", ".join(f"<@&{val}>" if val.isdigit() else f"{val} [NEW]" for val in self.roles)
+        remove_role_mentions = ", ".join(f"<@&{val}>" if val.isdigit() else f"{val} [NEW]" for val in self.remove_roles)
 
         return (
             f"- _{extended_description} receive the "

@@ -34,10 +34,12 @@ class GroupBindDataDict(TypedDict, total=False):
     roleset: int
     dynamicRoles: bool
 
+
 class BindCriteriaDict(TypedDict):
     type: VALID_BIND_TYPES
     id: NotRequired[int]
     group: NotRequired[GroupBindData]
+
 
 class BindDataDict(TypedDict):
     displayName: str
@@ -55,7 +57,7 @@ class GroupBindData(BaseModel):
     roleset: int = None
     ####################
 
-    dynamicRoles: bool = False # full group bind
+    dynamicRoles: bool = False  # full group bind
 
     def model_post_init(self, __context: Any) -> None:
         if (self.min or self.max) and not all([self.min, self.max]):
@@ -66,6 +68,7 @@ class GroupBindData(BaseModel):
 
         if self.everyone and (self.guest or self.min or self.max or self.roleset):
             raise ValidationError("Everyone condition cannot have any other conditions.")
+
 
 class BindCriteria(BaseModel):
     """Represents the criteria required for a bind. If anything is set, it must ALL be met."""
@@ -117,6 +120,98 @@ class GuildBind(BaseModel):
         if self.type == "group":
             self.subtype = "full_group" if self.criteria.group.dynamicRoles else "role_bind"
 
+    @classmethod
+    def from_V3(
+        cls,
+        bind_type: Literal["groupIDs", "assets", "badges", "gamePasses"],
+        bind_id: str | int,
+        bind_data: dict,
+    ):
+        converted_data = {}
+
+        match bind_type:
+            case "groupIDs":
+                # Whole group binds
+                bind_criteria = {
+                    "type": "group",
+                    "id": bind_id,
+                    "group": {"dynamicRoles": True},
+                }
+                converted_data = {
+                    "nickname": bind_data.get("nickname") or None,
+                    "criteria": bind_criteria,
+                    "remove_roles": bind_data.get("removeRoles") or [],
+                    "data": {"displayName": bind_data.get("groupName")},
+                }
+
+            case "assets" | "badges" | "gamePasses":
+                # All non group rolebinds
+                if bind_type == "gamePasses":
+                    bind_type = "gamepass"
+                elif bind_type == "assets":
+                    bind_type = "catalogAsset"
+                else:
+                    bind_type = bind_type[:-1]
+
+                converted_data = {
+                    "nickname": bind_data.get("nickname") or None,
+                    "roles": bind_data.get("roles") or [],
+                    "remove_roles": bind_data.get("removeRoles") or [],
+                    "criteria": {
+                        "type": bind_type,
+                        "id": bind_id,
+                    },
+                    "data": {"displayName": bind_data.get("displayName")},
+                }
+
+        return cls(**converted_data)
+
+    @classmethod
+    def from_V3_group_rolebind(
+        cls, bind_type: Literal["roleset", "range"], bind_id: int | str, bind_data: dict
+    ):
+        converted_data = {}
+
+        match bind_type:
+            case "roleset":
+                roleset_id, roleset_data = next(iter(bind_data.items()))
+                group_criteria_data = {}
+
+                if roleset_id == "all":
+                    group_criteria_data["everyone"] = True
+                elif roleset_id == "0":
+                    group_criteria_data["guest"] = True
+                else:
+                    group_criteria_data["roleset"] = int(roleset_id)
+
+                converted_data = {
+                    "nickname": roleset_data.get("nickname"),
+                    "roles": roleset_data.get("roles") or [],
+                    "remove_roles": roleset_data.get("removeRoles") or [],
+                    "criteria": {
+                        "type": "group",
+                        "id": bind_id,
+                        "group": group_criteria_data,
+                    },
+                }
+
+            case "range":
+                converted_data = {
+                    "nickname": bind_data.get("nickname"),
+                    "roles": bind_data.get("roles") or [],
+                    "remove_roles": bind_data.get("removeRoles") or [],
+                    "criteria": {
+                        "type": "group",
+                        "id": bind_id,
+                        "group": {
+                            "min": bind_data.get("low"),
+                            "max": bind_data.get("high"),
+                        },
+                    },
+                }
+
+        return cls(**converted_data)
+
     def calculate_highest_role(self, guild_roles: dict[str, RoleSerializable]) -> None:
         """Calculate the highest role in the guild for this bind."""
 
@@ -143,7 +238,6 @@ class GuildBind(BaseModel):
                     ineligible_roles.add(role_id)
 
             return False, additional_roles, missing_roles, ineligible_roles
-
 
         # user is verified
         match self.criteria.type:
@@ -181,12 +275,20 @@ class GuildBind(BaseModel):
                     if self.criteria.group.guest:
                         return False, additional_roles, missing_roles, ineligible_roles
 
-                    if (self.criteria.group.min and self.criteria.group.max) and (self.criteria.group.min <= group.user_roleset.rank <= self.criteria.group.max):
+                    if (self.criteria.group.min and self.criteria.group.max) and (
+                        self.criteria.group.min <= group.user_roleset.rank <= self.criteria.group.max
+                    ):
                         return True, additional_roles, missing_roles, ineligible_roles
 
                     if self.criteria.group.roleset:
                         roleset = self.criteria.group.roleset
-                        return group.user_roleset.rank == roleset or (roleset < 0 and group.user_roleset.rank <= abs(roleset)), additional_roles, missing_roles, ineligible_roles
+                        return (
+                            group.user_roleset.rank == roleset
+                            or (roleset < 0 and group.user_roleset.rank <= abs(roleset)),
+                            additional_roles,
+                            missing_roles,
+                            ineligible_roles,
+                        )
 
                     return True, additional_roles, missing_roles, ineligible_roles
 
@@ -198,7 +300,6 @@ class GuildBind(BaseModel):
                 asset: RobloxAsset = self.entity
 
                 return await roblox_user.owns_asset(asset), additional_roles, missing_roles, ineligible_roles
-
 
         return False, additional_roles, missing_roles, ineligible_roles
 
@@ -320,6 +421,7 @@ class GuildBind(BaseModel):
     def __eq__(self, other: GuildBind) -> bool:
         return self.criteria == other.criteria
 
+
 async def build_binds_desc(
     guild_id: int | str,
     bind_id: int | str = None,
@@ -354,6 +456,7 @@ async def build_binds_desc(
             f"Click [here](https://www.blox.link/dashboard/guilds/{guild_id}/binds) to view the rest!_"
         )
     return output
+
 
 async def count_binds(guild_id: int | str, bind_id: int = None) -> int:
     """Count the number of binds that this guild_id has created.

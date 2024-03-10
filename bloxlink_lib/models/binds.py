@@ -104,7 +104,7 @@ class GuildBind(BaseModel):
     data: BindData | None = Field(default=None)
 
     # Excluded fields. These are used for the bind algorithms.
-    pending_new_roles: list[str] = Field(default_factory=list)
+    pending_new_roles: list[str] = Field(exclude=True, default_factory=list)
     entity: RobloxEntity | None = Field(exclude=True, default=None)
     type: Literal["group", "catalogAsset", "badge", "gamepass", "verified", "unverified"] | None = Field(exclude=True, default=None)
     subtype: Literal["role_bind", "full_group"] | None = Field(exclude=True, default=None)

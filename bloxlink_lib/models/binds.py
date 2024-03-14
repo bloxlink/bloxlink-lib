@@ -102,16 +102,18 @@ class GuildBind(BaseModel):
     nickname: str | None = None
     roles: list[str] = Field(default_factory=list)
     remove_roles: list[str] = Field(default_factory=list, alias="removeRoles")
-    
+
     criteria: BindCriteria
     data: BindData | None = Field(default=None)
 
     # Excluded fields. These are used for the bind algorithms.
     pending_new_roles: list[str] = Field(default_factory=list)
     entity: RobloxEntity | None = Field(exclude=True, default=None)
-    type: Literal["group", "catalogAsset", "badge", "gamepass", "verified", "unverified"] | None = Field(exclude=True, default=None)
+    type: Literal["group", "catalogAsset", "badge", "gamepass", "verified", "unverified"] | None = Field(
+        exclude=True, default=None
+    )
     subtype: Literal["role_bind", "full_group"] | None = Field(exclude=True, default=None)
-    highest_role: RoleSerializable | None = Field(exclude=True, default=None) # highest role in the guild
+    highest_role: RoleSerializable | None = Field(exclude=True, default=None)  # highest role in the guild
 
     def model_post_init(self, __context):
         self.entity = self.entity or create_entity(self.criteria.type, self.criteria.id)
@@ -216,12 +218,19 @@ class GuildBind(BaseModel):
         """Calculate the highest role in the guild for this bind."""
 
         if self.roles and not self.highest_role:
-            filtered_binds = filter(lambda r: str(r.id) in self.roles and self.nickname, guild_roles.values()) # pylint: disable=unsupported-membership-test
+            filtered_binds = filter(
+                lambda r: str(r.id) in self.roles and self.nickname, guild_roles.values()
+            )  # pylint: disable=unsupported-membership-test
 
             if len(list(filtered_binds)):
                 self.highest_role = max(filtered_binds, key=lambda r: r.position)
 
-    async def satisfies_for(self, guild_roles: dict[int, RoleSerializable], member: Member | MemberSerializable, roblox_user: RobloxUser | None = None) -> tuple[bool, SnowflakeSet, CoerciveSet[str], SnowflakeSet]:
+    async def satisfies_for(
+        self,
+        guild_roles: dict[int, RoleSerializable],
+        member: Member | MemberSerializable,
+        roblox_user: RobloxUser | None = None,
+    ) -> tuple[bool, SnowflakeSet, CoerciveSet[str], SnowflakeSet]:
         """Check if a user satisfies the requirements for this bind."""
 
         ineligible_roles = SnowflakeSet()
@@ -256,7 +265,11 @@ class GuildBind(BaseModel):
                 if self.criteria.group.dynamicRoles:
                     for roleset in group.rolesets.values():
                         for role_id in member.role_ids:
-                            if role_id in guild_roles and guild_roles[role_id].name == roleset.name and str(roleset) != str(user_roleset):
+                            if (
+                                role_id in guild_roles
+                                and guild_roles[role_id].name == roleset.name
+                                and str(roleset) != str(user_roleset)
+                            ):
                                 ineligible_roles.add(role_id)
 
                 if self.criteria.id in roblox_user.groups:
@@ -382,9 +395,7 @@ class GuildBind(BaseModel):
 
         content = self.description_content
 
-        return (
-            f"{self.description_prefix}{' ' if content else ''}{f'**{content}**' if content else ''}"
-        )
+        return f"{self.description_prefix}{' ' if content else ''}{f'**{content}**' if content else ''}"
 
     def __str__(self) -> str:
         """Builds a sentence-formatted string for a binding.
@@ -406,7 +417,7 @@ class GuildBind(BaseModel):
         extended_description = self.short_description
 
         if self.type == "group" and self.subtype == "full_group":
-            return "- _All users in **this** group receive the role matching their group rank name_" # extended_description is not used in case we want the description to be shorter
+            return "- _All users in **this** group receive the role matching their group rank name_"  # extended_description is not used in case we want the description to be shorter
 
         role_mentions = ", ".join(f"<@&{val}>" for val in self.roles)
         remove_role_mentions = ", ".join(f"<@&{val}>" for val in self.remove_roles)
@@ -473,7 +484,13 @@ async def count_binds(guild_id: int | str, bind_id: int = None) -> int:
 
     return len(guild_data) if not bind_id else sum(1 for b in guild_data if b.id == int(bind_id)) or 0
 
-async def get_binds(guild_id: int | str, category: VALID_BIND_TYPES = None, bind_id: int = None, guild_roles: dict[int, RoleSerializable] = None) -> list[GuildBind]:
+
+async def get_binds(
+    guild_id: int | str,
+    category: VALID_BIND_TYPES = None,
+    bind_id: int = None,
+    guild_roles: dict[int, RoleSerializable] = None,
+) -> list[GuildBind]:
     """Get the current guild binds.
 
     Old binds will be included by default, but will not be saved in the database in the
@@ -482,10 +499,23 @@ async def get_binds(guild_id: int | str, category: VALID_BIND_TYPES = None, bind
     """
 
     guild_id = str(guild_id)
-    guild_data = await database.fetch_guild_data(guild_id, "binds", "verifiedRole", "unverifiedRole", "verifiedRoleName", "unverifiedRoleName", "unverifiedRoleEnabled", "unverifiedRoleEnabled") # some are needed to polyfill the binds
+    guild_data = await database.fetch_guild_data(
+        guild_id,
+        "binds",
+        "verifiedRole",
+        "unverifiedRole",
+        "verifiedRoleName",
+        "unverifiedRoleName",
+        "unverifiedRoleEnabled",
+        "unverifiedRoleEnabled",
+    )  # some are needed to polyfill the binds
 
     # check the guild roles for a verified role
-    if guild_roles and (guild_data.unverifiedRoleEnabled or guild_data.verifiedRoleEnabled) and not any(b.criteria.type == "verified" for b in guild_data.binds):
+    if (
+        guild_roles
+        and (guild_data.unverifiedRoleEnabled or guild_data.verifiedRoleEnabled)
+        and not any(b.criteria.type == "verified" for b in guild_data.binds)
+    ):
         verified_role_name = guild_data.verifiedRoleName
         unverified_role_name = guild_data.unverifiedRoleName
         verified_role_enabled = guild_data.verifiedRoleEnabled
@@ -494,17 +524,28 @@ async def get_binds(guild_id: int | str, category: VALID_BIND_TYPES = None, bind
         if verified_role_name or unverified_role_name:
             for role in guild_roles.values():
                 if verified_role_enabled and role.name == verified_role_name:
-                    guild_data.binds.append(GuildBind(
-                        criteria=BindCriteria(type="verified"),
-                        roles=[str(role.id)],
-                    ))
+                    guild_data.binds.append(
+                        GuildBind(
+                            criteria=BindCriteria(type="verified"),
+                            roles=[str(role.id)],
+                        )
+                    )
                 elif unverified_role_enabled and role.name == unverified_role_name:
-                    guild_data.binds.append(GuildBind(
-                        criteria=BindCriteria(type="unverified"),
-                        roles=[str(role.id)],
-                    ))
+                    guild_data.binds.append(
+                        GuildBind(
+                            criteria=BindCriteria(type="unverified"),
+                            roles=[str(role.id)],
+                        )
+                    )
 
-    return list(filter(lambda b: b.type == category and ((bind_id and b.criteria.id == bind_id) or not bind_id), guild_data.binds) if category else guild_data.binds)
+    return list(
+        filter(
+            lambda b: b.type == category and ((bind_id and b.criteria.id == bind_id) or not bind_id),
+            guild_data.binds,
+        )
+        if category
+        else guild_data.binds
+    )
 
     # Convert and save old bindings in the new format
     # if not guild_data.converted_binds and (
@@ -556,16 +597,30 @@ async def get_nickname_template(guild_id, potential_binds: list[GuildBind]) -> t
     )
 
     # first sort the binds by role position
-    potential_binds.sort(key=lambda b: b.highest_role.position if b.highest_role else 100000, reverse=True) # arbitrary big number
+    potential_binds.sort(
+        key=lambda b: b.highest_role.position if b.highest_role else 100000, reverse=True
+    )  # arbitrary big number
 
     highest_priority_bind: GuildBind = potential_binds[0] if potential_binds else None
 
-    nickname_template = highest_priority_bind.nickname if highest_priority_bind and highest_priority_bind.nickname else guild_data.nicknameTemplate
+    nickname_template = (
+        highest_priority_bind.nickname
+        if highest_priority_bind and highest_priority_bind.nickname
+        else guild_data.nicknameTemplate
+    )
 
     return nickname_template, highest_priority_bind
 
 
-async def parse_template(guild_id: int, guild_name: str, member: Member | MemberSerializable, template: str = None, potential_binds: list[GuildBind] | None = None, roblox_user: RobloxUser | None = None, max_length=True) -> str | None:
+async def parse_template(
+    guild_id: int,
+    guild_name: str,
+    member: Member | MemberSerializable,
+    template: str = None,
+    potential_binds: list[GuildBind] | None = None,
+    roblox_user: RobloxUser | None = None,
+    max_length=True,
+) -> str | None:
     """
     Parse the template for the user.
 
@@ -593,7 +648,11 @@ async def parse_template(guild_id: int, guild_name: str, member: Member | Member
     # if the template contains a group template, sync the group
     if "group-" in template:
         # get the group from the highest bind if it's a group bind; otherwise, find the first linked group bind
-        group_bind = highest_priority_bind if highest_priority_bind and highest_priority_bind.type == "group" else find(lambda b: b.type == "group", potential_binds)
+        group_bind = (
+            highest_priority_bind
+            if highest_priority_bind and highest_priority_bind.type == "group"
+            else find(lambda b: b.type == "group", potential_binds)
+        )
 
         if group_bind:
             await group_bind.entity.sync()
@@ -626,7 +685,7 @@ async def parse_template(guild_id: int, guild_name: str, member: Member | Member
                 group = roblox_user.groups.get(group_id)
                 group_role_from_group = group.role.name if group else "Guest"
 
-                template = template.replace("{group-rank-"+group_id+"}", group_role_from_group)
+                template = template.replace("{group-rank-" + group_id + "}", group_role_from_group)
 
     # parse the nickname template
     for outer_nick in NICKNAME_TEMPLATE_REGEX.findall(template):
@@ -683,7 +742,7 @@ async def parse_template(guild_id: int, guild_name: str, member: Member | Member
 
                 template = template.replace("{{{0}}}".format(outer_nick), nick_value)
             else:
-                template = template.replace("{{{0}}}".format(outer_nick), outer_nick) # remove {} only
+                template = template.replace("{{{0}}}".format(outer_nick), outer_nick)  # remove {} only
         else:
             template = template.replace("{{{0}}}".format(outer_nick), nick_value)
 
@@ -691,6 +750,7 @@ async def parse_template(guild_id: int, guild_name: str, member: Member | Member
         return template[:32]
 
     return template
+
 
 # def convert_v3_binds_to_v4(items: dict, bind_type: str) -> list:
 #     """Convert old bindings to the new bind format.

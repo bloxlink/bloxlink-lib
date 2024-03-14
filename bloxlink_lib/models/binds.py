@@ -774,8 +774,9 @@ async def migrate_old_binds(guild_id: str):
                         )
 
     if migrated_binds:
-        # TODO: Check for duplicates?
-        guild_data.binds.extend(migrated_binds)
+        # Removes duplicates
+        # TODO: Check efficiency, GuildBind isn't hashable so we can't use sets.
+        guild_data.binds.extend(b for b in migrated_binds if b not in guild_data.binds)
 
         await database.update_guild_data(
             guild_id,

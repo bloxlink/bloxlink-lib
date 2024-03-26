@@ -223,3 +223,4 @@ async def get_entity(
     await entity.sync()
 
     return entity
+

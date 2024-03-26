@@ -55,7 +55,7 @@ class GuildData(BaseModel):
     autoRoles: bool = True
     autoVerification: bool = True
     disallowAlts: bool = False
-    disallowBanEvaders: str = False  # Site sets it to "ban" when enabled. Null when disabled.
+    disallowBanEvaders: bool = False
     dynamicRoles: bool = True
     groupLock: dict = None
     highTrafficServer: bool = False

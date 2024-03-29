@@ -295,7 +295,7 @@ async def get_accounts(user: hikari.User) -> list[RobloxUser]:
     return accounts
 
 
-async def reverse_lookup(roblox_user: RobloxUser, exclude_user_id: int | None = None) -> list[str]:
+async def reverse_lookup(roblox_user: RobloxUser, exclude_user_id: int | None = None) -> list[int]:
     """Find Discord IDs linked to a roblox id.
 
     Args:
@@ -304,15 +304,17 @@ async def reverse_lookup(roblox_user: RobloxUser, exclude_user_id: int | None = 
             Defaults to None.
 
     Returns:
-        list[str]: All the discord IDs linked to this roblox_id.
+        list[int]: All the discord IDs linked to this roblox_id.
     """
 
+    roblox_id = str(roblox_user.id)
+
     cursor = mongo.bloxlink["users"].find(
-        {"$or": [{"robloxID": roblox_user.id}, {"robloxAccounts.accounts": roblox_user.id}]},
+        {"$or": [{"robloxID": roblox_id}, {"robloxAccounts.accounts": roblox_id}]},
         {"_id": 1},
     )
 
-    return [x["_id"] async for x in cursor if str(exclude_user_id) != str(x["_id"])]
+    return [int(x["_id"]) async for x in cursor if str(exclude_user_id) != str(x["_id"])]
 
 async def get_user_from_string(target: Annotated[str, "Roblox username or ID"]) -> RobloxUser:
     """Get a RobloxUser from a given target string (either an ID or username)

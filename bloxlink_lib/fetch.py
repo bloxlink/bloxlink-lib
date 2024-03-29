@@ -104,9 +104,11 @@ async def fetch[T](
                     raise RobloxDown()
 
                 if response.status == StatusCodes.NOT_FOUND:
-                    raise RobloxNotFound(f"{url} not found: {await response.text()}")
+                    logging.error(f"{url} not found: {await response.text()}")
+                    raise RobloxNotFound()
 
-                raise RobloxAPIError(f"{url} failed with status {response.status} and body {await response.text()}")
+                logging.error(f"{url} failed with status {response.status} and body {await response.text()}")
+                raise RobloxAPIError()
 
             if parse_as:
                 if parse_as == "TEXT":

@@ -19,6 +19,8 @@ if TYPE_CHECKING:
 
 VALID_INFO_SERVER_SCOPES: list[Literal["groups", "badges"]] = ["groups", "badges"]
 INVENTORY_API = "https://inventory.roblox.com"
+USERS_API = "https://users.roblox.com"
+USERS_BASE_DATA_API = USERS_API + "/v1/users/{roblox_id}"
 
 
 class UserData(BaseModel):
@@ -181,6 +183,46 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
                 ending = f"day{((self.age_days > 1 or self.age_days == 0) and 's') or ''}"
                 self.short_age_string = f"{self.age_days} {ending} ago"
 
+
+class RobloxUsernameData(BaseModel):
+    requestedUsername: str
+    hasVerifiedBadge: bool
+    id: int
+    name: str
+    displayName: str
+
+class RobloxUsernameResponse(BaseModel):
+    data: list[RobloxUsernameData]
+
+
+# fetch functions
+async def fetch_roblox_id(roblox_username: str) -> int | None:
+    """Fetch a Roblox ID from a Roblox username."""
+
+    username_response = await fetch_typed(
+        RobloxUsernameResponse,
+        f"{USERS_API}/v1/usernames/users",
+        method="POST",
+        body={
+            "usernames": [
+                roblox_username
+            ],
+            "excludeBannedUsers": False
+        }
+    )
+    roblox_id = username_response.data[0].id if username_response.data else None
+
+    return roblox_id
+
+async def fetch_base_data(roblox_id: int) -> RobloxUser | None:
+    """Fetch base data for a Roblox user."""
+
+    user_base_data = await fetch_typed(
+        RobloxUser,
+        USERS_BASE_DATA_API.format(roblox_id=roblox_id)
+    )
+
+    return user_base_data
 
 async def get_user_account(
     user: hikari.User | str, guild_id: int = None, raise_errors=True

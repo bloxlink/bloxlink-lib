@@ -195,11 +195,11 @@ class RobloxUsernameResponse(BaseModel):
     data: list[RobloxUsernameData]
 
 
-# fetch functions
+# fetch functions. these should not be used directly in commands; instead, get_user() should be used instead
 async def fetch_roblox_id(roblox_username: str) -> int | None:
     """Fetch a Roblox ID from a Roblox username."""
 
-    username_response = await fetch_typed(
+    username_data, username_response  = await fetch_typed(
         RobloxUsernameResponse,
         f"{USERS_API}/v1/usernames/users",
         method="POST",
@@ -210,17 +210,25 @@ async def fetch_roblox_id(roblox_username: str) -> int | None:
             "excludeBannedUsers": False
         }
     )
-    roblox_id = username_response.data[0].id if username_response.data else None
+
+    if username_response.status != StatusCodes.OK:
+        return None
+
+    roblox_id = username_data.data[0].id if username_data.data else None
 
     return roblox_id
 
 async def fetch_base_data(roblox_id: int) -> RobloxUser | None:
     """Fetch base data for a Roblox user."""
 
-    user_base_data = await fetch_typed(
+    user_base_data, user_base_data_response = await fetch_typed(
         RobloxUser,
-        USERS_BASE_DATA_API.format(roblox_id=roblox_id)
+        USERS_BASE_DATA_API.format(roblox_id=roblox_id),
+        raise_on_failure=False
     )
+
+    if user_base_data_response.status != StatusCodes.OK:
+        return None
 
     return user_base_data
 

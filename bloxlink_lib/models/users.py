@@ -218,7 +218,7 @@ async def fetch_roblox_id(roblox_username: str) -> int | None:
 
     return roblox_id
 
-async def fetch_base_data(roblox_id: int) -> RobloxUser | None:
+async def fetch_base_data(roblox_id: int) -> dict | None:
     """Fetch base data for a Roblox user."""
 
     user_base_data, user_base_data_response = await fetch_typed(
@@ -230,7 +230,21 @@ async def fetch_base_data(roblox_id: int) -> RobloxUser | None:
     if user_base_data_response.status != StatusCodes.OK:
         return None
 
-    return user_base_data
+    return user_base_data.model_dump(exclude_unset=True)
+
+async def fetch_groups(roblox_id: int) -> dict | None:
+    """Fetch base data for a Roblox user."""
+
+    user_base_data, user_base_data_response = await fetch_typed(
+        RobloxUser,
+        USERS_BASE_DATA_API.format(roblox_id=roblox_id),
+        raise_on_failure=False
+    )
+
+    if user_base_data_response.status != StatusCodes.OK:
+        return None
+
+    return user_base_data.model_dump(exclude_unset=True)
 
 async def get_user_account(
     user: hikari.User | str, guild_id: int = None, raise_errors=True

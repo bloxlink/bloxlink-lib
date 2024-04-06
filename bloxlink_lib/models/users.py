@@ -254,7 +254,7 @@ async def fetch_user_groups(roblox_id: int) -> dict[Literal["groups"]: dict[int,
     if user_groups_response.status != StatusCodes.OK:
         return None
 
-    return {"groups": {group_data.group.id: group_data for group_data in user_groups.data}}
+    return {"groups": {int(group_data.group.id): group_data for group_data in user_groups.data}}
 
 async def get_user_account(
     user: hikari.User | str, guild_id: int = None, raise_errors=True

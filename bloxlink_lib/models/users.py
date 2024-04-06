@@ -11,7 +11,7 @@ from ..fetch import fetch, fetch_typed, StatusCodes
 from ..config import CONFIG
 from ..exceptions import RobloxNotFound, RobloxAPIError, UserNotVerified
 from ..database import fetch_user_data, mongo
-from .groups import GroupRoleset
+from .groups import GroupRoleset, RobloxGroup
 from .base import Snowflake, BaseModel
 
 if TYPE_CHECKING:
@@ -21,6 +21,7 @@ VALID_INFO_SERVER_SCOPES: list[Literal["groups", "badges"]] = ["groups", "badges
 INVENTORY_API = "https://inventory.roblox.com"
 USERS_API = "https://users.roblox.com"
 USERS_BASE_DATA_API = USERS_API + "/v1/users/{roblox_id}"
+USER_GROUPS_API = "https://groups.roblox.com/v2/users/{roblox_id}/groups/roles"
 
 
 class UserData(BaseModel):
@@ -58,6 +59,10 @@ class RobloxUserGroups(BaseModel):
     group: RobloxGroupResponse
     role: GroupRoleset
 
+class RobloxUserGroupsResponse(BaseModel):
+    """Type definition for a Roblox user's groups from the Roblox API."""
+
+    data: list[RobloxUserGroups]
 
 class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
     """Representation of a user on Roblox."""
@@ -232,19 +237,19 @@ async def fetch_base_data(roblox_id: int) -> dict | None:
 
     return user_base_data.model_dump(exclude_unset=True)
 
-async def fetch_groups(roblox_id: int) -> dict | None:
-    """Fetch base data for a Roblox user."""
+async def fetch_user_groups(roblox_id: int) -> dict[int, RobloxGroup] | None:
+    """Fetch the groups of a user."""
 
-    user_base_data, user_base_data_response = await fetch_typed(
-        RobloxUser,
-        USERS_BASE_DATA_API.format(roblox_id=roblox_id),
+    user_groups, user_groups_response = await fetch_typed(
+        RobloxUserGroupsResponse,
+        USER_GROUPS_API.format(roblox_id=roblox_id),
         raise_on_failure=False
     )
 
-    if user_base_data_response.status != StatusCodes.OK:
+    if user_groups_response.status != StatusCodes.OK:
         return None
 
-    return user_base_data.model_dump(exclude_unset=True)
+    return {group_data.group.id: group_data.group for group_data in user_groups.data}
 
 async def get_user_account(
     user: hikari.User | str, guild_id: int = None, raise_errors=True

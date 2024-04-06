@@ -11,7 +11,7 @@ from ..fetch import fetch, fetch_typed, StatusCodes
 from ..config import CONFIG
 from ..exceptions import RobloxNotFound, RobloxAPIError, UserNotVerified
 from ..database import fetch_user_data, mongo
-from .groups import GroupRoleset, RobloxGroup
+from .groups import GroupRoleset
 from .base import Snowflake, BaseModel
 
 if TYPE_CHECKING:
@@ -237,8 +237,13 @@ async def fetch_base_data(roblox_id: int) -> dict | None:
 
     return user_base_data.model_dump(exclude_unset=True)
 
-async def fetch_user_groups(roblox_id: int) -> dict[int, RobloxGroup] | None:
-    """Fetch the groups of a user."""
+async def fetch_user_groups(roblox_id: int) -> dict[Literal["groups"]: dict[int, RobloxUserGroups]] | None:
+    """
+    Fetch the groups of a user.
+
+    This returns a dictionary with "groups" as the response
+    so that this can be used with setattr() in the RobloxUser model.
+    """
 
     user_groups, user_groups_response = await fetch_typed(
         RobloxUserGroupsResponse,
@@ -249,7 +254,7 @@ async def fetch_user_groups(roblox_id: int) -> dict[int, RobloxGroup] | None:
     if user_groups_response.status != StatusCodes.OK:
         return None
 
-    return {group_data.group.id: group_data.group for group_data in user_groups.data}
+    return {"groups": {group_data.group.id: group_data for group_data in user_groups.data}}
 
 async def get_user_account(
     user: hikari.User | str, guild_id: int = None, raise_errors=True

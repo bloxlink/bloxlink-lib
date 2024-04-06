@@ -17,13 +17,13 @@ class BaseModelArbitraryTypes(PydanticBaseModel):
     """Base model with arbitrary types allowed."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True,
-                              populate_by_name=True)
+                              populate_by_name=True, validate_assignment=True)
 
 
 class BaseModel(PydanticBaseModel):
     """Base model with a set configuration."""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, validate_assignment=True)
 
     @classmethod
     def model_fields_index(cls: Type[PydanticBaseModel | BaseModelArbitraryTypes]) -> list[Tuple[str, FieldInfo]]:

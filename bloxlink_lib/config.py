@@ -20,7 +20,8 @@ class Config(BaseModel):
     #############################
     PROXY_URL: str = None
     DISCORD_PROXY_URL: str = None
-    ROBLOX_INFO_SERVER: str = None
+    BOT_API: str = None
+    BOT_API_AUTH: str = None
     SENTRY_DSN: str = None
     #############################
     LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"

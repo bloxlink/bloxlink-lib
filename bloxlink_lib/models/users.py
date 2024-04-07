@@ -150,8 +150,8 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
                 includes.remove("badges")
 
         roblox_user_data, user_data_response = await fetch_typed(
-            RobloxUser,
-            f"{CONFIG.ROBLOX_INFO_SERVER}/roblox/info",
+            RobloxUserResponse,
+            f"{CONFIG.BOT_API}/users",
             params={"id": self.id, "username": self.username, "include": ",".join(includes)},
         )
 

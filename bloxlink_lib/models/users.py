@@ -251,7 +251,7 @@ async def fetch_roblox_id(roblox_username: str) -> int | None:
 
     return roblox_id
 
-async def fetch_base_data(roblox_id: int) -> RobloxUser | None:
+async def fetch_base_data(roblox_id: int) -> dict | None:
     """Fetch base data for a Roblox user."""
 
     user_base_data, user_base_data_response = await fetch_typed(
@@ -263,7 +263,7 @@ async def fetch_base_data(roblox_id: int) -> RobloxUser | None:
     if user_base_data_response.status != StatusCodes.OK:
         return None
 
-    return user_base_data
+    return user_base_data.model_dump(exclude_unset=True)
 
 async def fetch_user_groups(roblox_id: int) -> dict[Literal["groups"]: dict[int, RobloxUserGroups]] | None:
     """

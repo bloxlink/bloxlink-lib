@@ -294,7 +294,7 @@ async def fetch_user_avatars(roblox_id: int, resolve_avatars: bool) -> dict[Lite
             else:
                 avatars[avatar_name] = None
         else:
-            avatars[avatar_name] = avatar_url
+            avatars[avatar_name] = avatar_url.format(roblox_id=roblox_id)
 
     avatar_model = UserAvatar(**avatars)
 

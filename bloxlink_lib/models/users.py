@@ -22,6 +22,7 @@ INVENTORY_API = "https://inventory.roblox.com"
 USERS_API = "https://users.roblox.com"
 USERS_BASE_DATA_API = USERS_API + "/v1/users/{roblox_id}"
 USER_GROUPS_API = "https://groups.roblox.com/v2/users/{roblox_id}/groups/roles"
+USER_BADGES_API = "https://www.roblox.com/badges/roblox?userId={roblox_id}"
 AVATAR_URLS = {
     "bustThumbnail": "https://thumbnails.roblox.com/v1/users/avatar-bust?userIds={roblox_id}&size=420x420&format=Png&isCircular=false",
     "headshotThumbnail": "https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds={roblox_id}&size=420x420&format=Png&isCircular=false",
@@ -51,11 +52,11 @@ class UserAvatar(BaseModel):
     full_body: str | None = Field(alias="fullBody")
 
 class RobloxUserAvatar(BaseModel):
-    """Type definition for a Roblox user's avatar from the Roblox API."""
+    """Type definition for a Roblox avatar from the Roblox API."""
 
-    targetId: int
+    target_id: int = Field(alias="targetId")
     state: str
-    imageUrl: str
+    image_url: str = Field(alias="imageUrl")
 
 class RobloxUserAvatarResponse(BaseModel):
     """Type definition for a Roblox user's avatar from the Roblox API."""
@@ -70,7 +71,7 @@ class RobloxGroupResponse(BaseModel):
 
 
 class RobloxUserGroups(BaseModel):
-    """Type definition for a Roblox user's groups from the Bloxlink Info API."""
+    """Type definition for a Roblox group from a user from the Roblox API."""
 
     group: RobloxGroupResponse
     role: GroupRoleset
@@ -79,6 +80,17 @@ class RobloxUserGroupsResponse(BaseModel):
     """Type definition for a Roblox user's groups from the Roblox API."""
 
     data: list[RobloxUserGroups]
+
+class RobloxUserBadge(BaseModel):
+    """Type definition for a Roblox badge from the Roblox API."""
+
+    image_url: str = Field(alias="ImageUri")
+    name: str = Field(alias="Name")
+
+class RobloxUserBadgeResponse(BaseModel):
+    """Type definition for a Roblox user's badges from the Roblox API."""
+
+    RobloxBadges: list[RobloxUserBadge]
 
 class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
     """Representation of a user on Roblox."""
@@ -299,6 +311,25 @@ async def fetch_user_avatars(roblox_id: int, resolve_avatars: bool) -> dict[Lite
     avatar_model = UserAvatar(**avatars)
 
     return {"avatar": avatar_model.model_dump(exclude_unset=True)}
+
+async def fetch_user_badges(roblox_id: int) -> list[RobloxUserBadge] | None:
+    """
+    Fetch the user's badges.
+
+    This returns a dictionary with "badges" as the response
+    so that this can be used with setattr() in the RobloxUser model.
+    """
+
+    user_badges, user_badges_response = await fetch_typed(
+        RobloxUserBadgeResponse,
+        USER_BADGES_API.format(roblox_id=roblox_id),
+        raise_on_failure=False
+    )
+
+    if user_badges_response.status != StatusCodes.OK:
+        return None
+
+    return {"badges": [b.model_dump(exclude_unset=True) for b in user_badges.RobloxBadges]}
 
 async def get_user_account(
     user: hikari.User | str, guild_id: int = None, raise_errors=True

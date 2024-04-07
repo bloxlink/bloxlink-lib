@@ -251,7 +251,7 @@ async def fetch_roblox_id(roblox_username: str) -> int | None:
 
     return roblox_id
 
-async def fetch_base_data(roblox_id: int) -> dict | None:
+async def fetch_base_data(roblox_id: int) -> RobloxUser | None:
     """Fetch base data for a Roblox user."""
 
     user_base_data, user_base_data_response = await fetch_typed(
@@ -263,7 +263,7 @@ async def fetch_base_data(roblox_id: int) -> dict | None:
     if user_base_data_response.status != StatusCodes.OK:
         return None
 
-    return user_base_data.model_dump(exclude_unset=True)
+    return user_base_data
 
 async def fetch_user_groups(roblox_id: int) -> dict[Literal["groups"]: dict[int, RobloxUserGroups]] | None:
     """
@@ -310,7 +310,7 @@ async def fetch_user_avatars(roblox_id: int, resolve_avatars: bool) -> dict[Lite
 
     avatar_model = UserAvatar(**avatars)
 
-    return {"avatar": avatar_model.model_dump(exclude_unset=True)}
+    return {"avatar": avatar_model}
 
 async def fetch_user_badges(roblox_id: int) -> list[RobloxUserBadge] | None:
     """
@@ -329,7 +329,7 @@ async def fetch_user_badges(roblox_id: int) -> list[RobloxUserBadge] | None:
     if user_badges_response.status != StatusCodes.OK:
         return None
 
-    return {"badges": [b.model_dump(exclude_unset=True) for b in user_badges.RobloxBadges]}
+    return {"badges": user_badges.RobloxBadges}
 
 async def get_user_account(
     user: hikari.User | str, guild_id: int = None, raise_errors=True

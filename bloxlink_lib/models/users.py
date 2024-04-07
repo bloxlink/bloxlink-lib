@@ -46,9 +46,9 @@ class UserData(BaseModel):
 class UserAvatar(BaseModel):
     """Type definition for a Roblox user's avatar from the Bloxlink Info API."""
 
-    bust_thumbnail: str = Field(alias="bustThumbnail")
-    headshot_thumbnail: str = Field(alias="headshotThumbnail")
-    full_body: str = Field(alias="fullBody")
+    bust_thumbnail: str | None = Field(alias="bustThumbnail")
+    headshot_thumbnail: str | None = Field(alias="headshotThumbnail")
+    full_body: str | None = Field(alias="fullBody")
 
 class RobloxUserAvatar(BaseModel):
     """Type definition for a Roblox user's avatar from the Roblox API."""
@@ -272,7 +272,7 @@ async def fetch_user_groups(roblox_id: int) -> dict[Literal["groups"]: dict[int,
 
     return {"groups": {int(group_data.group.id): group_data for group_data in user_groups.data}}
 
-async def fetch_user_avatars(roblox_id: int, resolve_avatars: bool) -> dict[Literal["avatar"], UserAvatar] | None:
+async def fetch_user_avatars(roblox_id: int, resolve_avatars: bool) -> dict[Literal["avatar"], UserAvatar]:
     """
     Fetch the avatar templates of a user.
 

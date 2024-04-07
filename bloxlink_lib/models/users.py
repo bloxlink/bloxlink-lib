@@ -22,6 +22,11 @@ INVENTORY_API = "https://inventory.roblox.com"
 USERS_API = "https://users.roblox.com"
 USERS_BASE_DATA_API = USERS_API + "/v1/users/{roblox_id}"
 USER_GROUPS_API = "https://groups.roblox.com/v2/users/{roblox_id}/groups/roles"
+AVATAR_URLS = {
+    "bustThumbnail": "https://thumbnails.roblox.com/v1/users/avatar-bust?userIds={roblox_id}&size=420x420&format=Png&isCircular=false",
+    "headshotThumbnail": "https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds={roblox_id}&size=420x420&format=Png&isCircular=false",
+    "fullBody": "https://thumbnails.roblox.com/v1/users/avatar?userIds={roblox_id}&size=720x720&format=Png&isCircular=false"
+}
 
 
 class UserData(BaseModel):
@@ -38,13 +43,24 @@ class UserData(BaseModel):
     robloxAccounts: dict = Field(default_factory=lambda: {"accounts": [], "guilds": {}, "confirms": {}})
 
 
-class RobloxUserAvatar(BaseModel):
+class UserAvatar(BaseModel):
     """Type definition for a Roblox user's avatar from the Bloxlink Info API."""
 
     bust_thumbnail: str = Field(alias="bustThumbnail")
     headshot_thumbnail: str = Field(alias="headshotThumbnail")
     full_body: str = Field(alias="fullBody")
 
+class RobloxUserAvatar(BaseModel):
+    """Type definition for a Roblox user's avatar from the Roblox API."""
+
+    targetId: int
+    state: str
+    imageUrl: str
+
+class RobloxUserAvatarResponse(BaseModel):
+    """Type definition for a Roblox user's avatar from the Roblox API."""
+
+    data: list[RobloxUserAvatar]
 
 class RobloxGroupResponse(BaseModel):
     id: int
@@ -76,7 +92,7 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
     age_days: int = None
     groups: dict[int, RobloxUserGroups] | None = Field(default=None)
 
-    avatar: RobloxUserAvatar = None
+    avatar: UserAvatar = None
     avatar_url: str | None = None
 
     description: str | None = None
@@ -255,6 +271,34 @@ async def fetch_user_groups(roblox_id: int) -> dict[Literal["groups"]: dict[int,
         return None
 
     return {"groups": {int(group_data.group.id): group_data for group_data in user_groups.data}}
+
+async def fetch_user_avatars(roblox_id: int, resolve_avatars: bool) -> dict[Literal["avatar"], UserAvatar] | None:
+    """
+    Fetch the avatar templates of a user.
+
+    This returns a dictionary with "avatar" as the response
+    so that this can be used with setattr() in the RobloxUser model.
+    """
+
+    avatars: dict = {}
+
+    for avatar_name, avatar_url in AVATAR_URLS.items():
+        if resolve_avatars:
+            avatar_data, avatar_data_response = await fetch_typed(
+                RobloxUserAvatarResponse,
+                avatar_url.format(roblox_id=roblox_id),
+                raise_on_failure=False
+            )
+            if avatar_data_response.status == StatusCodes.OK:
+                avatars[avatar_name] = avatar_data.data[0].imageUrl
+            else:
+                avatars[avatar_name] = None
+        else:
+            avatars[avatar_name] = avatar_url
+
+    avatar_model = UserAvatar(**avatars)
+
+    return {"avatar": avatar_model.model_dump(exclude_unset=True)}
 
 async def get_user_account(
     user: hikari.User | str, guild_id: int = None, raise_errors=True

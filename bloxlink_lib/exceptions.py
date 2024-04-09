@@ -16,3 +16,9 @@ class RobloxDown(BloxlinkException):
 
 class UserNotVerified(BloxlinkException):
     """Raised when a user is not verified."""
+
+class Message(BloxlinkException):
+    """Generic exception to communicate some message to the user."""
+
+class Error(Message):
+    """Generic user-thrown error."""

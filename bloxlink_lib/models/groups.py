@@ -163,8 +163,10 @@ async def get_group(group_id_or_url: Annotated[str | int, "Group ID or URL"]) ->
 
     if regex_search:
         group_id = regex_search.group(1)
-    else:
+    elif group_id_or_url.isdigit():
         group_id = group_id_or_url
+    else:
+        raise RobloxNotFound("Invalid group ID or URL.")
 
     group = RobloxGroup(id=group_id)
 

@@ -231,7 +231,6 @@ class GuildBind(BaseModel):
         guild_roles: dict[int, RoleSerializable],
         member: Member | MemberSerializable,
         roblox_user: RobloxUser | None = None,
-        sync_user: bool = False,
     ) -> tuple[bool, SnowflakeSet, CoerciveSet[str], SnowflakeSet]:
         """Check if a user satisfies the requirements for this bind."""
 
@@ -257,9 +256,6 @@ class GuildBind(BaseModel):
 
             case "group":
                 group: RobloxGroup = self.entity
-
-                if sync_user:
-                    await roblox_user.sync(["groups"])
 
                 await group.sync_for(roblox_user, sync=True)
 

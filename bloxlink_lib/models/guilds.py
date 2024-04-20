@@ -1,4 +1,4 @@
-from typing import Mapping, Self, Type
+from typing import Mapping, Self, Type, Literal, Annotated
 from pydantic import Field, field_validator
 import hikari
 from .base import Snowflake, BaseModel
@@ -29,11 +29,21 @@ class Webhooks(BaseModel):
     userInfo: UserInfoWebhook = None
 
 
+class GroupLock(BaseModel):
+    """Group lock settings for a group"""
+
+    groupName: str = None
+    dmMessage: str = None
+    roleSets: list[str] = Field(default_factory=list)
+    verifiedAction: Literal["kick", "dm"] = None
+    unverifiedAction: Literal["kick", "dm"] = None
+
+
 class GuildData(BaseModel):
     """Representation of the stored settings for a guild"""
 
     id: int
-    binds: list[binds_module.GuildBind] = Field(default_factory=list)
+    binds: Annotated[list[binds_module.GuildBind], Field(default_factory=list)]
 
     @field_validator("binds", mode="before")
     @classmethod
@@ -57,7 +67,7 @@ class GuildData(BaseModel):
     disallowAlts: bool = False
     disallowBanEvaders: bool = False
     dynamicRoles: bool = True
-    groupLock: dict = None
+    groupLock: dict[str, GroupLock] = None
     highTrafficServer: bool = False
     allowOldRoles: bool = False
 

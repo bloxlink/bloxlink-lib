@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 import math
-from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, Annotated
 
 from pydantic import Field, ValidationError
 
@@ -101,14 +101,14 @@ class GuildBind(BaseModel):
 
     # Fields from the database.
     nickname: str | None = None
-    roles: list[str] = Field(default_factory=list)
-    remove_roles: list[str] = Field(default_factory=list, alias="removeRoles")
+    roles: Annotated[list[str], Field(default_factory=list)]
+    remove_roles: Annotated[list[str], Field(default_factory=list, alias="removeRoles")]
 
     criteria: BindCriteria
     data: BindData | None = Field(default=None)
 
     # Excluded fields. These are used for the bind algorithms.
-    pending_new_roles: list[str] = Field(exclude=True, default_factory=list)
+    pending_new_roles: Annotated[list[str], Field(exclude=True, default_factory=list)]
     entity: RobloxEntity | None = Field(exclude=True, default=None)
     type: Literal["group", "catalogAsset", "badge", "gamepass", "verified", "unverified"] | None = Field(
         exclude=True, default=None
@@ -221,9 +221,9 @@ class GuildBind(BaseModel):
         if self.roles and not self.highest_role:
             filtered_binds = filter(
                 lambda r: str(r.id) in self.roles and self.nickname, guild_roles.values()
-            )  # pylint: disable=unsupported-membership-test
+            )
 
-            if len(list(filtered_binds)):
+            if list(filtered_binds):
                 self.highest_role = max(filtered_binds, key=lambda r: r.position)
 
     async def satisfies_for(

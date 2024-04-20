@@ -1,4 +1,4 @@
-from typing import Literal, Annotated, Tuple, Type, Iterable, Self, Callable
+from typing import Literal, Annotated, Tuple, Type, Iterable, Self
 from abc import ABC, abstractmethod
 from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict
 from pydantic.fields import FieldInfo

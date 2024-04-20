@@ -34,7 +34,7 @@ class GroupLock(BaseModel):
 
     groupName: str = None
     dmMessage: str | None = None
-    roleSets: Annotated[list[str], Field(default_factory=list)]
+    roleSets: Annotated[list[int], Field(default_factory=list)]
     verifiedAction: Literal["kick", "dm"] = "kick"
     unverifiedAction: Literal["kick", "dm"] = "kick"
 

@@ -33,10 +33,10 @@ class GroupLock(BaseModel):
     """Group lock settings for a group"""
 
     groupName: str = None
-    dmMessage: str = None
-    roleSets: list[str] = Field(default_factory=list)
-    verifiedAction: Literal["kick", "dm"] = None
-    unverifiedAction: Literal["kick", "dm"] = None
+    dmMessage: str | None = None
+    roleSets: Annotated[list[str], Field(default_factory=list)]
+    verifiedAction: Literal["kick", "dm"] = "kick"
+    unverifiedAction: Literal["kick", "dm"] = "kick"
 
 
 class GuildData(BaseModel):

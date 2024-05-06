@@ -545,7 +545,7 @@ class MemberSerializable(BaseModel):
         return MemberSerializable(
             id=member.id,
             username=member.name,
-            avatar_url=member.avatar.url,
+            avatar_url=member.display_avatar.url,
             display_name=member.display_name,
             is_bot=member.bot,
             joined_at=member.joined_at,

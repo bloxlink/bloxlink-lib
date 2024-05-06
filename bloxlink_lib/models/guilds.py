@@ -66,6 +66,7 @@ class GuildData(BaseModel):
     autoVerification: bool = True
     disallowAlts: bool = False
     disallowBanEvaders: bool = False
+    banRelatedAccounts: bool = False
     dynamicRoles: bool = True
     groupLock: dict[str, GroupLock] = None
     highTrafficServer: bool = False
@@ -79,8 +80,6 @@ class GuildData(BaseModel):
     nicknameTemplate: str = "{smart-name}"
 
     premium: dict = Field(default_factory=dict) # deprecated
-
-    affiliate: dict = None # deprecated
 
     # Old bind fields.
     roleBinds: dict = None

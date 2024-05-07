@@ -67,6 +67,7 @@ class GuildData(BaseModel):
     disallowAlts: bool = False
     disallowBanEvaders: bool = False
     banRelatedAccounts: bool = False
+    unbanRelatedAccounts: bool = False
     dynamicRoles: bool = True
     groupLock: dict[str, GroupLock] = None
     highTrafficServer: bool = False

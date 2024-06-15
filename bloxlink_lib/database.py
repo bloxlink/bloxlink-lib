@@ -31,7 +31,7 @@ def connect_database():
         ca_file = exists("cert.crt")
 
         if not ca_file:
-            with open("src/cert.crt", "w") as f:
+            with open("src/cert.crt", "w", encoding="utf-8") as f:
                 f.write(CONFIG.MONGO_CA_FILE)
 
         mongo_options["tlsCAFile"] = "src/cert.crt"

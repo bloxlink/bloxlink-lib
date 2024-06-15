@@ -58,6 +58,7 @@ def load_module(import_name: str) -> ModuleType:
 
     except Exception as e:
         logging.error(f"Module {import_name} errored: {e}")
+        logging.exception(e)
         raise
 
     if hasattr(module, "__setup__"):
@@ -68,7 +69,8 @@ def load_module(import_name: str) -> ModuleType:
                 module.__setup__()
 
         except Exception as e:
-            logging.error(f"Module {import_name} errored: {e}")
+            logging.error(f"Module {import_name} __setup__ function errored: {e}")
+            logging.exception(e)
             raise e
 
     if hasattr(module, "__defer__"):

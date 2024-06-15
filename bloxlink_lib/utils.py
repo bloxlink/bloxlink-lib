@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, Awaitable, Type
+from typing import Callable, Iterable, Awaitable, Type, Coroutine
 import importlib
 import logging
 import asyncio
@@ -9,6 +9,8 @@ import sentry_sdk
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from .models.base import BaseModel
 from .config import CONFIG
+
+deferred_module_functions: list[Callable, Coroutine] = []
 
 def find[T](predicate: Callable, iterable: Iterable[T]) -> T | None:
     """Finds the first element in an iterable that matches the predicate."""
@@ -23,6 +25,17 @@ def find[T](predicate: Callable, iterable: Iterable[T]) -> T | None:
                 return element
 
     return None
+
+def execute_deferred_module_functions():
+    """Executes deferred module functions. This should be called AFTER all modules loaded."""
+
+    for deferred_function in deferred_module_functions:
+        if iscoroutinefunction(deferred_function):
+            asyncio.run(deferred_function())
+        else:
+            deferred_function()
+
+    deferred_module_functions.clear()
 
 def load_module(import_name: str) -> ModuleType:
     """Utility function to import python modules.
@@ -55,6 +68,10 @@ def load_module(import_name: str) -> ModuleType:
             logging.error(f"Module {import_name} errored: {e}")
             raise e
 
+    if hasattr(module, "__defer__"):
+        logging.info(f"Deferring module {import_name} __defer__ function")
+        deferred_module_functions.append(module.__defer__)
+
     logging.info(f"Loaded module {import_name}")
 
     return module
@@ -86,6 +103,8 @@ def load_modules(*paths: tuple[str], starting_path: str=".") -> list[ModuleType]
 
             if module:
                 modules.append(module)
+
+    execute_deferred_module_functions()
 
     return modules
 

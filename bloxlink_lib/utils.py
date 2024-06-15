@@ -83,14 +83,16 @@ def load_module(import_name: str) -> ModuleType:
 
     return module
 
-def load_modules(*paths: tuple[str], starting_path: str=".") -> list[ModuleType]:
+def load_modules(*paths: tuple[str], starting_path: str=".", execute_deferred_modules: bool = True) -> list[ModuleType]:
     """Utility function to import python modules.
 
     Args:
         paths (list[str]): Paths of modules to import
+        starting_path (str): Path to start from
+        execute_deferred_modules (bool): Whether to execute deferred modules
     """
 
-    logging.debug("Loading modules", paths)
+    logging.debug("Loading modules" + ",".join(paths))
 
     modules: list[ModuleType] = []
 
@@ -106,7 +108,7 @@ def load_modules(*paths: tuple[str], starting_path: str=".") -> list[ModuleType]
                 continue
 
             if path.isdir(f"{starting_path}{directory}/{filename}".replace(".", "/")):
-                modules += load_modules(f"{directory}.{filename}", starting_path=starting_path)
+                modules += load_modules(f"{directory}.{filename}", starting_path=starting_path, execute_deferred_modules=False)
 
             module = load_module(f"{directory}.{filename}")
 
@@ -114,7 +116,8 @@ def load_modules(*paths: tuple[str], starting_path: str=".") -> list[ModuleType]
                 modules.append(module)
 
     logging.debug("Done loading modules")
-    execute_deferred_module_functions()
+    if execute_deferred_modules:
+        execute_deferred_module_functions()
 
     return modules
 

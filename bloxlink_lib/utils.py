@@ -34,7 +34,10 @@ def execute_deferred_module_functions(*args):
     for deferred_function in deferred_module_functions:
         try:
             if iscoroutinefunction(deferred_function):
-                asyncio.run(deferred_function(*args))
+                try:
+                    asyncio.run(deferred_function(*args))
+                except RuntimeError:
+                    asyncio.create_task(deferred_function(*args))
             else:
                 deferred_function(*args)
         except Exception as e:

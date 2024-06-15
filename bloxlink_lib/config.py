@@ -13,7 +13,7 @@ class Config(BaseModel):
     # these are optional because we can choose to use MONGO_URL or MONGO_HOST/MONGO_USER/MONGO_PASSWORD/MONGO_PORT
     MONGO_URL: str = None
     MONGO_HOST: str = None
-    MONGO_PORT: str = "27017"
+    MONGO_PORT: int = 27017
     MONGO_USER: str = None
     MONGO_PASSWORD: str = None
     MONGO_CA_FILE: str = None

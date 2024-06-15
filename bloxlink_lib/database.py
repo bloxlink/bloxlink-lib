@@ -34,7 +34,7 @@ def connect_database():
 
     mongo = AsyncIOMotorClient(
         host=CONFIG.MONGO_HOST or CONFIG.MONGO_URL,
-        port=CONFIG.MONGO_PORT,
+        port=int(CONFIG.MONGO_PORT) if CONFIG.MONGO_PORT else None,
         username=CONFIG.MONGO_USER,
         password=CONFIG.MONGO_PASSWORD,
         tlsCAFile="src/cert.crt" if CONFIG.MONGO_CA_FILE else None

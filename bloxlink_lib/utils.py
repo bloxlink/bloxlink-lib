@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, Awaitable, Type, Coroutine
+from typing import Callable, Iterable, Awaitable, Type, Coroutine, Any
 import importlib
 import logging
 import asyncio
@@ -26,7 +26,7 @@ def find[T](predicate: Callable, iterable: Iterable[T]) -> T | None:
 
     return None
 
-def execute_deferred_module_functions():
+def execute_deferred_module_functions(*args):
     """Executes deferred module functions. This should be called AFTER all modules loaded."""
 
     logging.debug("Executing deferred module functions")
@@ -34,19 +34,20 @@ def execute_deferred_module_functions():
     for deferred_function in deferred_module_functions:
         try:
             if iscoroutinefunction(deferred_function):
-                asyncio.run(deferred_function())
+                asyncio.run(deferred_function(*args))
             else:
-                deferred_function()
+                deferred_function(*args)
         except Exception as e:
             logging.error(f"Module __defer__ function errored: {e}")
 
     deferred_module_functions.clear()
 
-def load_module(import_name: str) -> ModuleType:
+def load_module(import_name: str, *args) -> ModuleType:
     """Utility function to import python modules.
 
     Args:
         import_name (str): Name of the module to import
+        *args: Arguments to pass to the __setup__ function
     """
 
     logging.info(f"Attempting to load module {import_name}")
@@ -66,9 +67,9 @@ def load_module(import_name: str) -> ModuleType:
     if hasattr(module, "__setup__"):
         try:
             if iscoroutinefunction(module.__setup__):
-                asyncio.run(module.__setup__())
+                asyncio.run(module.__setup__(*args))
             else:
-                module.__setup__()
+                module.__setup__(*args)
 
         except Exception as e:
             logging.error(f"Module {import_name} __setup__ function errored: {e}")
@@ -83,18 +84,20 @@ def load_module(import_name: str) -> ModuleType:
 
     return module
 
-def load_modules(*paths: tuple[str], starting_path: str=".", execute_deferred_modules: bool = True) -> list[ModuleType]:
+def load_modules(*paths: tuple[str], starting_path: str=".", execute_deferred_modules: bool = True, init_functions: list[Any]=None) -> list[ModuleType]:
     """Utility function to import python modules.
 
     Args:
         paths (list[str]): Paths of modules to import
         starting_path (str): Path to start from
         execute_deferred_modules (bool): Whether to execute deferred modules
+        init_functions (list[Any]): Passed to setup and deferred functions
     """
 
     logging.debug("Loading modules" + ",".join(paths))
 
     modules: list[ModuleType] = []
+    init_functions = init_functions or []
 
     for directory in paths:
         files = [
@@ -110,14 +113,14 @@ def load_modules(*paths: tuple[str], starting_path: str=".", execute_deferred_mo
             if path.isdir(f"{starting_path}{directory}/{filename}".replace(".", "/")):
                 modules += load_modules(f"{directory}.{filename}", starting_path=starting_path, execute_deferred_modules=False)
 
-            module = load_module(f"{directory}.{filename}")
+            module = load_module(f"{directory}.{filename}", *init_functions)
 
             if module:
                 modules.append(module)
 
     logging.debug("Done loading modules")
     if execute_deferred_modules:
-        execute_deferred_module_functions()
+        execute_deferred_module_functions(*init_functions)
 
     return modules
 

@@ -90,7 +90,7 @@ def load_modules(*paths: tuple[str], starting_path: str=".") -> list[ModuleType]
         paths (list[str]): Paths of modules to import
     """
 
-    logging.debug("Loading modules")
+    logging.debug("Loading modules", paths)
 
     modules: list[ModuleType] = []
 

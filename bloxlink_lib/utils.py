@@ -30,10 +30,13 @@ def execute_deferred_module_functions():
     """Executes deferred module functions. This should be called AFTER all modules loaded."""
 
     for deferred_function in deferred_module_functions:
-        if iscoroutinefunction(deferred_function):
-            asyncio.run(deferred_function())
-        else:
-            deferred_function()
+        try:
+            if iscoroutinefunction(deferred_function):
+                asyncio.run(deferred_function())
+            else:
+                deferred_function()
+        except Exception as e:
+            logging.error(f"Module __defer__ function errored: {e}")
 
     deferred_module_functions.clear()
 

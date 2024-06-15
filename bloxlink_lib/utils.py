@@ -29,6 +29,8 @@ def find[T](predicate: Callable, iterable: Iterable[T]) -> T | None:
 def execute_deferred_module_functions():
     """Executes deferred module functions. This should be called AFTER all modules loaded."""
 
+    logging.debug("Executing deferred module functions")
+
     for deferred_function in deferred_module_functions:
         try:
             if iscoroutinefunction(deferred_function):
@@ -88,6 +90,8 @@ def load_modules(*paths: tuple[str], starting_path: str=".") -> list[ModuleType]
         paths (list[str]): Paths of modules to import
     """
 
+    logging.debug("Loading modules")
+
     modules: list[ModuleType] = []
 
     for directory in paths:
@@ -109,6 +113,7 @@ def load_modules(*paths: tuple[str], starting_path: str=".") -> list[ModuleType]
             if module:
                 modules.append(module)
 
+    logging.debug("Done loading modules")
     execute_deferred_module_functions()
 
     return modules

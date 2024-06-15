@@ -10,12 +10,17 @@ class Config(BaseModel):
 
     DISCORD_TOKEN: str = None
     #############################
-    MONGO_URL: str
+    # these are optional because we can choose to use MONGO_URL or MONGO_HOST/MONGO_USER/MONGO_PASSWORD/MONGO_PORT
+    MONGO_URL: str = None
+    MONGO_HOST: str = None
+    MONGO_PORT: str = "27017"
+    MONGO_USER: str = None
+    MONGO_PASSWORD: str = None
     MONGO_CA_FILE: str = None
     # these are optional because we can choose to use REDIS_URL or REDIS_HOST/REDIS_PORT/REDIS_PASSWORD
     REDIS_URL: str = None
     REDIS_HOST: str = None
-    REDIS_PORT: str = None
+    REDIS_PORT: str = "6379"
     REDIS_PASSWORD: str = None
     #############################
     PROXY_URL: str = None
@@ -37,6 +42,14 @@ class Config(BaseModel):
 
         if all([self.REDIS_HOST, self.REDIS_PORT, self.REDIS_PASSWORD, self.REDIS_URL]):
             raise ValueError("REDIS_URL and REDIS_HOST/REDIS_PORT/REDIS_PASSWORD cannot both be set")
+
+        if self.MONGO_URL is None and (
+            self.MONGO_HOST is None or self.MONGO_PORT is None
+        ):
+            raise ValueError("MONGO_URL or MONGO_HOST/MONGO_PORT/MONGO_USER/MONGO_PASSWORD must be set")
+
+        if all([self.MONGO_HOST, self.MONGO_PORT, self.MONGO_USER, self.MONGO_PASSWORD, self.MONGO_URL]):
+            raise ValueError("MONGO_URL and MONGO_HOST/MONGO_PORT/MONGO_USER/MONGO_PASSWORD cannot both be set")
 
 
 CONFIG: Config = Config(

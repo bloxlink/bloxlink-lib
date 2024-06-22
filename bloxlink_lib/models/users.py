@@ -415,19 +415,17 @@ async def get_user(
     return roblox_user
 
 
-async def get_accounts(user: hikari.User) -> list[RobloxUser]:
+async def get_accounts(user_id: int) -> list[RobloxUser]:
     """Get a user's linked Roblox accounts.
 
     Args:
-        user (hikari.User): The user to get linked accounts for.
+        user_id (int): The user to get linked Roblox accounts for.
 
     Returns:
         list[RobloxUser]: The linked Roblox accounts for this user.
     """
 
-    user_id = str(user.id)
     bloxlink_user = await fetch_user_data(user_id, "robloxID", "robloxAccounts")
-
     account_ids = set()
 
     if bloxlink_user.robloxID:

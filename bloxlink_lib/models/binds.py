@@ -517,8 +517,11 @@ async def get_binds(
     # check the guild roles for a verified role
     if (
         guild_roles
-        and (guild_data.unverifiedRoleEnabled or guild_data.verifiedRoleEnabled)
-        and not any(b.criteria.type == "verified" for b in guild_data.binds)
+        and (guild_data.verifiedRoleEnabled or guild_data.unverifiedRoleEnabled)
+        and (
+            guild_data.verifiedRoleEnabled and not find(lambda b: b.criteria.type == "verified", guild_data.binds)
+            or guild_data.unverifiedRoleEnabled and not find(lambda b: b.criteria.type == "unverified", guild_data.binds)
+        )
     ):
         verified_role_name = guild_data.verifiedRoleName
         unverified_role_name = guild_data.unverifiedRoleName

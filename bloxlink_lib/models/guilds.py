@@ -79,6 +79,7 @@ class GuildData(BaseModel):
     proBot: bool = False
 
     nicknameTemplate: str = "{smart-name}"
+    unverifiedNickname: str = ""
 
     premium: dict = Field(default_factory=dict) # deprecated
 

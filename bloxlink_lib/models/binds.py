@@ -552,12 +552,12 @@ async def get_binds(
     )
 
 
-async def get_nickname_template(guild_id, potential_binds: list[GuildBind]) -> tuple[str, GuildBind | None]:
+async def get_nickname_template(guild_id, potential_binds: list[GuildBind], roblox_user: RobloxUser | None = None) -> tuple[str, GuildBind | None]:
     """Get the unparsed nickname template for the user."""
 
     guild_data = await database.fetch_guild_data(
         guild_id,
-        "nicknameTemplate",
+        "nicknameTemplate" if roblox_user else "unverifiedNickname",
     )
 
     # first sort the binds by role position
@@ -604,7 +604,7 @@ async def parse_template(
             raise ValueError("Guild ID and potential binds must be provided if no template is given.")
 
         # this is for nickname calculation
-        template, highest_priority_bind = await get_nickname_template(guild_id, potential_binds)
+        template, highest_priority_bind = await get_nickname_template(guild_id, potential_binds, roblox_user)
 
     if template == "{disable-nicknaming}":
         return None

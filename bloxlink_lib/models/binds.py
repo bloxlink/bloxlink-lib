@@ -512,7 +512,6 @@ async def get_binds(
         "verifiedRoleName",
         "unverifiedRoleName",
         "unverifiedRoleEnabled",
-        "unverifiedRoleEnabled",
     )  # some are needed to polyfill the binds
 
     # check the guild roles for a verified role

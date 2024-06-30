@@ -486,6 +486,57 @@ async def count_binds(guild_id: int | str, bind_id: int = None) -> int:
     return len(guild_data) if not bind_id else sum(1 for b in guild_data if b.id == int(bind_id)) or 0
 
 
+async def check_for_verified_roles(guild_id: int | str, guild_roles: dict[int, RoleSerializable], merge_to: list[GuildBind]):
+    """Check for existing verified/unverified roles and update the database."""
+
+    guild_id = str(guild_id)
+    guild_data = await database.fetch_guild_data(
+        guild_id,
+        "verifiedRole",
+        "unverifiedRole",
+        "verifiedRoleName",
+        "unverifiedRoleName",
+        "unverifiedRoleEnabled",
+    )
+
+    verified_role_name = guild_data.verifiedRoleName
+    unverified_role_name = guild_data.unverifiedRoleName
+    verified_role_enabled = guild_data.verifiedRoleEnabled
+    unverified_role_enabled = guild_data.unverifiedRoleEnabled
+    verified_role_id = guild_data.verifiedRole
+    unverified_role_id = guild_data.unverifiedRole
+
+    new_verified_binds: list[GuildBind] = []
+
+    if verified_role_enabled and not find(lambda b: b.criteria.type == "verified", merge_to):
+        verified_role = find(lambda r: str(r.id) == verified_role_id or r.name == verified_role_name, guild_roles.values())
+
+        if verified_role:
+            new_bind = GuildBind(
+                criteria=BindCriteria(type="verified"),
+                roles=[str(verified_role)],
+            )
+            new_verified_binds.append(new_bind)
+
+    if unverified_role_enabled and not find(lambda b: b.criteria.type == "unverified", merge_to):
+        unverified_role = find(lambda r: str(r.id) == unverified_role_id or r.name == unverified_role_name, guild_roles.values())
+
+        if unverified_role:
+            new_bind = GuildBind(
+                criteria=BindCriteria(type="unverified"),
+                roles=[str(unverified_role)],
+            )
+            new_verified_binds.append(new_bind)
+
+    if new_verified_binds:
+        merge_to.extend(new_verified_binds)
+
+        await database.update_guild_data(guild_id,
+                                         binds=[b.model_dump(exclude_unset=True, by_alias=True) for b in merge_to],
+                                         verifiedRoleName=None,
+                                         unverifiedRoleName=None)
+
+
 async def get_binds(
     guild_id: int | str,
     category: VALID_BIND_TYPES = None,
@@ -504,47 +555,9 @@ async def get_binds(
     # Migrate any old bindings before we get the current binds.
     await migrate_old_binds(guild_id)
 
-    guild_data = await database.fetch_guild_data(
-        guild_id,
-        "binds",
-        "verifiedRole",
-        "unverifiedRole",
-        "verifiedRoleName",
-        "unverifiedRoleName",
-        "unverifiedRoleEnabled",
-    )  # some are needed to polyfill the binds
+    guild_data = await database.fetch_guild_data(guild_id, "binds")
 
-    # check the guild roles for a verified role and unverified role
-    if (
-        guild_roles
-        and (guild_data.verifiedRoleEnabled or guild_data.unverifiedRoleEnabled)
-        and (
-            (guild_data.verifiedRoleEnabled and not find(lambda b: b.criteria.type == "verified", guild_data.binds))
-                or (guild_data.unverifiedRoleEnabled and not find(lambda b: b.criteria.type == "unverified", guild_data.binds))
-        )
-    ):
-        verified_role_name = guild_data.verifiedRoleName
-        unverified_role_name = guild_data.unverifiedRoleName
-        verified_role_enabled = guild_data.verifiedRoleEnabled
-        unverified_role_enabled = guild_data.unverifiedRoleEnabled
-
-        if verified_role_name or unverified_role_name:
-            for role in guild_roles.values():
-                print(verified_role_enabled, role.name, verified_role_name, role.name == verified_role_name)
-                if verified_role_enabled and role.name == verified_role_name:
-                    guild_data.binds.append(
-                        GuildBind(
-                            criteria=BindCriteria(type="verified"),
-                            roles=[str(role.id)],
-                        )
-                    )
-                elif unverified_role_enabled and role.name == unverified_role_name:
-                    guild_data.binds.append(
-                        GuildBind(
-                            criteria=BindCriteria(type="unverified"),
-                            roles=[str(role.id)],
-                        )
-                    )
+    await check_for_verified_roles(guild_id, guild_roles=guild_roles, merge_to=guild_data.binds)
 
     return list(
         filter(

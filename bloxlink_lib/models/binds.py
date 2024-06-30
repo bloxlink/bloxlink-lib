@@ -553,7 +553,7 @@ async def get_binds(
     guild_id = str(guild_id)
 
     # Migrate any old bindings before we get the current binds.
-    await migrate_old_binds(guild_id)
+    # await migrate_old_binds(guild_id)
 
     guild_data = await database.fetch_guild_data(guild_id, "binds")
 

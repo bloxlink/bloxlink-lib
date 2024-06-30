@@ -557,7 +557,8 @@ async def get_binds(
 
     guild_data = await database.fetch_guild_data(guild_id, "binds")
 
-    await check_for_verified_roles(guild_id, guild_roles=guild_roles, merge_to=guild_data.binds)
+    if guild_roles:
+        await check_for_verified_roles(guild_id, guild_roles=guild_roles, merge_to=guild_data.binds)
 
     return list(
         filter(

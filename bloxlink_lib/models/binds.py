@@ -514,7 +514,7 @@ async def check_for_verified_roles(guild_id: int | str, guild_roles: dict[int, R
         if verified_role:
             new_bind = GuildBind(
                 criteria=BindCriteria(type="verified"),
-                roles=[str(verified_role)],
+                roles=[str(verified_role.id)],
             )
             new_verified_binds.append(new_bind)
 
@@ -524,7 +524,7 @@ async def check_for_verified_roles(guild_id: int | str, guild_roles: dict[int, R
         if unverified_role:
             new_bind = GuildBind(
                 criteria=BindCriteria(type="unverified"),
-                roles=[str(unverified_role)],
+                roles=[str(unverified_role.id)],
             )
             new_verified_binds.append(new_bind)
 

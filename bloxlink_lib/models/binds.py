@@ -698,6 +698,8 @@ async def parse_template(
                 nick_value = member.username
             case "discord-nick":
                 nick_value = member.nickname if member.nickname else member.username
+            case "discord-global-name":
+                nick_value = member.global_name if member.global_name else member.username
             case "discord-mention":
                 nick_value = member.mention
             case "discord-id":

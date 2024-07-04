@@ -109,7 +109,7 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
 
     description: str | None = None
     profile_link: str = Field(alias="profileLink", default=None)
-    display_name: str = Field(alias="displayName", default=None)
+    display_name: str | None = Field(alias="displayName", default=None)
     created: str = None
     badges: list | None = None
     short_age_string: str = None

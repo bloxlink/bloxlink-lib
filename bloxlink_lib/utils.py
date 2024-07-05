@@ -74,12 +74,12 @@ def parse_into[T: BaseModel | dict](data: dict, model: Type[T]) -> T:
 
     return model(**data)
 
-def get_environment() -> Literal["staging", "production"]:
+def get_environment() -> Literal["STAGING", "PRODUCTION"]:
     """Get whether this is staging or production."""
 
     bot_release = CONFIG.BOT_RELEASE
 
-    return "staging" if bot_release in ("LOCAL", "CANARY") else "production"
+    return "STAGING" if bot_release in ("LOCAL", "CANARY") else "PRODUCTION"
 
 def init_sentry():
     """Initialize Sentry."""

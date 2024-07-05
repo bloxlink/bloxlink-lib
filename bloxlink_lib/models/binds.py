@@ -303,8 +303,8 @@ class GuildBind(BaseModel):
                             ineligible_roles,
                         )
 
-                    # TODO: Why do we fail positive here if our checks don't match up?
-                    return True, additional_roles, missing_roles, ineligible_roles
+
+                    return False, additional_roles, missing_roles, ineligible_roles
 
                 # Not in the group.
                 # Return whether the bind is for guests only

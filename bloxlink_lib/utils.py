@@ -100,7 +100,7 @@ def init_sentry():
 
     if CONFIG.SENTRY_DSN:
         sentry_sdk.init(
-            environment=get_environment(),
+            environment=get_environment().name.lower(),
             dsn=CONFIG.SENTRY_DSN,
             integrations=[AioHttpIntegration()],
             enable_tracing=True,

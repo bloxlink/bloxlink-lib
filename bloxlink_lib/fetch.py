@@ -103,11 +103,11 @@ async def fetch[T](
                 if response.status == StatusCodes.SERVICE_UNAVAILABLE:
                     raise RobloxDown()
 
-                if response.status == StatusCodes.NOT_FOUND:
-                    logging.error(f"{url} not found: {await response.text()}")
+                if response.status in (StatusCodes.BAD_REQUEST, StatusCodes.NOT_FOUND): # Roblox APIs sometimes use 400 as not found
+                    logging.debug(f"{url} not found: {await response.text()}")
                     raise RobloxNotFound()
 
-                logging.error(f"{url} failed with status {response.status} and body {await response.text()}")
+                logging.debug(f"{url} failed with status {response.status} and body {await response.text()}")
                 raise RobloxAPIError()
 
             if parse_as:

@@ -291,6 +291,7 @@ class GuildBind(BaseModel):
                     if (self.criteria.group.min and self.criteria.group.max) and (
                         self.criteria.group.min <= group.user_roleset.rank <= self.criteria.group.max
                     ):
+                        print(1, self.criteria.group.min, group.user_roleset.rank, self.criteria.group.max,self.criteria.group.min <= group.user_roleset.rank <= self.criteria.group.max)
                         return True, additional_roles, missing_roles, ineligible_roles
 
                     if self.criteria.group.roleset:
@@ -303,6 +304,7 @@ class GuildBind(BaseModel):
                             ineligible_roles,
                         )
 
+                    print("returning false")
 
                     return False, additional_roles, missing_roles, ineligible_roles
 

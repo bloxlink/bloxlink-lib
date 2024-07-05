@@ -15,7 +15,7 @@ from .groups import GroupRoleset
 from .base import Snowflake, BaseModel
 
 if TYPE_CHECKING:
-    from .assets import RobloxAsset
+    from .base_assets import RobloxBaseAsset
 
 VALID_INFO_SERVER_SCOPES: list[Literal["groups", "badges"]] = ["groups", "badges"]
 INVENTORY_API = "https://inventory.roblox.com"
@@ -178,11 +178,11 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
                 if avatar_response.status == StatusCodes.OK:
                     self.avatar_url = avatar_url.get("data", [{}])[0].get("imageUrl") or None
 
-    async def owns_asset(self, asset: RobloxAsset) -> bool:
+    async def owns_asset(self, asset: RobloxBaseAsset) -> bool:
         """Check if the user owns a specific asset.
 
         Args:
-            asset (RobloxAsset): The asset to check for.
+            asset (RobloxBaseAsset): The asset to check for.
 
         Returns:
             bool: If the user owns the asset or not.

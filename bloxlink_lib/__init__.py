@@ -6,7 +6,7 @@ from .models.guilds import *
 from .models.groups import *
 from .models.badges import *
 from .models.gamepasses import *
-from .models.catalogAsset import *
+from .models.assets import *
 from .models.binds import *
 from .exceptions import *
 from .utils import *

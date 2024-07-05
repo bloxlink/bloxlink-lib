@@ -1,6 +1,6 @@
 from ..fetch import fetch_typed
 from .base import BaseModel, get_entity
-from .assets import RobloxAsset
+from .base_assets import RobloxBaseAsset
 
 
 
@@ -15,7 +15,7 @@ class RobloxBadgeResponse(BaseModel):
     description: str | None
 
 
-class RobloxBadge(RobloxAsset):
+class RobloxBadge(RobloxBaseAsset):
     """Representation of a Badge on Roblox."""
 
     type: str = "badge"

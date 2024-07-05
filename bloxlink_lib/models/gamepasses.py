@@ -1,7 +1,7 @@
 from pydantic import Field
 from ..fetch import fetch_typed
 from .base import BaseModel, get_entity
-from .assets import RobloxAsset
+from .base_assets import RobloxBaseAsset
 
 
 
@@ -16,7 +16,7 @@ class RobloxGamepassResponse(BaseModel):
     description: str = Field(alias="Description")
 
 
-class RobloxGamepass(RobloxAsset):
+class RobloxGamepass(RobloxBaseAsset):
     """Representation of a Gamepass on Roblox."""
 
     type: str = "gamepass"

@@ -166,7 +166,7 @@ class SnowflakeSet(CoerciveSet[int]):
         return f"{self.__class__.__name__}({super().__repr__()})"
 
 def create_entity(
-    category: Literal["catalogAsset", "badge", "gamepass", "group", "verified", "unverified"] | str, entity_id: int
+    category: Literal["asset", "badge", "gamepass", "group", "verified", "unverified"] | str, entity_id: int
 ) -> RobloxEntity | None:
     """Create a respective Roblox entity from a category and ID.
 
@@ -179,10 +179,10 @@ def create_entity(
     """
 
     match category:
-        case "catalogAsset":
-            from bloxlink_lib.models import catalogAsset # pylint: disable=import-outside-toplevel
+        case "asset":
+            from bloxlink_lib.models import assets # pylint: disable=import-outside-toplevel
 
-            return catalogAsset.RobloxCatalogAsset(id=entity_id)
+            return assets.RobloxAsset(id=entity_id)
 
         case "badge":
             from bloxlink_lib.models import badges # pylint: disable=import-outside-toplevel
@@ -206,12 +206,12 @@ def create_entity(
 
 
 async def get_entity(
-    category: Literal["catalogAsset", "badge", "gamepass", "group"] | str, entity_id: int
+    category: Literal["asset", "badge", "gamepass", "group"] | str, entity_id: int
 ) -> RobloxEntity:
     """Get and sync a Roblox entity.
 
     Args:
-        category (str): Type of Roblox entity to get. Subset from catalogAsset, badge, group, gamepass.
+        category (str): Type of Roblox entity to get. Subset from asset, badge, group, gamepass.
         entity_id (int): ID of the entity on Roblox.
 
     Returns:

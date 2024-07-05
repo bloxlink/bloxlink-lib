@@ -14,14 +14,14 @@ from ..utils import find
 if TYPE_CHECKING:
     from hikari import Member
 
-    from .assets import RobloxAsset
+    from .base_assets import RobloxBaseAsset
     from .groups import RobloxGroup
     from .guilds import RoleSerializable
     from .users import MemberSerializable, RobloxUser
 
 POP_OLD_BINDS: bool = False
 
-VALID_BIND_TYPES = Literal["group", "catalogAsset", "badge", "gamepass", "verified", "unverified"]
+VALID_BIND_TYPES = Literal["group", "asset", "badge", "gamepass", "verified", "unverified"]
 ARBITRARY_GROUP_TEMPLATE = re.compile(r"\{group-rank-(.*?)\}")
 NICKNAME_TEMPLATE_REGEX = re.compile(r"\{(.*?)\}")
 
@@ -110,7 +110,7 @@ class GuildBind(BaseModel):
     # Excluded fields. These are used for the bind algorithms.
     pending_new_roles: Annotated[list[str], Field(exclude=True, default_factory=list)]
     entity: RobloxEntity | None = Field(exclude=True, default=None)
-    type: Literal["group", "catalogAsset", "badge", "gamepass", "verified", "unverified"] | None = Field(
+    type: Literal["group", "asset", "badge", "gamepass", "verified", "unverified"] | None = Field(
         exclude=True, default=None
     )
     subtype: Literal["role_bind", "full_group"] | None = Field(exclude=True, default=None)
@@ -152,7 +152,7 @@ class GuildBind(BaseModel):
                 if bind_type == "gamePasses":
                     bind_type = "gamepass"
                 elif bind_type == "assets":
-                    bind_type = "catalogAsset"
+                    bind_type = "asset"
                 else:
                     bind_type = bind_type[:-1]
 
@@ -310,8 +310,8 @@ class GuildBind(BaseModel):
                 # Return whether the bind is for guests only
                 return self.criteria.group.guest, additional_roles, missing_roles, ineligible_roles
 
-            case "badge" | "gamepass" | "catalogAsset":
-                asset: RobloxAsset = self.entity
+            case "badge" | "gamepass" | "asset":
+                asset: RobloxBaseAsset = self.entity
 
                 return await roblox_user.owns_asset(asset), additional_roles, missing_roles, ineligible_roles
 

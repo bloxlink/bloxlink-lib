@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, Awaitable, Type
+from typing import Callable, Iterable, Awaitable, Type, Literal
 import logging
 import asyncio
 from os import getenv
@@ -74,11 +74,19 @@ def parse_into[T: BaseModel | dict](data: dict, model: Type[T]) -> T:
 
     return model(**data)
 
+def get_environment() -> Literal["staging", "production"]:
+    """Get whether this is staging or production."""
+
+    bot_release = CONFIG.BOT_RELEASE
+
+    return "staging" if bot_release in ("LOCAL", "CANARY") else "production"
+
 def init_sentry():
     """Initialize Sentry."""
 
     if CONFIG.SENTRY_DSN:
         sentry_sdk.init(
+            environment=get_environment(),
             dsn=CONFIG.SENTRY_DSN,
             integrations=[AioHttpIntegration()],
             enable_tracing=True,

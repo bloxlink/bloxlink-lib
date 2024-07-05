@@ -9,6 +9,7 @@ class Config(BaseModel):
     """Type definition for config values."""
 
     DISCORD_TOKEN: str = None
+    BOT_RELEASE: str = "LOCAL"
     #############################
     # these are optional because we can choose to use MONGO_URL or MONGO_HOST/MONGO_USER/MONGO_PASSWORD/MONGO_PORT
     MONGO_URL: str = None

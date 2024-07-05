@@ -1,11 +1,20 @@
-from typing import Callable, Iterable, Awaitable, Type, Literal
+from typing import Callable, Iterable, Awaitable, Type
 import logging
 import asyncio
+import enum
 from os import getenv
 import sentry_sdk
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from .models.base import BaseModel
 from .config import CONFIG
+
+
+class Environment(enum.Enum):
+    """Environment types."""
+
+    LOCAL = 1
+    STAGING = 2
+    PRODUCTION = 3
 
 
 def find[T](predicate: Callable, iterable: Iterable[T]) -> T | None:
@@ -74,12 +83,17 @@ def parse_into[T: BaseModel | dict](data: dict, model: Type[T]) -> T:
 
     return model(**data)
 
-def get_environment() -> Literal["STAGING", "PRODUCTION"]:
-    """Get whether this is staging or production."""
+def get_environment() -> Environment:
+    """Get whether this is local, staging or production."""
 
     bot_release = CONFIG.BOT_RELEASE
 
-    return "STAGING" if bot_release in ("LOCAL", "CANARY") else "PRODUCTION"
+    if bot_release == "LOCAL":
+        return Environment.LOCAL
+    if bot_release == "CANARY":
+        return Environment.STAGING
+
+    return Environment.PRODUCTION
 
 def init_sentry():
     """Initialize Sentry."""

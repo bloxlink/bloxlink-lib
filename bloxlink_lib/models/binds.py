@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, Annotate
 
 from pydantic import Field, ValidationError
 
-import bloxlink_lib.database as database
+from bloxlink_lib import database
 
 from ..models.base import BaseModel, CoerciveSet, RobloxEntity, SnowflakeSet, create_entity
 from ..utils import find
@@ -19,7 +19,9 @@ if TYPE_CHECKING:
     from .guilds import RoleSerializable
     from .users import MemberSerializable, RobloxUser
 
-POP_OLD_BINDS: bool = False
+
+POP_OLD_BINDS: bool = False # remove old binds from the database
+SAVE_NEW_BINDS: bool = False # save new binds to the database
 
 VALID_BIND_TYPES = Literal["group", "asset", "badge", "gamepass", "verified", "unverified"]
 ARBITRARY_GROUP_TEMPLATE = re.compile(r"\{group-rank-(.*?)\}")
@@ -551,11 +553,9 @@ async def get_binds(
     """
 
     guild_id = str(guild_id)
-
-    # Migrate any old bindings before we get the current binds.
-    # await migrate_old_binds(guild_id)
-
     guild_data = await database.fetch_guild_data(guild_id, "binds")
+
+    guild_data.binds = await migrate_old_binds_to_v4(guild_id, guild_data.binds)
 
     if guild_roles:
         await check_for_verified_roles(guild_id, guild_roles=guild_roles, merge_to=guild_data.binds)
@@ -565,9 +565,9 @@ async def get_binds(
             lambda b: b.type == category and ((bind_id and b.criteria.id == bind_id) or not bind_id),
             guild_data.binds,
         )
-        if category
-        else guild_data.binds
+        if category else guild_data.binds
     )
+
 
 
 async def get_nickname_template(guild_id, potential_binds: list[GuildBind], roblox_user: RobloxUser | None = None) -> tuple[str, GuildBind | None]:
@@ -736,70 +736,67 @@ async def parse_template(
     return template
 
 
-async def migrate_old_binds(guild_id: str):
-    """Migrates binds from the V3 structure to V4 and saves them to the database.
+async def migrate_old_binds_to_v4(guild_id: str, binds: list[GuildBind]) -> list[GuildBind]:
+    """Migrates binds from the V3 structure to V4 and optionally saves them to the database.
 
     If POP_OLD_BINDS is true, the old binds will be removed from the database.
     """
+
     guild_data = await database.fetch_guild_data(
         guild_id,
-        "binds",
         "roleBinds",
         "groupIDs",
-        "converted_binds",
+        "migratedBindsToV4",
     )
+    new_migrated_binds = []
+    old_group_id_binds = guild_data.groupIDs or {}
+    old_role_binds = guild_data.roleBinds or {}
 
-    # Remove old binds and dip, but only if we've migrated already.
-    if POP_OLD_BINDS and guild_data.converted_binds:
-        await database.update_guild_data(guild_id, groupIDs=None, roleBinds=None, converted_binds=None)
-        return
+    # remove old binds and dip, but only if we've migrated already
+    if POP_OLD_BINDS and guild_data.migratedBindsToV4:
+        await database.update_guild_data(guild_id, groupIDs=None, roleBinds=None, migratedBindsToV4=None)
+        return binds
 
-    # We've already migrated, don't try again.
-    if guild_data.converted_binds:
-        return
+    # nothing to do, cancel
+    if guild_data.migratedBindsToV4 or not (old_group_id_binds or old_role_binds):
+        return binds
 
-    migrated_binds = []
-    group_id_binds = guild_data.groupIDs or {}
-    rolebinds = guild_data.roleBinds or {}
+    for group_id, bind_data in old_group_id_binds.items():
+        new_migrated_binds.append(GuildBind.from_V3("groupIDs", group_id, bind_data))
 
-    # Stop early if there's nothing to do.
-    if not group_id_binds and not rolebinds:
-        return
-
-    for group_id, bind_data in group_id_binds.items():
-        migrated_binds.append(GuildBind.from_V3("groupIDs", group_id, bind_data))
-
-    for bind_type, bindings in rolebinds.items():
+    for bind_type, bindings in old_role_binds.items():
         match bind_type:
             case "assets" | "badges" | "gamePasses":
                 # Assets, badges, gamePasses
                 for entity_id, bind_data in bindings.items():
-                    migrated_binds.append(GuildBind.from_V3(bind_type, entity_id, bind_data))
+                    new_migrated_binds.append(GuildBind.from_V3(bind_type, entity_id, bind_data))
 
                 continue
 
             case "groups":
                 # Single rank bindings + everyone/all + negative binds.
-                if bindings.get("binds"):
-                    for rank_id, criteria_data in bind_data["binds"].items():
-                        migrated_binds.append(
+                for group_id, group_bind_data in bindings.items():
+                    # Rolesets
+                    for rank_id, criteria_data in group_bind_data.get("binds", {}).items():
+                        new_migrated_binds.append(
                             GuildBind.from_V3_group_rolebind("roleset", group_id, {rank_id: criteria_data})
                         )
 
-                # Ranges
-                if bindings.get("ranges"):
+                    # Ranges
                     for criteria_data in bind_data["ranges"]:
-                        migrated_binds.append(
+                        new_migrated_binds.append(
                             GuildBind.from_V3_group_rolebind("range", group_id, criteria_data)
                         )
 
-    if migrated_binds:
-        # Removes duplicates
-        # TODO: Check efficiency, GuildBind isn't hashable so we can't use sets.
-        guild_data.binds.extend(b for b in migrated_binds if b not in guild_data.binds)
+    if new_migrated_binds:
+        # Remove duplicates
+        binds.extend(b for b in new_migrated_binds if b not in binds)
 
-        await database.update_guild_data(
-            guild_id,
-            binds=[b.model_dump(exclude_unset=True, by_alias=True) for b in guild_data.binds],
-            converted_binds=True,
-        )
+        if SAVE_NEW_BINDS:
+            await database.update_guild_data(
+                guild_id,
+                binds=[b.model_dump(exclude_unset=True, by_alias=True) for b in binds],
+                migratedBindsToV4=True,
+            )
+
+    return binds

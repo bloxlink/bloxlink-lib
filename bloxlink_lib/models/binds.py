@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 import math
-from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, Annotated
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, Annotated, Self, Type
 
 from pydantic import Field, ValidationError
 
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
     from .base_assets import RobloxBaseAsset
     from .groups import RobloxGroup
-    from .guilds import RoleSerializable
+    from .guilds import RoleSerializable, GuildData
     from .users import MemberSerializable, RobloxUser
 
 
@@ -53,11 +53,11 @@ class GroupBindData(BaseModel):
     """Represents the data required for a group bind."""
 
     # conditions
-    everyone: bool = False
-    guest: bool = False
-    min: int = None
-    max: int = None
-    roleset: int = None
+    everyone: bool | None = False
+    guest: bool | None = False
+    min: int | None = None
+    max: int | None = None
+    roleset: int | None = None
     ####################
 
     dynamicRoles: bool = False  # full group bind
@@ -125,97 +125,83 @@ class GuildBind(BaseModel):
         if self.type == "group":
             self.subtype = "full_group" if self.criteria.group.dynamicRoles else "role_bind"
 
-    @classmethod
-    def from_V3(
-        cls,
-        bind_type: Literal["groupIDs", "assets", "badges", "gamePasses"],
-        bind_id: str | int,
-        bind_data: dict,
-    ):
-        converted_data = {}
-
-        match bind_type:
-            case "groupIDs":
-                # Whole group binds
-                bind_criteria = {
-                    "type": "group",
-                    "id": bind_id,
-                    "group": {"dynamicRoles": True},
-                }
-                converted_data = {
-                    "nickname": bind_data.get("nickname") or None,
-                    "criteria": bind_criteria,
-                    "remove_roles": bind_data.get("removeRoles") or [],
-                    "data": {"displayName": bind_data.get("groupName")},
-                }
-
-            case "assets" | "badges" | "gamePasses":
-                # All non group rolebinds
-                if bind_type == "gamePasses":
-                    bind_type = "gamepass"
-                elif bind_type == "assets":
-                    bind_type = "asset"
-                else:
-                    bind_type = bind_type[:-1]
-
-                converted_data = {
-                    "nickname": bind_data.get("nickname") or None,
-                    "roles": bind_data.get("roles") or [],
-                    "remove_roles": bind_data.get("removeRoles") or [],
-                    "criteria": {
-                        "type": bind_type,
-                        "id": bind_id,
-                    },
-                    "data": {"displayName": bind_data.get("displayName")},
-                }
-
-        return cls(**converted_data)
 
     @classmethod
-    def from_V3_group_rolebind(
-        cls, bind_type: Literal["roleset", "range"], bind_id: int | str, bind_data: dict
-    ):
-        converted_data = {}
+    def from_V3(cls: Type[Self], guild_data: GuildData | dict):
+        """Convert V3 binds to V4 binds."""
 
-        match bind_type:
-            case "roleset":
-                roleset_id, roleset_data = next(iter(bind_data.items()))
-                group_criteria_data = {}
+        whole_group_binds = getattr(guild_data, "groupIDs", guild_data.get("groupIDs", {}))
+        role_binds = getattr(guild_data, "roleBinds", guild_data.get("roleBinds", {}))
 
-                if roleset_id == "all":
-                    group_criteria_data["everyone"] = True
-                elif roleset_id == "0":
-                    group_criteria_data["guest"] = True
-                else:
-                    group_criteria_data["roleset"] = int(roleset_id)
+        converted_binds: list[Self] = []
 
-                converted_data = {
-                    "nickname": roleset_data.get("nickname"),
-                    "roles": roleset_data.get("roles") or [],
-                    "remove_roles": roleset_data.get("removeRoles") or [],
-                    "criteria": {
-                        "type": "group",
-                        "id": bind_id,
-                        "group": group_criteria_data,
-                    },
-                }
+        for group_id, group_data in whole_group_binds.items():
+            new_bind = cls(
+                nickname=group_data.get("nickname") or None,
+                criteria=BindCriteria(type="group", id=int(group_id), group={"dynamicRoles": True}),
+                remove_roles=group_data.get("removeRoles") or [],
+                subtype="full_group",
+                data=BindData(displayName=group_data.get("groupName")),
+            )
 
-            case "range":
-                converted_data = {
-                    "nickname": bind_data.get("nickname"),
-                    "roles": bind_data.get("roles") or [],
-                    "remove_roles": bind_data.get("removeRoles") or [],
-                    "criteria": {
-                        "type": "group",
-                        "id": bind_id,
-                        "group": {
-                            "min": bind_data.get("low"),
-                            "max": bind_data.get("high"),
-                        },
-                    },
-                }
+            converted_binds.append(new_bind)
 
-        return cls(**converted_data)
+        for bind_type, binds in role_binds.items():
+            match bind_type:
+                case "groups":
+                    for group_id, group_bind_data in binds.items():
+                        for rank_id, criteria_data in group_bind_data.get("binds", {}).items():
+                            new_bind = cls(
+                                nickname=criteria_data.get("nickname") or None,
+                                criteria=BindCriteria(
+                                    type="group",
+                                    id=int(group_id),
+                                    group=GroupBindData(
+                                        everyone=rank_id == "all",
+                                        guest=rank_id == "0",
+                                        roleset=int(rank_id) if rank_id not in ("all", "0") else None,
+                                    )
+                                ),
+                                remove_roles=criteria_data.get("removeRoles") or [],
+                                roles=criteria_data.get("roles") or [],
+                                data=BindData(displayName=group_bind_data.get("groupName")),
+                            )
+
+                            converted_binds.append(new_bind)
+
+                        for criteria_data in group_bind_data.get("ranges", []):
+                            new_bind = cls(
+                                nickname=group_bind_data.get("nickname") or None,
+                                criteria=BindCriteria(
+                                    type="group",
+                                    id=int(group_id),
+                                    group={"min": criteria_data.get("low"), "max": criteria_data.get("high")},
+                                ),
+                                remove_roles=group_bind_data.get("removeRoles") or [],
+                                data=BindData(displayName=group_bind_data.get("groupName")),
+                            )
+
+                            converted_binds.append(new_bind)
+
+                case "assets" | "badges" | "gamePasses":
+                    for entity_id, bind_data in binds.items():
+                        if bind_type == "gamePasses":
+                            bind_type = "gamepass"
+                        else:
+                            bind_type = bind_type[:-1]
+
+                        new_bind = cls(
+                            nickname=bind_data.get("nickname") or None,
+                            roles=bind_data.get("roles") or [],
+                            remove_roles=bind_data.get("removeRoles") or [],
+                            criteria=BindCriteria(type=bind_type, id=int(entity_id)),
+                            data=BindData(displayName=bind_data.get("displayName")),
+                        )
+
+                        converted_binds.append(new_bind)
+
+
+        return converted_binds
 
     def calculate_highest_role(self, guild_roles: dict[str, RoleSerializable]) -> None:
         """Calculate the highest role in the guild for this bind."""
@@ -433,7 +419,18 @@ class GuildBind(BaseModel):
         )
 
     def __eq__(self, other: GuildBind) -> bool:
-        return self.criteria == other.criteria
+        """
+        Check if two GuildBind objects are equal.
+        We define this ourselves since there are other fields that are not included in the comparison.
+        """
+
+        return (
+            isinstance(other, GuildBind)
+            and self.criteria == getattr(other, "criteria", None)
+            and self.roles == getattr(other, "roles", None)
+            and self.remove_roles == getattr(other, "remove_roles", None)
+            and self.nickname == getattr(other, "nickname", None)
+        )
 
 
 async def build_binds_desc(
@@ -748,45 +745,11 @@ async def migrate_old_binds_to_v4(guild_id: str, binds: list[GuildBind]) -> list
         "groupIDs",
         "migratedBindsToV4",
     )
-    new_migrated_binds = []
-    old_group_id_binds = guild_data.groupIDs or {}
-    old_role_binds = guild_data.roleBinds or {}
 
-    # remove old binds and dip, but only if we've migrated already
-    if POP_OLD_BINDS and guild_data.migratedBindsToV4:
-        await database.update_guild_data(guild_id, groupIDs=None, roleBinds=None, migratedBindsToV4=None)
-        return binds
+    new_migrated_binds: list[GuildBind] = []
 
-    # nothing to do, cancel
-    if guild_data.migratedBindsToV4 or not (old_group_id_binds or old_role_binds):
-        return binds
-
-    for group_id, bind_data in old_group_id_binds.items():
-        new_migrated_binds.append(GuildBind.from_V3("groupIDs", group_id, bind_data))
-
-    for bind_type, bindings in old_role_binds.items():
-        match bind_type:
-            case "assets" | "badges" | "gamePasses":
-                # Assets, badges, gamePasses
-                for entity_id, bind_data in bindings.items():
-                    new_migrated_binds.append(GuildBind.from_V3(bind_type, entity_id, bind_data))
-
-                continue
-
-            case "groups":
-                # Single rank bindings + everyone/all + negative binds.
-                for group_id, group_bind_data in bindings.items():
-                    # Rolesets
-                    for rank_id, criteria_data in group_bind_data.get("binds", {}).items():
-                        new_migrated_binds.append(
-                            GuildBind.from_V3_group_rolebind("roleset", group_id, {rank_id: criteria_data})
-                        )
-
-                    # Ranges
-                    for criteria_data in bind_data["ranges"]:
-                        new_migrated_binds.append(
-                            GuildBind.from_V3_group_rolebind("range", group_id, criteria_data)
-                        )
+    if not guild_data.migratedBindsToV4 and (guild_data.roleBinds or guild_data.groupIDs):
+        new_migrated_binds = GuildBind.from_V3(guild_data)
 
     if new_migrated_binds:
         # Remove duplicates
@@ -798,5 +761,10 @@ async def migrate_old_binds_to_v4(guild_id: str, binds: list[GuildBind]) -> list
                 binds=[b.model_dump(exclude_unset=True, by_alias=True) for b in binds],
                 migratedBindsToV4=True,
             )
+
+    # if POP_OLD_BINDS, remove v3 binds from the database
+    if POP_OLD_BINDS and guild_data.migratedBindsToV4:
+        await database.update_guild_data(guild_id, groupIDs=None, roleBinds=None, migratedBindsToV4=None)
+        return binds
 
     return binds

@@ -3,7 +3,7 @@ version: "3.5"
 services:
   redis:
     image: bitnami/redis:7.0.15
-    container_name: redis
+    container_name: redis_bloxlink_lib
     restart: unless-stopped
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -15,7 +15,7 @@ services:
 
   mongodb:
     image: mongo:5.0.27
-    container_name: mongodb
+    container_name: mongodb_bloxlink_lib
     restart: unless-stopped
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}

@@ -16,7 +16,7 @@ async def wait_for_redis():
     await database.wait_for_redis()
 
 
-class TestComponentTests:
+class TestIntegrationTests:
     """Tests for converting V3 whole group binds to V4."""
 
 

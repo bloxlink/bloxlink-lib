@@ -31,8 +31,8 @@ jobs:
 
       - name: Test with pytest
         run: |
-          coverage run -m pytest  -v -s
+          poetry run coverage run -m pytest  -v -s
 
       - name: Generate Coverage Report
         run: |
-          coverage report -m
+          poetry run coverage report -m

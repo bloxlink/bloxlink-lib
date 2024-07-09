@@ -86,7 +86,7 @@ class GuildData(BaseModel):
     # Old bind fields.
     roleBinds: dict = None
     groupIDs: dict = None
-    converted_binds: bool = False
+    migratedBindsToV4: bool = False
 
     def model_post_init(self, __context):
         # merge verified roles into binds

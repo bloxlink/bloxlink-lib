@@ -33,9 +33,15 @@ class Config(BaseModel):
     LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     SHARD_COUNT: int = 1
     SHARDS_PER_NODE: int = 1
+    #############################
+    TEST_MODE: bool = False # if true, skip database and redis connections
 
     def model_post_init(self, __context):
         # easier to validate with python expressions instead of attrs validators
+
+        if self.TEST_MODE:
+            return
+
         if self.REDIS_URL is None and (
             self.REDIS_HOST is None or self.REDIS_PORT is None
         ):

@@ -87,6 +87,17 @@ async def _heartbeat_loop():
 
         await asyncio.sleep(5)
 
+async def wait_for_redis():
+    while True:
+        try:
+            await asyncio.wait_for(redis.ping(), timeout=10)
+        except RedisConnectionError:
+            pass
+        else:
+            break
+
+        await asyncio.sleep(1)
+
 async def fetch_item[T](domain: str, constructor: Type[T], item_id: str, *aspects) -> T:
     """
     Fetch an item from local cache, then redis, then database.

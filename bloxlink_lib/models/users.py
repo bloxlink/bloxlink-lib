@@ -40,7 +40,7 @@ class UserData(BaseModel):
     """
 
     id: int
-    robloxID: str = None
+    robloxID: str | None = None
     robloxAccounts: dict = Field(default_factory=lambda: {"accounts": [], "guilds": {}, "confirms": {}})
 
 

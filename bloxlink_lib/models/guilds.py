@@ -39,6 +39,8 @@ class GroupLock(BaseModel):
     unverifiedAction: Literal["kick", "dm"] = "kick"
 
 
+type MagicRoleTypes = Literal["Bloxlink Admin", "Bloxlink Updater", "Bloxlink Bypass"]
+
 class GuildData(BaseModel):
     """Representation of the stored settings for a guild"""
 
@@ -80,6 +82,8 @@ class GuildData(BaseModel):
 
     nicknameTemplate: str = "{smart-name}"
     unverifiedNickname: str = ""
+
+    magicRoles: dict[str, list[MagicRoleTypes]] = None
 
     premium: dict = Field(default_factory=dict) # deprecated
 

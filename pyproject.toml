@@ -11,6 +11,7 @@ packages = [{include = "bloxlink_lib"}]
 
 [tool.poetry.dependencies]
 python = "<3.13, >=3.12"
+attrs = "^23.2.0"
 hikari = "<3.0.0, >=2.0.0.dev118"
 motor = "^3.3.2"
 redis = "^5.0.1"

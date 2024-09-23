@@ -3,7 +3,7 @@ name: Run Tests via Pytest
 on: [pull_request]
 
 jobs:
-  build:
+  build_and_run_tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:

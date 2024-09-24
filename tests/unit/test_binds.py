@@ -1,17 +1,28 @@
+import pytest
 from bloxlink_lib.models import binds
-from .fixtures.binds import *
+from .fixtures.members import member_bob
+from .fixtures.roblox_users import test_roblox_user
+from .fixtures.guilds import test_guild
 
 
-class TestGroupBinds:
-    """Tests related to group binds."""
+class TestNicknames:
+    """Tests related to bind nicknames."""
 
-    def test_whole_group_success_1(self, v3_group_conversion_1):  # pylint: disable=W0621
-        """Test that the converted binds have the correct length."""
+    @pytest.mark.parametrize("test_input,expected", [
+        ("{roblox-name}", "bob"),
+        ("{roblox-id}", "1"),
+    ])
+    async def test_nicknames_valid_roblox_user(self, test_input, expected, member_bob, test_roblox_user):
+        """."""
 
-        v3_binds = v3_group_conversion_1[0]
-        correct_v4_binds = v3_group_conversion_1[1]
+        nickname = await binds.parse_template(
+            guild_id=test_guild.id,
+            guild_name=test_guild.name,
+            member=member_bob,
+            template="{roblox-name}",
+            potential_binds=[],
+            roblox_user=None,
+            max_length=True
+        )
 
-        converted_binds = binds.GuildBind.from_V3(v3_binds)
-
-        assert len(converted_binds) == len(
-            correct_v4_binds), f"Converted binds should have {len(correct_v4_binds)} binds."
+        assert nickname == "bob"

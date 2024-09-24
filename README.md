@@ -49,5 +49,5 @@ print([await b.satisfies_for(roblox_user=roblox_user, ...) for b in guild_binds]
 ## Run tests locally
 
 ```bash
-$ poetry run coverage run -m pytest  -v -s
+$ poetry run pytest -v -s
 ```

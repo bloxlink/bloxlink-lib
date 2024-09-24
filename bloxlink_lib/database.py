@@ -143,6 +143,7 @@ async def update_item(domain: str, item_id: str, **aspects) -> None:
     """
     Update an item's aspects in local cache, redis, and database.
     """
+
     unset_aspects = {}
     set_aspects = {}
 
@@ -152,6 +153,12 @@ async def update_item(domain: str, item_id: str, **aspects) -> None:
         else:
             set_aspects[key] = val
 
+    # check if the model is valid
+    if domain == "users":
+        users.UserData(id=item_id, **set_aspects)
+    elif domain == "guilds":
+        guilds.GuildData(id=item_id, **set_aspects)
+
     # Update redis cache
     redis_set_aspects = {}
     redis_unset_aspects = {}
@@ -159,7 +166,7 @@ async def update_item(domain: str, item_id: str, **aspects) -> None:
     for aspect_name, aspect_value in dict(aspects).items():
         if aspect_value is None:
             redis_unset_aspects[aspect_name] = aspect_value
-        elif isinstance(aspect_value, (dict, list, bool)):
+        elif isinstance(aspect_value, (dict, list, bool)): # TODO
             pass
         else:
             redis_set_aspects[aspect_name] = aspect_value

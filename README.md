@@ -45,3 +45,9 @@ print([await b.satisfies_for(roblox_user=roblox_user, ...) for b in guild_binds]
       <img src="https://www.blox.link/bloxlink/bloxlink-2024.png" />
    </a>
 </p>
+
+## Run tests locally
+
+```bash
+$ poetry run coverage run -m pytest  -v -s
+```

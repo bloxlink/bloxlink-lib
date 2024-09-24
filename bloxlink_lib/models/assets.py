@@ -4,7 +4,6 @@ from .base import BaseModel, get_entity
 from .base_assets import RobloxBaseAsset
 
 
-
 ASSET_API = "https://economy.roblox.com/v2/assets"
 
 

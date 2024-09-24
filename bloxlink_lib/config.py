@@ -5,6 +5,7 @@ from .models.base import BaseModel
 
 load_dotenv(f"{getcwd()}/.env")
 
+
 class Config(BaseModel):
     """Type definition for config values."""
 
@@ -34,7 +35,7 @@ class Config(BaseModel):
     SHARD_COUNT: int = 1
     SHARDS_PER_NODE: int = 1
     #############################
-    TEST_MODE: bool = False # if true, skip database and redis connections
+    TEST_MODE: bool = False  # if true, skip database and redis connections
 
     def model_post_init(self, __context):
         # easier to validate with python expressions instead of attrs validators
@@ -45,20 +46,24 @@ class Config(BaseModel):
         if self.REDIS_URL is None and (
             self.REDIS_HOST is None or self.REDIS_PORT is None
         ):
-            raise ValueError("REDIS_URL or REDIS_HOST/REDIS_PORT/REDIS_PASSWORD must be set")
+            raise ValueError(
+                "REDIS_URL or REDIS_HOST/REDIS_PORT/REDIS_PASSWORD must be set")
 
         if all([self.REDIS_HOST, self.REDIS_PORT, self.REDIS_PASSWORD, self.REDIS_URL]):
-            raise ValueError("REDIS_URL and REDIS_HOST/REDIS_PORT/REDIS_PASSWORD cannot both be set")
+            raise ValueError(
+                "REDIS_URL and REDIS_HOST/REDIS_PORT/REDIS_PASSWORD cannot both be set")
 
         if self.MONGO_URL is None and (
             self.MONGO_HOST is None or self.MONGO_PORT is None
         ):
-            raise ValueError("MONGO_URL or MONGO_HOST/MONGO_PORT/MONGO_USER/MONGO_PASSWORD must be set")
+            raise ValueError(
+                "MONGO_URL or MONGO_HOST/MONGO_PORT/MONGO_USER/MONGO_PASSWORD must be set")
 
         if all([self.MONGO_HOST, self.MONGO_PORT, self.MONGO_USER, self.MONGO_PASSWORD, self.MONGO_URL]):
-            raise ValueError("MONGO_URL and MONGO_HOST/MONGO_PORT/MONGO_USER/MONGO_PASSWORD cannot both be set")
+            raise ValueError(
+                "MONGO_URL and MONGO_HOST/MONGO_PORT/MONGO_USER/MONGO_PASSWORD cannot both be set")
 
 
 CONFIG: Config = Config(
-    **{field:value for field, value in environ.items() if field in Config.model_fields}
+    **{field: value for field, value in environ.items() if field in Config.model_fields}
 )

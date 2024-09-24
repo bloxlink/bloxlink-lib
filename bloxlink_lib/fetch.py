@@ -16,6 +16,7 @@ __all__ = ("StatusCodes", "fetch", "fetch_typed")
 
 session = None
 
+
 class StatusCodes(IntEnum):
     """Status codes for requests"""
 
@@ -28,7 +29,6 @@ class StatusCodes(IntEnum):
     INTERNAL_SERVER_ERROR = 500
     SERVICE_UNAVAILABLE = 503
     GATEWAY_TIMEOUT = 504
-
 
 
 def _bytes_to_str_wrapper(data: Any) -> str:
@@ -103,7 +103,8 @@ async def fetch[T](
                 if response.status == StatusCodes.SERVICE_UNAVAILABLE:
                     raise RobloxDown()
 
-                if response.status in (StatusCodes.BAD_REQUEST, StatusCodes.NOT_FOUND): # Roblox APIs sometimes use 400 as not found
+                # Roblox APIs sometimes use 400 as not found
+                if response.status in (StatusCodes.BAD_REQUEST, StatusCodes.NOT_FOUND):
                     logging.debug(f"{url} not found: {await response.text()}")
                     raise RobloxNotFound()
 
@@ -134,6 +135,7 @@ async def fetch[T](
     except asyncio.TimeoutError:
         logging.debug(f"URL {url} timed out")
         raise RobloxDown() from None
+
 
 async def fetch_typed[T](parse_as: Type[T], url: str, method="GET", **kwargs) -> Tuple[T, aiohttp.ClientResponse]:
     """Fetch data from a URL and parse it as a dataclass.

@@ -17,7 +17,8 @@ from .base import Snowflake, BaseModel
 if TYPE_CHECKING:
     from .base_assets import RobloxBaseAsset
 
-VALID_INFO_SERVER_SCOPES: list[Literal["groups", "badges"]] = ["groups", "badges"]
+VALID_INFO_SERVER_SCOPES: list[Literal["groups", "badges"]] = [
+    "groups", "badges"]
 INVENTORY_API = "https://inventory.roblox.com"
 USERS_API = "https://users.roblox.com"
 USERS_BASE_DATA_API = USERS_API + "/v1/users/{roblox_id}"
@@ -41,7 +42,8 @@ class UserData(BaseModel):
 
     id: int
     robloxID: str | None = None
-    robloxAccounts: dict = Field(default_factory=lambda: {"accounts": [], "guilds": {}, "confirms": {}})
+    robloxAccounts: dict = Field(default_factory=lambda: {
+                                 "accounts": [], "guilds": {}, "confirms": {}})
 
 
 class UserAvatar(BaseModel):
@@ -51,6 +53,7 @@ class UserAvatar(BaseModel):
     headshot_thumbnail: str | None = Field(alias="headshotThumbnail")
     full_body: str | None = Field(alias="fullBody")
 
+
 class RobloxUserAvatar(BaseModel):
     """Type definition for a Roblox avatar from the Roblox API."""
 
@@ -58,10 +61,12 @@ class RobloxUserAvatar(BaseModel):
     state: str
     image_url: str = Field(alias="imageUrl")
 
+
 class RobloxUserAvatarResponse(BaseModel):
     """Type definition for a Roblox user's avatar from the Roblox API."""
 
     data: list[RobloxUserAvatar]
+
 
 class RobloxGroupResponse(BaseModel):
     id: int
@@ -76,10 +81,12 @@ class RobloxUserGroups(BaseModel):
     group: RobloxGroupResponse
     role: GroupRoleset
 
+
 class RobloxUserGroupsResponse(BaseModel):
     """Type definition for a Roblox user's groups from the Roblox API."""
 
     data: list[RobloxUserGroups]
+
 
 class RobloxUserBadge(BaseModel):
     """Type definition for a Roblox badge from the Roblox API."""
@@ -87,12 +94,14 @@ class RobloxUserBadge(BaseModel):
     image_url: str = Field(alias="ImageUri")
     name: str = Field(alias="Name")
 
+
 class RobloxUserBadgeResponse(BaseModel):
     """Type definition for a Roblox user's badges from the Roblox API."""
 
     RobloxBadges: list[RobloxUserBadge]
 
-class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
+
+class RobloxUser(BaseModel):  # pylint: disable=too-many-instance-attributes
     """Representation of a user on Roblox."""
 
     # must provide one of these
@@ -153,7 +162,8 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
             RobloxUser,
             f"{CONFIG.BOT_API}/users",
             headers={"Authorization": CONFIG.BOT_API_AUTH},
-            params={"id": self.id, "username": self.username, "include": ",".join(includes)},
+            params={"id": self.id, "username": self.username,
+                    "include": ",".join(includes)},
         )
 
         if user_data_response.status == StatusCodes.OK:
@@ -176,7 +186,8 @@ class RobloxUser(BaseModel): # pylint: disable=too-many-instance-attributes
                 avatar_url, avatar_response = await fetch("GET", avatar.bust_thumbnail)
 
                 if avatar_response.status == StatusCodes.OK:
-                    self.avatar_url = avatar_url.get("data", [{}])[0].get("imageUrl") or None
+                    self.avatar_url = avatar_url.get(
+                        "data", [{}])[0].get("imageUrl") or None
 
     async def owns_asset(self, asset: RobloxBaseAsset) -> bool:
         """Check if the user owns a specific asset.
@@ -225,6 +236,7 @@ class RobloxUsernameData(BaseModel):
     name: str
     displayName: str
 
+
 class RobloxUsernameResponse(BaseModel):
     data: list[RobloxUsernameData]
 
@@ -233,7 +245,7 @@ class RobloxUsernameResponse(BaseModel):
 async def fetch_roblox_id(roblox_username: str) -> int | None:
     """Fetch a Roblox ID from a Roblox username."""
 
-    username_data, username_response  = await fetch_typed(
+    username_data, username_response = await fetch_typed(
         RobloxUsernameResponse,
         f"{USERS_API}/v1/usernames/users",
         method="POST",
@@ -252,6 +264,7 @@ async def fetch_roblox_id(roblox_username: str) -> int | None:
 
     return roblox_id
 
+
 async def fetch_base_data(roblox_id: int) -> dict | None:
     """Fetch base data for a Roblox user."""
 
@@ -265,6 +278,7 @@ async def fetch_base_data(roblox_id: int) -> dict | None:
         return None
 
     return user_base_data.model_dump(exclude_unset=True)
+
 
 async def fetch_user_groups(roblox_id: int) -> dict[Literal["groups"]: dict[int, RobloxUserGroups]] | None:
     """
@@ -284,6 +298,7 @@ async def fetch_user_groups(roblox_id: int) -> dict[Literal["groups"]: dict[int,
         return None
 
     return {"groups": {int(group_data.group.id): group_data for group_data in user_groups.data}}
+
 
 async def fetch_user_avatars(roblox_id: int, resolve_avatars: bool) -> dict[Literal["avatar"], UserAvatar]:
     """
@@ -313,6 +328,7 @@ async def fetch_user_avatars(roblox_id: int, resolve_avatars: bool) -> dict[Lite
 
     return {"avatar": avatar_model}
 
+
 async def fetch_user_badges(roblox_id: int) -> list[RobloxUserBadge] | None:
     """
     Fetch the user's badges.
@@ -331,6 +347,7 @@ async def fetch_user_badges(roblox_id: int) -> list[RobloxUserBadge] | None:
         return None
 
     return {"badges": user_badges.RobloxBadges}
+
 
 async def get_user_account(
     user: hikari.User | str, guild_id: int = None, raise_errors=True
@@ -354,7 +371,8 @@ async def get_user_account(
     bloxlink_user = await fetch_user_data(user_id, "robloxID", "robloxAccounts")
 
     if guild_id:
-        guild_accounts = (bloxlink_user.robloxAccounts or {}).get("guilds") or {}
+        guild_accounts = (bloxlink_user.robloxAccounts or {}
+                          ).get("guilds") or {}
         guild_account = guild_accounts.get(str(guild_id))
 
         if guild_account:
@@ -367,6 +385,7 @@ async def get_user_account(
         raise UserNotVerified()
 
     return None
+
 
 async def get_user(
     user: hikari.User = None,
@@ -399,10 +418,12 @@ async def get_user(
     roblox_user: RobloxUser = None
 
     if roblox_id and roblox_username:
-        raise ValueError("You cannot provide both a roblox_id and a roblox_username.")
+        raise ValueError(
+            "You cannot provide both a roblox_id and a roblox_username.")
 
     if user and (roblox_username or roblox_id):
-        raise ValueError("You cannot provide both a user and a roblox_id or roblox_username.")
+        raise ValueError(
+            "You cannot provide both a user and a roblox_id or roblox_username.")
 
     if user:
         roblox_user = await get_user_account(user, guild_id)
@@ -458,11 +479,13 @@ async def reverse_lookup(roblox_user: RobloxUser, exclude_user_id: int | None = 
     roblox_id = str(roblox_user.id)
 
     cursor = mongo.bloxlink["users"].find(
-        {"$or": [{"robloxID": roblox_id}, {"robloxAccounts.accounts": roblox_id}]},
+        {"$or": [{"robloxID": roblox_id}, {
+            "robloxAccounts.accounts": roblox_id}]},
         {"_id": 1},
     )
 
     return [int(x["_id"]) async for x in cursor if str(exclude_user_id) != str(x["_id"])]
+
 
 async def get_user_from_string(target: Annotated[str, "Roblox username or ID"]) -> RobloxUser:
     """Get a RobloxUser from a given target string (either an ID or username)
@@ -497,7 +520,8 @@ async def get_user_from_string(target: Annotated[str, "Roblox username or ID"]) 
             ) from exc
 
     if account.id is None or account.username is None:
-        raise RobloxNotFound("The Roblox user you were searching for does not exist.")
+        raise RobloxNotFound(
+            "The Roblox user you were searching for does not exist.")
 
     return account
 

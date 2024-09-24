@@ -74,7 +74,8 @@ class RobloxGroup(RobloxEntity):
     user_roleset: GroupRoleset = None
     has_verified_badge: bool = Field(alias="hasVerifiedBadge", default=None)
     owner: RobloxGroupOwner | None = None
-    public_entry_allowed: bool = Field(alias="publicEntryAllowed", default=None)
+    public_entry_allowed: bool = Field(
+        alias="publicEntryAllowed", default=None)
     has_verified_badge: bool = Field(alias="hasVerifiedBadge", default=None)
 
     def model_post_init(self, __context):

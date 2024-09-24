@@ -22,8 +22,8 @@ if TYPE_CHECKING:
 
 
 def connect_database():
-    global mongo # pylint: disable=global-statement
-    global redis # pylint: disable=global-statement
+    global mongo  # pylint: disable=global-statement
+    global redis  # pylint: disable=global-statement
 
     mongo_options: dict[str, str | int] = {}
 
@@ -65,18 +65,22 @@ def connect_database():
         )
 
     # override redis with better set method
-    redis._old_set = redis.set # pylint: disable=protected-access
+    redis._old_set = redis.set  # pylint: disable=protected-access
     redis.set = redis_set
 
     # loop.create_task(_heartbeat_loop()) # TODO: fix this
 
-async def redis_set(key: str, value: BaseModel | Any, expire: datetime.timedelta | int=None, **kwargs):
+
+async def redis_set(key: str, value: BaseModel | Any, expire: datetime.timedelta | int = None, **kwargs):
     """Set a value in Redis. Accepts BaseModels and expirations as datetimes."""
 
-    await redis._old_set(key, # pylint: disable=protected-access
-                         value.model_dump_json() if isinstance(value, BaseModel) else (json.dumps(value) if isinstance(value, (list, dict)) else value),
-                         ex=int(expire.total_seconds()) if expire and isinstance(expire, datetime.timedelta) else expire,
+    await redis._old_set(key,  # pylint: disable=protected-access
+                         value.model_dump_json() if isinstance(value, BaseModel) else (
+                             json.dumps(value) if isinstance(value, (list, dict)) else value),
+                         ex=int(expire.total_seconds()) if expire and isinstance(
+                             expire, datetime.timedelta) else expire,
                          **kwargs)
+
 
 async def _heartbeat_loop():
     while True:
@@ -86,6 +90,7 @@ async def _heartbeat_loop():
             raise SystemError("Failed to connect to Redis.") from e
 
         await asyncio.sleep(5)
+
 
 async def wait_for_redis():
     while True:
@@ -97,6 +102,7 @@ async def wait_for_redis():
             break
 
         await asyncio.sleep(1)
+
 
 async def fetch_item[T](domain: str, constructor: Type[T], item_id: str, *aspects) -> T:
     """
@@ -118,7 +124,8 @@ async def fetch_item[T](domain: str, constructor: Type[T], item_id: str, *aspect
 
         if item and not isinstance(item, (list, dict)):
             if aspects:
-                items = {x: item[x] for x in aspects if item.get(x) and not isinstance(item[x], dict)}
+                items = {x: item[x] for x in aspects if item.get(
+                    x) and not isinstance(item[x], dict)}
 
                 if items:
                     async with redis.pipeline() as pipeline:
@@ -166,7 +173,7 @@ async def update_item(domain: str, item_id: str, **aspects) -> None:
     for aspect_name, aspect_value in dict(aspects).items():
         if aspect_value is None:
             redis_unset_aspects[aspect_name] = aspect_value
-        elif isinstance(aspect_value, (dict, list, bool)): # TODO
+        elif isinstance(aspect_value, (dict, list, bool)):  # TODO
             pass
         else:
             redis_set_aspects[aspect_name] = aspect_value
@@ -246,7 +253,6 @@ async def update_guild_data(guild: str | int | dict | GuildSerializable, **aspec
         guild_id = str(guild)
 
     return await update_item("guilds", guild_id, **aspects)
-
 
 
 connect_database()

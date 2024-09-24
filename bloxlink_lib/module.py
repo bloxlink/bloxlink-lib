@@ -24,10 +24,11 @@ def execute_deferred_module_functions(*args):
                     asyncio.create_task(deferred_function(*args))
             else:
                 deferred_function(*args)
-        except Exception as e: # pylint: disable=broad-except
+        except Exception as e:  # pylint: disable=broad-except
             logging.error(f"Module __defer__ function errored: {e}")
 
     deferred_module_functions.clear()
+
 
 def load_module(import_name: str, *args) -> ModuleType:
     """Utility function to import python modules.
@@ -59,7 +60,8 @@ def load_module(import_name: str, *args) -> ModuleType:
                 module.__setup__(*args)
 
         except Exception as e:
-            logging.error(f"Module {import_name} __setup__ function errored: {e}")
+            logging.error(
+                f"Module {import_name} __setup__ function errored: {e}")
             logging.exception(e)
             raise e
 
@@ -71,7 +73,8 @@ def load_module(import_name: str, *args) -> ModuleType:
 
     return module
 
-def load_modules(*paths: tuple[str], starting_path: str=".", execute_deferred_modules: bool = True, init_functions: list[Any]=None) -> list[ModuleType]:
+
+def load_modules(*paths: tuple[str], starting_path: str = ".", execute_deferred_modules: bool = True, init_functions: list[Any] = None) -> list[ModuleType]:
     """Utility function to import python modules.
 
     Args:
@@ -96,7 +99,8 @@ def load_modules(*paths: tuple[str], starting_path: str=".", execute_deferred_mo
                 continue
 
             if path.isdir(f"{starting_path}{directory}/{filename}".replace(".", "/")):
-                modules += load_modules(f"{directory}.{filename}", starting_path=starting_path, execute_deferred_modules=False)
+                modules += load_modules(f"{directory}.{filename}",
+                                        starting_path=starting_path, execute_deferred_modules=False)
 
             module = load_module(f"{directory}.{filename}", *init_functions)
 
@@ -107,6 +111,7 @@ def load_modules(*paths: tuple[str], starting_path: str=".", execute_deferred_mo
         execute_deferred_module_functions(*init_functions)
 
     return modules
+
 
 def defer_execution(func: Callable):
     """Decorator to defer module functions."""

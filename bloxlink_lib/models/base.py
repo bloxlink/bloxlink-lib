@@ -4,7 +4,8 @@ from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSc
 from pydantic.fields import FieldInfo
 
 
-Snowflake = Annotated[int, BeforeValidator(int), WithJsonSchema({"type": 'int'})]
+Snowflake = Annotated[int, BeforeValidator(
+    int), WithJsonSchema({"type": 'int'})]
 
 
 class UNDEFINED:
@@ -12,6 +13,7 @@ class UNDEFINED:
     Can be used to differentiate between None and undefined
     in function arguments.
     """
+
 
 class BaseModelArbitraryTypes(PydanticBaseModel):
     """Base model with arbitrary types allowed."""
@@ -39,6 +41,7 @@ class BaseModel(PydanticBaseModel):
             fields_with_names.append((field_name, field))
 
         return fields_with_names
+
 
 class RobloxEntity(BaseModel, ABC):
     """Representation of an entity on Roblox.
@@ -77,6 +80,7 @@ class BloxlinkEntity(RobloxEntity):
 
     def __str__(self) -> str:
         return "Verified Users" if self.type == "verified" else "Unverified Users"
+
 
 class CoerciveSet[T: Callable](set[T]):
     """A set that coerces the children into another type."""
@@ -136,6 +140,7 @@ class CoerciveSet[T: Callable](set[T]):
     def __repr__(self):
         return f"{self.__class__.__name__}({super().__repr__()})"
 
+
 class SnowflakeSet(CoerciveSet[int]):
     """A set of Snowflakes."""
 
@@ -165,6 +170,7 @@ class SnowflakeSet(CoerciveSet[int]):
     def __repr__(self):
         return f"{self.__class__.__name__}({super().__repr__()})"
 
+
 def create_entity(
     category: Literal["asset", "badge", "gamepass", "group", "verified", "unverified"] | str, entity_id: int
 ) -> RobloxEntity | None:
@@ -180,22 +186,22 @@ def create_entity(
 
     match category:
         case "asset":
-            from bloxlink_lib.models import assets # pylint: disable=import-outside-toplevel
+            from bloxlink_lib.models import assets  # pylint: disable=import-outside-toplevel
 
             return assets.RobloxAsset(id=entity_id)
 
         case "badge":
-            from bloxlink_lib.models import badges # pylint: disable=import-outside-toplevel
+            from bloxlink_lib.models import badges  # pylint: disable=import-outside-toplevel
 
             return badges.RobloxBadge(id=entity_id)
 
         case "gamepass":
-            from bloxlink_lib.models import gamepasses # pylint: disable=import-outside-toplevel
+            from bloxlink_lib.models import gamepasses  # pylint: disable=import-outside-toplevel
 
             return gamepasses.RobloxGamepass(id=entity_id)
 
         case "group":
-            from bloxlink_lib.models import groups # pylint: disable=import-outside-toplevel
+            from bloxlink_lib.models import groups  # pylint: disable=import-outside-toplevel
 
             return groups.RobloxGroup(id=entity_id)
 

@@ -3,7 +3,6 @@ from .base import BaseModel, get_entity
 from .base_assets import RobloxBaseAsset
 
 
-
 BADGE_API = "https://badges.roblox.com/v1/badges"
 
 

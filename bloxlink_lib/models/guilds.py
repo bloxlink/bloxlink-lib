@@ -5,7 +5,6 @@ from .base import Snowflake, BaseModel
 import bloxlink_lib.models.binds as binds_module
 
 
-
 class UserInfoFieldMapping(BaseModel):
     """Map a field from Bloxlink-expected to developer-expected"""
 
@@ -15,11 +14,13 @@ class UserInfoFieldMapping(BaseModel):
     robloxUsername: str = "robloxUsername"
     discordUsername: str = "discordUsername"
 
+
 class UserInfoWebhook(BaseModel):
     """Webhook settings for the userInfo webhook"""
 
     url: str
     fieldMapping: UserInfoFieldMapping = None
+
 
 class Webhooks(BaseModel):
     """Fired when certain actions happen on Bloxlink"""
@@ -39,7 +40,9 @@ class GroupLock(BaseModel):
     unverifiedAction: Literal["kick", "dm"] = "kick"
 
 
-type MagicRoleTypes = Literal["Bloxlink Admin", "Bloxlink Updater", "Bloxlink Bypass"]
+type MagicRoleTypes = Literal["Bloxlink Admin",
+                              "Bloxlink Updater", "Bloxlink Bypass"]
+
 
 class GuildData(BaseModel):
     """Representation of the stored settings for a guild"""
@@ -51,7 +54,6 @@ class GuildData(BaseModel):
     @classmethod
     def transform_binds(cls: Type[Self], binds: list) -> list[binds_module.GuildBind]:
         return [binds_module.GuildBind(**b) for b in binds]
-
 
     verifiedRoleEnabled: bool = True
     verifiedRoleName: str | None = "Verified"  # deprecated
@@ -85,7 +87,7 @@ class GuildData(BaseModel):
 
     magicRoles: dict[str, list[MagicRoleTypes]] = None
 
-    premium: dict = Field(default_factory=dict) # deprecated
+    premium: dict = Field(default_factory=dict)  # deprecated
 
     # Old bind fields.
     roleBinds: dict = None
@@ -95,13 +97,15 @@ class GuildData(BaseModel):
     def model_post_init(self, __context):
         # merge verified roles into binds
         if self.verifiedRole:
-            verified_role_bind = binds_module.GuildBind(criteria={"type": "verified"}, roles=[self.verifiedRole])
+            verified_role_bind = binds_module.GuildBind(
+                criteria={"type": "verified"}, roles=[self.verifiedRole])
 
             if verified_role_bind not in self.binds:
                 self.binds.append(verified_role_bind)
 
         if self.unverifiedRole:
-            unverified_role_bind = binds_module.GuildBind(criteria={"type": "unverified"}, roles=[self.unverifiedRole])
+            unverified_role_bind = binds_module.GuildBind(
+                criteria={"type": "unverified"}, roles=[self.unverifiedRole])
 
             if unverified_role_bind not in self.binds:
                 self.binds.append(unverified_role_bind)
@@ -144,6 +148,7 @@ class RoleSerializable(BaseModel):
             is_mentionable=role.is_mentionable
         )
 
+
 class GuildSerializable(BaseModel):
     id: Snowflake
     name: str = None
@@ -167,4 +172,6 @@ class GuildSerializable(BaseModel):
             roles=guild.roles
         )
 
-binds_module.GuildBind.model_rebuild() # RoleSerializable is not defined when the schema is first built, so we need to re-build it. TODO: make better
+
+# RoleSerializable is not defined when the schema is first built, so we need to re-build it. TODO: make better
+binds_module.GuildBind.model_rebuild()

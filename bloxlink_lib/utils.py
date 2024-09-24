@@ -31,6 +31,7 @@ def find[T](predicate: Callable, iterable: Iterable[T]) -> T | None:
 
     return None
 
+
 def create_task_log_exception(awaitable: Awaitable) -> asyncio.Task:
     """Creates a task that logs exceptions."""
     # https://stackoverflow.com/questions/30361824/asynchronous-exception-handling-in-python
@@ -39,10 +40,11 @@ def create_task_log_exception(awaitable: Awaitable) -> asyncio.Task:
         try:
             return await awaitable
 
-        except Exception as e: # pylint: disable=broad-except
+        except Exception as e:  # pylint: disable=broad-except
             logging.exception(e)
 
     return asyncio.create_task(_log_exception(awaitable))
+
 
 def get_node_id() -> int:
     """Gets the node ID from the hostname."""
@@ -56,6 +58,7 @@ def get_node_id() -> int:
 
     return node_id
 
+
 def get_node_count() -> int:
     """Gets the node count."""
 
@@ -63,6 +66,7 @@ def get_node_count() -> int:
     shard_count = CONFIG.SHARD_COUNT
 
     return shard_count // shards_per_node
+
 
 def parse_into[T: BaseModel | dict](data: dict, model: Type[T]) -> T:
     """Parse a dictionary into a dataclass.
@@ -77,11 +81,13 @@ def parse_into[T: BaseModel | dict](data: dict, model: Type[T]) -> T:
 
     if issubclass(model, BaseModel):
         # Filter only relevant fields before constructing the pydantic instance
-        relevant_fields = {field_name: data.get(field_name, data.get(field.alias)) for field_name, field in model.model_fields.items() if field_name in data or field.alias in data}
+        relevant_fields = {field_name: data.get(field_name, data.get(
+            field.alias)) for field_name, field in model.model_fields.items() if field_name in data or field.alias in data}
 
         return model(**relevant_fields)
 
     return model(**data)
+
 
 def get_environment() -> Environment:
     """Get whether this is local, staging or production."""
@@ -94,6 +100,7 @@ def get_environment() -> Environment:
         return Environment.STAGING
 
     return Environment.PRODUCTION
+
 
 def init_sentry():
     """Initialize Sentry."""

@@ -4,7 +4,6 @@ from .base import BaseModel, get_entity
 from .base_assets import RobloxBaseAsset
 
 
-
 GAMEPASS_API = "https://economy.roblox.com/v1/game-pass"
 
 

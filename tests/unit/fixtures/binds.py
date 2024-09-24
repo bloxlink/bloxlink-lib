@@ -1,6 +1,7 @@
 import pytest
 from bloxlink_lib.models import binds
 
+
 @pytest.fixture()
 def v3_rolebinds_1() -> tuple[dict[str, dict[str, dict]], list[binds.GuildBind]]:
     return {
@@ -79,6 +80,7 @@ def v3_rolebinds_1() -> tuple[dict[str, dict[str, dict]], list[binds.GuildBind]]
             )
         )
     ]
+
 
 @pytest.fixture()
 def v3_rolebinds_2() -> tuple[dict[str, dict[str, dict]], list[binds.GuildBind]]:
@@ -183,6 +185,7 @@ def v3_group_conversion_1() -> tuple[dict[str, dict[str, dict]], list[binds.Guil
             )
         )
     ]
+
 
 @pytest.fixture()
 def v3_group_conversion_2() -> tuple[dict[str, dict[str, dict]], list[binds.GuildBind]]:

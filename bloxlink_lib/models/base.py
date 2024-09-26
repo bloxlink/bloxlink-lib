@@ -1,4 +1,4 @@
-from typing import Literal, Annotated, Tuple, Type, Iterable, TypeVar, Any, Generic
+from typing import Literal, Annotated, Tuple, Type, Iterable, TypeVar, Any, Generic, get_args
 from abc import ABC, abstractmethod
 from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict
 from pydantic.fields import FieldInfo
@@ -92,7 +92,8 @@ class CoerciveSet(Generic[T], set):
         super().__init__(self._coerce(x) for i in s for x in i)
 
     def _coerce(self, item: Any) -> T:
-        return item if isinstance(item, T) else T(item)
+        target_type = get_args(self.__orig_bases__[0])[0]
+        return item if isinstance(item, target_type) else target_type(item)
 
     def __contains__(self, item: Any) -> bool:
         return super().__contains__(self._coerce(item))

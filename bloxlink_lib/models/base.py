@@ -93,6 +93,8 @@ class CoerciveSet(Generic[T], set):
 
     def _coerce(self, item: Any) -> T:
         target_type = get_args(self.__orig_bases__[0])[0]
+        if isinstance(item, CoerciveSet):
+            return item
         return item if isinstance(item, target_type) else target_type(item)
 
     def __contains__(self, item: Any) -> bool:
@@ -133,10 +135,8 @@ class CoerciveSet(Generic[T], set):
     def validate(cls, v: Any, field: Any) -> 'CoerciveSet[T]':
         if isinstance(v, cls):
             return v
-
         if isinstance(v, (set, list, tuple)):
             return cls(v)
-
         raise TypeError(f'Invalid type for CoerciveSet: {type(v)}')
 
     @classmethod
@@ -146,7 +146,6 @@ class CoerciveSet(Generic[T], set):
             # Adjust this according to the type of items in the set
             items={'type': 'string'},
         )
-
         return schema
 
     def __serialize__(self, serializer: Any) -> list:
@@ -156,26 +155,23 @@ class CoerciveSet(Generic[T], set):
 class SnowflakeSet(CoerciveSet[int]):
     """A set of Snowflakes."""
 
-    def __init__(self, *s: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):
+    def __init__(self, *s: Iterable[int], type: str = None, str_reference: dict = None):
         super().__init__(*s)
         self.type = type
         self.str_reference = str_reference or {}
 
     def add(self, item: Any) -> None:
         """Add an item to the set. If the item contains an ID, it will be parsed into an integer. Otherwise, it will be added as an int."""
-
         if getattr(item, "id", None):
             super().add(item.id)
         else:
             super().add(item)
 
     def __str__(self) -> str:
-        match self.type:
-            case "role":
-                return ", ".join(str(self.str_reference.get(i) or f"<@&{i}>") for i in self)
-            case "user":
-                return ", ".join(str(self.str_reference.get(i) or f"<@{i}>") for i in self)
-
+        if self.type == "role":
+            return ", ".join(str(self.str_reference.get(i) or f"<@&{i}>") for i in self)
+        elif self.type == "user":
+            return ", ".join(str(self.str_reference.get(i) or f"<@{i}>") for i in self)
         return ", ".join(str(self.str_reference.get(i) or i) for i in self)
 
     def __repr__(self) -> str:

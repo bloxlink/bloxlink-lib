@@ -145,7 +145,7 @@ class CoerciveSet(Generic[T], set):
     @classmethod
     def __get_pydantic_json_schema__(cls, schema: dict) -> dict:
         schema.update(
-            type='array',
+            type='set',
             # Adjust this according to the type of items in the set
             items={'type': 'string'},
         )

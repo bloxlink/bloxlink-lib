@@ -1,4 +1,4 @@
-from typing import Literal, Annotated, Tuple, Type, Iterable, Self
+from typing import Literal, Annotated, Tuple, Type, Iterable, TypeVar, Any, Generic
 from abc import ABC, abstractmethod
 from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict
 from pydantic.fields import FieldInfo
@@ -82,92 +82,102 @@ class BloxlinkEntity(RobloxEntity):
         return "Verified Users" if self.type == "verified" else "Unverified Users"
 
 
-class CoerciveSet[T: Callable](set[T]):
+T = TypeVar('T')
+
+
+class CoerciveSet(Generic[T], set):
     """A set that coerces the children into another type."""
 
-    def __init__(self, parse_into: T, *s: Iterable[T]):
-        self.parse_into = parse_into
-        super().__init__(self.parse_into(x) for i in s for x in i)
+    def __init__(self, *s: Iterable[Any]):
+        super().__init__(self._coerce(x) for i in s for x in i)
 
-    def __contains__(self, item):
-        return super().__contains__(self.parse_into(item))
+    def _coerce(self, item: Any) -> T:
+        return item if isinstance(item, T) else T(item)
 
-    def add(self, item):
-        return super().add(self.parse_into(item))
+    def __contains__(self, item: Any) -> bool:
+        return super().__contains__(self._coerce(item))
 
-    def remove(self, item):
-        return super().remove(self.parse_into(item))
+    def add(self, item: Any) -> None:
+        super().add(self._coerce(item))
 
-    def discard(self, item):
-        return super().discard(self.parse_into(item))
+    def remove(self, item: Any) -> None:
+        super().remove(self._coerce(item))
 
-    def update(self, *s: Iterable[T]):
-        return super().update(set(self.parse_into(x) for i in s for x in i))
+    def discard(self, item: Any) -> None:
+        super().discard(self._coerce(item))
 
-    def intersection(self, *s: Iterable[T]):
-        return super().intersection(set(self.parse_into(x) for i in s for x in i))
+    def update(self, *s: Iterable[Any]) -> None:
+        super().update(self._coerce(x) for i in s for x in i)
 
-    def difference(self, *s: Iterable[T]):
-        return super().difference(set(self.parse_into(x) for i in s for x in i))
+    def intersection(self, *s: Iterable[Any]) -> 'CoerciveSet[T]':
+        return super().intersection(self._coerce(x) for i in s for x in i)
 
-    def symmetric_difference(self, *s: Iterable[T]):
-        return super().symmetric_difference(set(self.parse_into(x) for i in s for x in i))
+    def difference(self, *s: Iterable[Any]) -> 'CoerciveSet[T]':
+        return super().difference(self._coerce(x) for i in s for x in i)
 
-    def union(self, *s: Iterable[T]) -> Self:
-        return super().union(set(self.parse_into(x) for iterable in s for x in iterable))
+    def symmetric_difference(self, *s: Iterable[Any]) -> 'CoerciveSet[T]':
+        return super().symmetric_difference(self._coerce(x) for i in s for x in i)
 
-    # def isdisjoint(self, *args, **kwargs):
-    #     return super().isdisjoint(*args, **kwargs)
+    def union(self, *s: Iterable[Any]) -> 'CoerciveSet[T]':
+        return super().union(self._coerce(x) for i in s for x in i)
 
-    # def issubset(self, *args, **kwargs):
-    #     return super().issubset(*args, **kwargs)
-
-    # def issuperset(self, *args, **kwargs):
-    #     return super().issuperset(*args, **kwargs)
-
-    # def __ior__(self, *args, **kwargs):
-    #     return super().__ior__(*args, **kwargs)
-
-    # def __iand__(self, *args, **kwargs):
-    #     return super().__iand__(*args, **kwargs)
-
-    # def __ixor__(self, *args, **kwargs):
-    #     return super().__ixor__(*args, **kwargs)
-
-    # def __isub__(self, *args, **kwargs):
-    #     return super().__isub__(*args, **kwargs)
-
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}({super().__repr__()})"
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v: Any, field: Any) -> 'CoerciveSet[T]':
+        if isinstance(v, cls):
+            return v
+
+        if isinstance(v, (set, list, tuple)):
+            return cls(v)
+
+        raise TypeError(f'Invalid type for CoerciveSet: {type(v)}')
+
+    @classmethod
+    def __get_pydantic_json_schema__(cls, schema: dict) -> dict:
+        schema.update(
+            type='array',
+            # Adjust this according to the type of items in the set
+            items={'type': 'string'},
+        )
+
+        return schema
+
+    def __serialize__(self, serializer: Any) -> list:
+        return list(self)
 
 
 class SnowflakeSet(CoerciveSet[int]):
     """A set of Snowflakes."""
 
     def __init__(self, *s: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):
-        super().__init__(int, *s)
+        super().__init__(*s)
         self.type = type
         self.str_reference = str_reference or {}
 
-    def add(self, item):
+    def add(self, item: Any) -> None:
         """Add an item to the set. If the item contains an ID, it will be parsed into an integer. Otherwise, it will be added as an int."""
 
         if getattr(item, "id", None):
-            return super().add(item.id)
+            super().add(item.id)
+        else:
+            super().add(item)
 
-        return super().add(item)
-
-    def __str__(self):
+    def __str__(self) -> str:
         match self.type:
             case "role":
                 return ", ".join(str(self.str_reference.get(i) or f"<@&{i}>") for i in self)
-
             case "user":
                 return ", ".join(str(self.str_reference.get(i) or f"<@{i}>") for i in self)
 
         return ", ".join(str(self.str_reference.get(i) or i) for i in self)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}({super().__repr__()})"
 
 

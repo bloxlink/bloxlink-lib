@@ -132,15 +132,15 @@ class CoerciveSet(Generic[T], set):
 
     @classmethod
     def validate(cls, v: Any, field: Any) -> 'CoerciveSet[T]':
-        return v
-        # print("validating")
-        # if isinstance(v, cls):
-        #     print("1", v)
-        #     return v
-        # if isinstance(v, (set, list, tuple)):
-        #     print("2", v, cls(v))
-        #     return cls(v)
-        # raise TypeError(f'Invalid type for CoerciveSet: {type(v)}')
+        # return v
+        print("validating")
+        if isinstance(v, cls):
+            print("1", v)
+            return v
+        if isinstance(v, (set, list, tuple)):
+            print("2", v, cls(v))
+            return cls(v)
+        raise TypeError(f'Invalid type for CoerciveSet: {type(v)}')
 
     @classmethod
     def __get_pydantic_json_schema__(cls, schema: dict) -> dict:

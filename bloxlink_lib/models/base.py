@@ -86,20 +86,8 @@ class CoerciveSet[T: Callable](RootModel[set[T]]):
 
     root: set[T]
 
-    # @field_validator("root", mode="before")
-    # @classmethod
-    # def coerce_root(cls: Type[Self], items: Any) -> set[T]:
-    #     return set(cls._coerce(x) for x in items)
-
     def model_post_init(self, __context):
-        print(self.root)
         self.root = set(self._coerce(x) for x in self.root)
-        print("oooof")
-
-    # def __init__(self, s: Iterable[T]):
-    #     self.root = set(self._coerce(x) for x in s)
-    #     super().__init__(root=self.root)
-    #     # super().__init__(self._coerce(x) for x in s )
 
     def _get_type(self) -> Type[T]:
         try:
@@ -132,15 +120,11 @@ class CoerciveSet[T: Callable](RootModel[set[T]]):
     def update(self, *s: Iterable[T]):
         for iterable in s:
             for item in iterable:
-                self.add(item)
+                self.root.add(item)
 
     def intersection(self, *s: Iterable[T]) -> 'CoerciveSet[T]':
-        print("yeah")
         target_type = self._get_type()
         result = self.root.intersection(self._coerce(x) for i in s for x in i)
-        print("yus", result)
-        CoerciveSet[target_type](result)
-        print("worked")
         return CoerciveSet[target_type](result)
 
     def difference(self, *s: Iterable[T]) -> 'CoerciveSet[T]':
@@ -165,31 +149,6 @@ class CoerciveSet[T: Callable](RootModel[set[T]]):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.root})"
-
-    # @classmethod
-    # def __get_validators__(cls):
-    #     yield cls.validate
-
-    # @classmethod
-    # def validate(cls, v: Any, field: Any) -> 'CoerciveSet[T]':
-    #     if not isinstance(v, (set, list, tuple)):
-    #         raise TypeError(f'Invalid type for CoerciveSet: {type(v)}')
-
-    #     return cls(x for x in v )
-
-    # @classmethod
-    # def __get_pydantic_json_schema__(cls, schema: dict) -> dict:
-    #     schema.update(
-    #         type='array',
-    #         items={'type': 'string'},
-    #     )
-    #     return schema
-
-    # def __json__(self):
-    #     return list(self)
-
-    # def __repr__(self):
-    #     return f"{self.__class__.__name__}({super().__repr__()})"
 
 
 class SnowflakeSet(CoerciveSet[int]):

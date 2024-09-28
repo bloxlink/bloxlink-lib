@@ -1,6 +1,6 @@
-from typing import Literal, Annotated, Tuple, Type, Iterable, Any, get_args, Self, Callable, Set
+from typing import Literal, Annotated, Tuple, Type, Iterable, Any, get_args, Self, Callable, Set, Generic
 from abc import ABC, abstractmethod
-from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict, RootModel, Field, field_validator
+from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict, RootModel, Field, field_validator, PrivateAttr
 from pydantic.fields import FieldInfo
 
 Snowflake = Annotated[int, BeforeValidator(
@@ -81,29 +81,25 @@ class BloxlinkEntity(RobloxEntity):
         return "Verified Users" if self.type == "verified" else "Unverified Users"
 
 
-class CoerciveSet[T: Callable](RootModel[set[T]]):
+class CoerciveSet[T: Callable](BaseModel):
     """A set that coerces the children into another type."""
 
-    root: set[T]
+    input_data: Iterable[T]
+    _data: set[T] = PrivateAttr(default_factory=set)
 
-    # @field_validator("root", mode="before")
-    # @classmethod
-    # def coerce_root(cls: Type[Self], items: Any) -> set[T]:
-    #     return set(cls._coerce(x) for x in items)
+    # def model_post_init(self, __context):
+    #     self._data = set(self._coerce(x) for x in input_data)
 
-    def model_post_init(self, __context):
-        print(self.root)
-        self.root = set(self._coerce(x) for x in self.root)
-        print("oooof")
-
-    # def __init__(self, s: Iterable[T]):
-    #     self.root = set(self._coerce(x) for x in s)
-    #     super().__init__(root=self.root)
-    #     # super().__init__(self._coerce(x) for x in s )
+    # def __init__(self, *s: Iterable[T]):
+    #     self._data = set(self._coerce(x) for x in s)
+    #     super().__init__(data=self._data)
+    def __init__(self, input_data: Iterable[T], **kwargs):
+        super().__init__(input_data=input_data, **kwargs)
+        self._data = set(self._coerce(x) for x in input_data)
 
     def _get_type(self) -> Type[T]:
         try:
-            return get_args(self.model_fields["root"].annotation)[0]
+            return get_args(self.model_fields["input_data"].annotation)[0]
         except (IndexError, AttributeError):
             raise TypeError("Cannot determine the target type for coercion")
 
@@ -118,92 +114,70 @@ class CoerciveSet[T: Callable](RootModel[set[T]]):
             raise TypeError(f"Cannot coerce {item} to {target_type}")
 
     def __contains__(self, item):
-        return self.root.__contains__(self._coerce(item))
+        return self._data.__contains__(self._coerce(item))
 
     def add(self, item):
-        self.root.add(self._coerce(item))
+        self._data.add(self._coerce(item))
 
     def remove(self, item):
-        self.root.remove(self._coerce(item))
+        self._data.remove(self._coerce(item))
 
     def discard(self, item):
-        self.root.discard(self._coerce(item))
+        self._data.discard(self._coerce(item))
 
     def update(self, *s: Iterable[T]):
         for iterable in s:
             for item in iterable:
-                self.add(item)
+                self._data.add(item)
 
     def intersection(self, *s: Iterable[T]) -> 'CoerciveSet[T]':
-        print("yeah")
         target_type = self._get_type()
-        result = self.root.intersection(self._coerce(x) for i in s for x in i)
-        print("yus", result)
-        CoerciveSet[target_type](result)
-        print("worked")
-        return CoerciveSet[target_type](result)
+        result = self._data.intersection(self._coerce(x) for i in s for x in i)
+
+        return self.__class__(result)
 
     def difference(self, *s: Iterable[T]) -> 'CoerciveSet[T]':
-        result = self.root.difference(self._coerce(x) for i in s for x in i)
-        return CoerciveSet(result)
+        target_type = self._get_type()
+        result = self._data.difference(self._coerce(x) for i in s for x in i)
+
+        return CoerciveSet[target_type](result)
 
     def symmetric_difference(self, *s: Iterable[T]) -> 'CoerciveSet[T]':
-        result = self.root.symmetric_difference(
+        target_type = self._get_type()
+        result = self._data.symmetric_difference(
             self._coerce(x) for i in s for x in i)
-        return CoerciveSet(result)
+
+        return CoerciveSet[target_type](result)
 
     def union(self, *s: Iterable[T]) -> 'CoerciveSet[T]':
-        result = self.root.union(self._coerce(x)
-                                 for iterable in s for x in iterable)
-        return CoerciveSet(result)
+        target_type = self._get_type()
+        result = self._data.union(self._coerce(x)
+                                  for iterable in s for x in iterable)
+
+        return CoerciveSet[target_type](result)
 
     def __iter__(self):
-        return iter(self.root)
+        return iter(self._data)
 
     def __len__(self) -> int:
-        return len(self.root)
+        return len(self._data)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.root})"
-
-    # @classmethod
-    # def __get_validators__(cls):
-    #     yield cls.validate
-
-    # @classmethod
-    # def validate(cls, v: Any, field: Any) -> 'CoerciveSet[T]':
-    #     if not isinstance(v, (set, list, tuple)):
-    #         raise TypeError(f'Invalid type for CoerciveSet: {type(v)}')
-
-    #     return cls(x for x in v )
-
-    # @classmethod
-    # def __get_pydantic_json_schema__(cls, schema: dict) -> dict:
-    #     schema.update(
-    #         type='array',
-    #         items={'type': 'string'},
-    #     )
-    #     return schema
-
-    # def __json__(self):
-    #     return list(self)
-
-    # def __repr__(self):
-    #     return f"{self.__class__.__name__}({super().__repr__()})"
+        return f"{self.__class__.__name__}({self._data})"
 
 
 class SnowflakeSet(CoerciveSet[int]):
     """A set of Snowflakes."""
 
-    # type: Literal["role", "user"] = Field(default=None)
-    # str_reference: dict = Field(default_factory=dict)
+    type: Literal["role", "user"] = Field(default=None)
+    str_reference: dict = Field(default_factory=dict)
 
-    # def __init__(self, s: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):
-    #     super().__init__(s=s)
+    # def __init__(self, *s: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):
+    #     super().__init__(data=s)
     #     # self.model_extra["type"] = type
     #     # self.model_extra["str_reference"] = str_reference or {}
-    #     # self.type = type
-    #     # self.str_reference = str_reference or {}
+    #     self.type = type
+    #     self.str_reference = str_reference or {}
 
     def add(self, item):
         """Add an item to the set. If the item contains an ID, it will be parsed into an integer. Otherwise, it will be added as an int."""
@@ -223,8 +197,8 @@ class SnowflakeSet(CoerciveSet[int]):
 
     #     return ", ".join(str(self.model_extra["str_reference"].get(i) or i) for i in self)
 
-    # def __repr__(self):
-    #     return f"{self.__class__.__name__}({super().__repr__()})"
+    def __repr__(self):
+        return f"{self.__class__.__name__}({super().__repr__()})"
 
 
 def create_entity(

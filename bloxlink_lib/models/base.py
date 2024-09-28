@@ -169,7 +169,7 @@ class CoerciveSet[T: Callable](BaseModel):
 class SnowflakeSet(CoerciveSet[int]):
     """A set of Snowflakes."""
 
-    type: Literal["role", "user"] | None = Field(default=None)
+    type: Literal["role", "user"] = Field(default=None)
     str_reference: dict = Field(default_factory=dict)
 
     # def __init__(self, *s: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):

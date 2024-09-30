@@ -93,12 +93,12 @@ class CoerciveSet(BaseModel, Generic[T]):
     _data: set[T] = PrivateAttr(default_factory=set)
     _target_type: Type[T] | None = PrivateAttr(default=None)
 
-    def __init__(self, **data):
-        print(data)
-        super().__init__(
-            root=data.get("root", []),
-        )
-        # self._data = set(self._coerce(x) for x in self.root)
+    # def __init__(self, **data):
+    #     print(data)
+    #     super().__init__(
+    #         root=data.get("root", []),
+    #     )
+    #     # self._data = set(self._coerce(x) for x in self.root)
 
     def model_post_init(self, __context: Any) -> None:
         self._data = set(self._coerce(x) for x in self.root)

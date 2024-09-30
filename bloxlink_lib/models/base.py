@@ -1,6 +1,6 @@
 from typing import Literal, Annotated, Tuple, Type, Iterable, Any, get_args, Callable
 from abc import ABC, abstractmethod
-from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict, RootModel
+from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict, RootModel, Field, ConfigDict
 from pydantic.fields import FieldInfo
 
 Snowflake = Annotated[int, BeforeValidator(
@@ -84,7 +84,7 @@ class BloxlinkEntity(RobloxEntity):
 class CoerciveSet[T: Callable](RootModel[set[T]]):
     """A set that coerces the children into another type."""
 
-    root: set[T]
+    root: Iterable[T]
 
     def model_post_init(self, __context):
         self.root = set(self._coerce(x) for x in self.root)
@@ -154,33 +154,46 @@ class CoerciveSet[T: Callable](RootModel[set[T]]):
 class SnowflakeSet(CoerciveSet[int]):
     """A set of Snowflakes."""
 
+    # RootModels can only have a root
+    # We can't use a normal BaseModel due to set inheritance being preferred
+    # root: dict[str, Any] = Field(default_factory=dict)
+
     # type: Literal["role", "user"] = Field(default=None)
     # str_reference: dict = Field(default_factory=dict)
 
-    # def __init__(self, s: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):
-    #     super().__init__(s=s)
-    #     # self.model_extra["type"] = type
-    #     # self.model_extra["str_reference"] = str_reference or {}
-    #     # self.type = type
-    #     # self.str_reference = str_reference or {}
+    model_config = ConfigDict(extra='allow')
+
+    def __init__(self, s: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):
+        super().__init__(s)
+        # self.model_extra["type"] = type
+        # self.model_extra["str_reference"] = str_reference or {}
+        # self.type = type
+        # self.str_reference = str_reference or {}
+        # self.root["type"] = type
+        # self.root["str_reference"] = str_reference or {}
 
     def add(self, item):
         """Add an item to the set. If the item contains an ID, it will be parsed into an integer. Otherwise, it will be added as an int."""
 
+        print("adding", item)
+
         if getattr(item, "id", None):
+            print("adding", 1, item)
             return super().add(item.id)
+
+        print("adding 2", item)
 
         return super().add(item)
 
     # def __str__(self):
-    #     match self.model_extra["type"]:
+    #     match self.root["type"]:
     #         case "role":
-    #             return ", ".join(str(self.model_extra["str_reference"].get(i) or f"<@&{i}>") for i in self)
+    #             return ", ".join(str(self.root["str_reference"].get(i) or f"<@&{i}>") for i in self)
 
     #         case "user":
-    #             return ", ".join(str(self.model_extra["str_reference.get"](i) or f"<@{i}>") for i in self)
+    #             return ", ".join(str(self.root["str_reference.get"](i) or f"<@{i}>") for i in self)
 
-    #     return ", ".join(str(self.model_extra["str_reference"].get(i) or i) for i in self)
+    #     return ", ".join(str(self.root["str_reference"].get(i) or i) for i in self)
 
     # def __repr__(self):
     #     return f"{self.__class__.__name__}({super().__repr__()})"

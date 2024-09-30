@@ -149,24 +149,24 @@ class CoerciveSet(BaseModel, Generic[T]):
         print("intersection", s)
         result = self._data.intersection(self._coerce(x) for i in s for x in i)
         print("new CoerciveSet", result)
-        return self.__class__(result)
+        return self.__class__(root=result)
 
     def difference(self, *s: Iterable[T]) -> 'CoerciveSet[T]':
         print("difference", s)
         result = self._data.difference(self._coerce(x) for i in s for x in i)
-        return self.__class__(result)
+        return self.__class__(root=result)
 
     def symmetric_difference(self, *s: Iterable[T]) -> 'CoerciveSet[T]':
         print("symmetric_difference", s)
         result = self._data.symmetric_difference(
             self._coerce(x) for i in s for x in i)
-        return self.__class__(result)
+        return self.__class__(root=result)
 
     def union(self, *s: Iterable[T]) -> 'CoerciveSet[T]':
         print("union", s)
         result = self._data.union(self._coerce(x)
                                   for iterable in s for x in iterable)
-        return self.__class__(result)
+        return self.__class__(root=result)
 
     def __iter__(self):
         return iter(self._data)
@@ -185,20 +185,20 @@ class SnowflakeSet(CoerciveSet[int]):
     # We can't use a normal BaseModel due to set inheritance being preferred
     # root: dict[str, Any] = Field(default_factory=dict)
 
-    root: Iterable[int] = Field(kw_only=False)
-    type: Literal["role", "user"] = Field(default=None)
+    root: Iterable[int]
+    type: Literal["role", "user"] | None = Field(default=None)
     str_reference: dict = Field(default_factory=dict)
 
     # model_config = ConfigDict(extra='allow')
 
-    def __init__(self, s: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):
+    def __init__(self, root: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):
         # print("init", s, type, str_reference)
         print("new")
-        super().__init__(root=s)
+        super().__init__(root=root)
         # self.model_extra["type"] = type
         # self.model_extra["str_reference"] = str_reference or {}
-        # self.type = type
-        # self.str_reference = str_reference or {}
+        self.type = type
+        self.str_reference = str_reference or {}
         # self.root["type"] = type
         # self.root["str_reference"] = str_reference or {}
 

@@ -191,16 +191,16 @@ class SnowflakeSet(CoerciveSet[int]):
 
     # model_config = ConfigDict(extra='allow')
 
-    def __init__(self, root: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):
-        # print("init", s, type, str_reference)
-        print("new")
-        super().__init__(root=root)
-        # self.model_extra["type"] = type
-        # self.model_extra["str_reference"] = str_reference or {}
-        self.type = type
-        self.str_reference = str_reference or {}
-        # self.root["type"] = type
-        # self.root["str_reference"] = str_reference or {}
+    # def __init__(self, root: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):
+    #     # print("init", s, type, str_reference)
+    #     print("new")
+    #     super().__init__(root=root)
+    #     # self.model_extra["type"] = type
+    #     # self.model_extra["str_reference"] = str_reference or {}
+    #     self.type = type
+    #     self.str_reference = str_reference or {}
+    #     # self.root["type"] = type
+    #     # self.root["str_reference"] = str_reference or {}
 
     def add(self, item):
         """Add an item to the set. If the item contains an ID, it will be parsed into an integer. Otherwise, it will be added as an int."""

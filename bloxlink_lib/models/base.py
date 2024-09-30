@@ -1,8 +1,7 @@
 from pydantic import BaseModel, PrivateAttr
-from typing import Callable, Iterable, Type, TypeVar, Any, get_args
-from typing import Literal, Annotated, Tuple, Type, Iterable, Any, get_args, Callable, Generic
+from typing import Callable, Iterable, Type, TypeVar, Any, get_args, Callable, Generic, Sequence, Annotated, Literal, Tuple
 from abc import ABC, abstractmethod
-from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict, RootModel, Field, ConfigDict
+from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict, Field, ConfigDict
 from pydantic.fields import FieldInfo
 
 Snowflake = Annotated[int, BeforeValidator(
@@ -89,21 +88,18 @@ T = TypeVar('T', bound=Callable)
 class CoerciveSet(BaseModel, Generic[T]):
     """A set that coerces the children into another type."""
 
-    root: Iterable[T]
+    root: Sequence[T]
     _data: set[T] = PrivateAttr(default_factory=set)
     _target_type: Type[T] | None = PrivateAttr(default=None)
 
-    # def __init__(self, **data):
-    #     print(data)
-    #     super().__init__(
-    #         root=data.get("root", []),
-    #     )
-    #     # self._data = set(self._coerce(x) for x in self.root)
+    def __init__(self, **data):
+        print(data)
+        super().__init__(
+            root=data.get("root", []),
+        )
 
     def model_post_init(self, __context: Any) -> None:
         self._data = set(self._coerce(x) for x in self.root)
-        print("post init", self._data, self._get_type())
-        # return super().model_post_init(__context)
 
     def _get_type(self) -> Type[T]:
         if self._target_type:
@@ -119,7 +115,6 @@ class CoerciveSet(BaseModel, Generic[T]):
 
     def _coerce(self, item: Any) -> T:
         target_type = self._get_type()
-        print("coercing", item, target_type)
 
         if isinstance(item, target_type):
             return item
@@ -146,24 +141,19 @@ class CoerciveSet(BaseModel, Generic[T]):
                 self._data.add(self._coerce(item))
 
     def intersection(self, *s: Iterable[T]) -> 'CoerciveSet[T]':
-        print("intersection", s)
         result = self._data.intersection(self._coerce(x) for i in s for x in i)
-        print("new CoerciveSet", result)
         return self.__class__(root=result)
 
     def difference(self, *s: Iterable[T]) -> 'CoerciveSet[T]':
-        print("difference", s)
         result = self._data.difference(self._coerce(x) for i in s for x in i)
         return self.__class__(root=result)
 
     def symmetric_difference(self, *s: Iterable[T]) -> 'CoerciveSet[T]':
-        print("symmetric_difference", s)
         result = self._data.symmetric_difference(
             self._coerce(x) for i in s for x in i)
         return self.__class__(root=result)
 
     def union(self, *s: Iterable[T]) -> 'CoerciveSet[T]':
-        print("union", s)
         result = self._data.union(self._coerce(x)
                                   for iterable in s for x in iterable)
         return self.__class__(root=result)
@@ -181,52 +171,35 @@ class CoerciveSet(BaseModel, Generic[T]):
 class SnowflakeSet(CoerciveSet[int]):
     """A set of Snowflakes."""
 
-    # RootModels can only have a root
-    # We can't use a normal BaseModel due to set inheritance being preferred
-    # root: dict[str, Any] = Field(default_factory=dict)
-
-    root: Iterable[int]
+    root: Sequence[int]
     type: Literal["role", "user"] | None = Field(default=None)
     str_reference: dict = Field(default_factory=dict)
 
-    # model_config = ConfigDict(extra='allow')
-
-    # def __init__(self, root: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):
-    #     # print("init", s, type, str_reference)
-    #     print("new")
-    #     super().__init__(root=root)
-    #     # self.model_extra["type"] = type
-    #     # self.model_extra["str_reference"] = str_reference or {}
-    #     self.type = type
-    #     self.str_reference = str_reference or {}
-    #     # self.root["type"] = type
-    #     # self.root["str_reference"] = str_reference or {}
+    def __init__(self, root: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):
+        super().__init__(root=root)
+        self.type = type
+        self.str_reference = str_reference or {}
 
     def add(self, item):
         """Add an item to the set. If the item contains an ID, it will be parsed into an integer. Otherwise, it will be added as an int."""
 
-        print("adding", item)
-
         if getattr(item, "id", None):
-            print("adding", 1, item)
             return super().add(item.id)
-
-        print("adding 2", item)
 
         return super().add(item)
 
-    # def __str__(self):
-    #     match self.root["type"]:
-    #         case "role":
-    #             return ", ".join(str(self.root["str_reference"].get(i) or f"<@&{i}>") for i in self)
+    def __str__(self):
+        match self.root["type"]:
+            case "role":
+                return ", ".join(str(self.root["str_reference"].get(i) or f"<@&{i}>") for i in self)
 
-    #         case "user":
-    #             return ", ".join(str(self.root["str_reference.get"](i) or f"<@{i}>") for i in self)
+            case "user":
+                return ", ".join(str(self.root["str_reference.get"](i) or f"<@{i}>") for i in self)
 
-    #     return ", ".join(str(self.root["str_reference"].get(i) or i) for i in self)
+        return ", ".join(str(self.root["str_reference"].get(i) or i) for i in self)
 
-    # def __repr__(self):
-    #     return f"{self.__class__.__name__}({super().__repr__()})"
+    def __repr__(self):
+        return f"{self.__class__.__name__}({super().__repr__()})"
 
 
 def create_entity(

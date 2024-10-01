@@ -161,8 +161,6 @@ class SnowflakeSet(CoerciveSet[int]):
     # type: Literal["role", "user"] = Field(default=None)
     # str_reference: dict = Field(default_factory=dict)
 
-    model_config = ConfigDict(extra='allow')
-
     def __init__(self, s: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):
         super().__init__(s)
         # self.model_extra["type"] = type

@@ -96,7 +96,7 @@ class CoerciveSet(BaseModel, Generic[T]):
     def __init__(self, **data):
         print(data)
         super().__init__(
-            root=data.get("root", []),
+            root=data.get("root", set()),
         )
         # self._data = set(self._coerce(x) for x in self.root)
 
@@ -191,10 +191,10 @@ class SnowflakeSet(CoerciveSet[int]):
 
     # model_config = ConfigDict(extra='allow')
 
-    def __init__(self, s: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):
+    def __init__(self, root: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):
         # print("init", s, type, str_reference)
         print("new")
-        super().__init__(root=s)
+        super().__init__(root=root)
         # self.model_extra["type"] = type
         # self.model_extra["str_reference"] = str_reference or {}
         # self.type = type

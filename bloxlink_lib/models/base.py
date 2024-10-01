@@ -95,9 +95,7 @@ class CoerciveSet[T: Callable](BaseModel):
 
     def __init__(self, **data):
         root_data = data.get("root", set())
-        super().__init__(
-            root=root_data,
-        )
+        super().__init__(root=root_data)
 
     def model_post_init(self, __context: Any) -> None:
         self._data = set(self._coerce(x) for x in self.root)
@@ -143,21 +141,21 @@ class CoerciveSet[T: Callable](BaseModel):
 
     def intersection(self, *s: Iterable[T]) -> 'CoerciveSet[T]':
         result = self._data.intersection(self._coerce(x) for i in s for x in i)
-        return self.__class__(result)
+        return self.__class__(root=result)
 
     def difference(self, *s: Iterable[T]) -> 'CoerciveSet[T]':
         result = self._data.difference(self._coerce(x) for i in s for x in i)
-        return self.__class__(result)
+        return self.__class__(root=result)
 
     def symmetric_difference(self, *s: Iterable[T]) -> 'CoerciveSet[T]':
         result = self._data.symmetric_difference(
             self._coerce(x) for i in s for x in i)
-        return self.__class__(result)
+        return self.__class__(root=result)
 
     def union(self, *s: Iterable[T]) -> 'CoerciveSet[T]':
         result = self._data.union(self._coerce(x)
                                   for iterable in s for x in iterable)
-        return self.__class__(result)
+        return self.__class__(root=result)
 
     def __iter__(self):
         return iter(self._data)
@@ -183,24 +181,20 @@ class SnowflakeSet(CoerciveSet[int]):
 
     def add(self, item):
         """Add an item to the set. If the item contains an ID, it will be parsed into an integer. Otherwise, it will be added as an int."""
-
         if getattr(item, "id", None):
             return super().add(item.id)
-
         return super().add(item)
 
     def __str__(self):
         match self.type:
             case "role":
                 return ", ".join(str(self.str_reference.get(i) or f"<@&{i}>") for i in self)
-
             case "user":
                 return ", ".join(str(self.str_reference.get(i) or f"<@{i}>") for i in self)
-
         return ", ".join(str(self.str_reference.get(i) or i) for i in self)
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({super().__repr__()})"
+        return f"{self.__class__.__name__}({self._data})"
 
 
 def create_entity(

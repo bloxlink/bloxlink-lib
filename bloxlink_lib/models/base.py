@@ -1,8 +1,8 @@
 from pydantic import BaseModel, PrivateAttr
 from typing import Callable, Iterable, Type, TypeVar, Any, get_args
-from typing import Literal, Annotated, Tuple, Type, Iterable, Any, get_args, Callable, Generic
+from typing import Literal, Annotated, Tuple, Type, Iterable, Any, get_args, Callable, Generic, Sequence
 from abc import ABC, abstractmethod
-from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict, RootModel, Field, ConfigDict, Sequence
+from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict, RootModel, Field, ConfigDict
 from pydantic.fields import FieldInfo
 
 Snowflake = Annotated[int, BeforeValidator(

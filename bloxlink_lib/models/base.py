@@ -2,7 +2,7 @@ from pydantic import BaseModel, PrivateAttr
 from typing import Callable, Iterable, Type, TypeVar, Any, get_args
 from typing import Literal, Annotated, Tuple, Type, Iterable, Any, get_args, Callable, Generic
 from abc import ABC, abstractmethod
-from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict, RootModel, Field, ConfigDict
+from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict, RootModel, Field, ConfigDict, Sequence
 from pydantic.fields import FieldInfo
 
 Snowflake = Annotated[int, BeforeValidator(
@@ -89,7 +89,7 @@ T = TypeVar('T', bound=Callable)
 class CoerciveSet(BaseModel, Generic[T]):
     """A set that coerces the children into another type."""
 
-    root: Iterable[T]
+    root: Sequence[T]
     _data: set[T] = PrivateAttr(default_factory=set)
     _target_type: Type[T] | None = PrivateAttr(default=None)
 
@@ -185,7 +185,7 @@ class SnowflakeSet(CoerciveSet[int]):
     # We can't use a normal BaseModel due to set inheritance being preferred
     # root: dict[str, Any] = Field(default_factory=dict)
 
-    root: Iterable[int] = Field(kw_only=False)
+    root: Sequence[int] = Field(kw_only=False)
     type: Literal["role", "user"] = Field(default=None)
     str_reference: dict = Field(default_factory=dict)
 

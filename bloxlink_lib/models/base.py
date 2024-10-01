@@ -92,7 +92,7 @@ class CoerciveSet(BaseModel, Generic[T]):
     @field_validator("root", mode="before", check_fields=False)
     @classmethod
     def transform_root(cls: Type[Self], old_root: Iterable[T]) -> Sequence[T]:
-        return list(cls._coerce(x) for x in old_root)
+        return list(old_root)
 
     # root: Sequence[T] =
     _data: set[T] = PrivateAttr(default_factory=set)

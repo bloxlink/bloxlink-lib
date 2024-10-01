@@ -1,6 +1,6 @@
-from pydantic import BaseModel, PrivateAttr
+from pydantic import BaseModel, PrivateAttr, field_validator
 from typing import Callable, Iterable, Type, TypeVar, Any, get_args
-from typing import Literal, Annotated, Tuple, Type, Iterable, Any, get_args, Callable, Generic, Sequence
+from typing import Literal, Annotated, Tuple, Type, Iterable, Any, get_args, Callable, Generic, Sequence, Self
 from abc import ABC, abstractmethod
 from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict, RootModel, Field, ConfigDict
 from pydantic.fields import FieldInfo
@@ -89,15 +89,20 @@ T = TypeVar('T', bound=Callable)
 class CoerciveSet(BaseModel, Generic[T]):
     """A set that coerces the children into another type."""
 
-    root: Sequence[T]
+    @field_validator("root", mode="before", check_fields=False)
+    @classmethod
+    def transform_root(cls: Type[Self], old_root: Iterable[T]) -> Sequence[T]:
+        return list(cls._coerce(x) for x in old_root)
+
+    # root: Sequence[T] =
     _data: set[T] = PrivateAttr(default_factory=set)
     _target_type: T = PrivateAttr(default=None)
 
     def __init__(self, **data):
         print(data)
         root_data = data.get("root", set())
-        if isinstance(root_data, set):
-            root_data = list(root_data)  # Convert set to list
+        # if isinstance(root_data, set):
+        #     root_data = list(root_data)  # Convert set to list
         super().__init__(
             root=root_data,
         )

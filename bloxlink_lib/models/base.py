@@ -1,7 +1,7 @@
 from pydantic import BaseModel, PrivateAttr, field_validator
 from typing import Callable, Iterable, Type, Any,  Literal, Annotated, Tuple, Sequence, Self
 from abc import ABC, abstractmethod
-from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict, Field, ConfigDict
+from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict, Field, ConfigDict, SkipValidation
 from pydantic.fields import FieldInfo
 from generics import get_filled_type
 
@@ -95,7 +95,7 @@ class BloxlinkEntity(RobloxEntity):
 class CoerciveSet[T: Callable](BaseModel):
     """A set that coerces the children into another type."""
 
-    root: Sequence[T] = Field(kw_only=False)
+    root: Annotated[Sequence[T], SkipValidation]
 
     @field_validator("root", mode="before", check_fields=False)
     @classmethod
@@ -155,14 +155,26 @@ class CoerciveSet[T: Callable](BaseModel):
                                   for iterable in s for x in iterable)
         return self.__class__(root=result)
 
+    def contains_all(self, iterable: Iterable[T]) -> bool:
+        return all(self._coerce(x) in self._data for x in iterable)
+
+    def contains(self, *items: Sequence[T]) -> bool:
+        return all(self._coerce(x) in self._data for i in items for x in i)
+
     def __iter__(self):
         return iter(self._data)
 
     def __len__(self) -> int:
         return len(self._data)
 
+    def __eq__(self, other) -> bool:
+        return self.contains(x for x in other) if isinstance(other, CoerciveSet) else False
+
+    def __str__(self) -> str:
+        return ", ".join(str(i) for i in self)
+
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._data})"
+        return self.__str__()
 
 
 class SnowflakeSet(CoerciveSet[int]):

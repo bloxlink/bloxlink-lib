@@ -190,14 +190,14 @@ class SnowflakeSet(CoerciveSet[int]):
         return super().add(item)
 
     def __str__(self):
-        match self.root["type"]:
+        match self.type:
             case "role":
-                return ", ".join(str(self.root["str_reference"].get(i) or f"<@&{i}>") for i in self)
+                return ", ".join(str(self.str_reference.get(i) or f"<@&{i}>") for i in self)
 
             case "user":
-                return ", ".join(str(self.root["str_reference.get"](i) or f"<@{i}>") for i in self)
+                return ", ".join(str(self.str_reference.get(i) or f"<@{i}>") for i in self)
 
-        return ", ".join(str(self.root["str_reference"].get(i) or i) for i in self)
+        return ", ".join(str(self.str_reference.get(i) or i) for i in self)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({super().__repr__()})"

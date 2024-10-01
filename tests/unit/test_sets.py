@@ -1,8 +1,8 @@
-from bloxlink_lib import CoerciveSet
+from bloxlink_lib import CoerciveSet, SnowflakeSet
 import pytest
 
 
-class TestCoerciveSet:
+class TestCoerciveSets:
     """Tests related to coercive sets."""
 
     @pytest.mark.parametrize("input_set, expected_length", [
@@ -151,3 +151,54 @@ class TestCoerciveSet:
         test_set = CoerciveSet[str](input_set)
         expected_set = CoerciveSet[str](expected_list)
         assert test_set == expected_set, "CoerciveSet should coerce to the expected list of strings."
+
+
+class TestSnowflakeSets:
+    """Tests for SnowflakeSets"""
+
+    @pytest.mark.parametrize("input_set, expected_length", [
+        ([1, 2, 3, 4, 5], 5),
+    ])
+    def test_snowflake_set_length(self, input_set, expected_length):
+        """Test that the snowflake set has the correct length"""
+        test_set = SnowflakeSet(input_set)
+        assert len(test_set) == expected_length, f"SnowflakeSet should have {
+            expected_length} items."
+
+    @pytest.mark.parametrize("input_set, item_to_add, expected_length", [
+        ([1, 2, 3, 4, 5], 6, 6),
+    ])
+    def test_snowflake_set_add(self, input_set, item_to_add, expected_length):
+        """Test that the snowflake set adds an item correctly"""
+        test_set = SnowflakeSet(input_set)
+        test_set.add(item_to_add)
+        assert len(test_set) == expected_length, f"SnowflakeSet should have {
+            expected_length} items."
+
+    @pytest.mark.parametrize("input_set, expected_str", [
+        ([1, 2, 3, 4, 5], "1, 2, 3, 4, 5"),
+    ])
+    def test_snowflake_set_str(self, input_set, expected_str):
+        """Test that the snowflake set returns a string correctly"""
+        test_set = SnowflakeSet(input_set)
+        assert str(
+            test_set) == expected_str, f"SnowflakeSet should return a string of the items."
+
+    @pytest.mark.parametrize("input_set, item_to_check", [
+        ([1, 2, 3, 4, 5], 3),
+    ])
+    def test_snowflake_set_contains(self, input_set, item_to_check):
+        """Test that the snowflake set contains an item correctly"""
+        test_set = SnowflakeSet(input_set)
+        assert item_to_check in test_set, f"SnowflakeSet should contain {
+            item_to_check}."
+
+    @pytest.mark.parametrize("input_set, expected_set",
+                             [
+                                 (["1", "2", "3", "4", "5"], [1, 2, 3, 4, 5]),
+                             ])
+    def test_snowflake_set_coerce(self, input_set, expected_set):
+        """Test that the snowflake set coerces correctly"""
+        test_set = SnowflakeSet(input_set)
+        assert list(
+            test_set) == expected_set, "SnowflakeSet should coerce correctly."

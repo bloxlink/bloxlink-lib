@@ -173,7 +173,7 @@ class SnowflakeSet(CoerciveSet[int]):
     """A set of Snowflakes."""
 
     root: Sequence[int] = Field(kw_only=False)
-    type: Literal["role", "user"] = Field(default=None)
+    type: Literal["role", "user"] | None = Field(default=None)
     str_reference: dict = Field(default_factory=dict)
 
     def __init__(self, root: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):

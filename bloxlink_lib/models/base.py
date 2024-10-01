@@ -1,8 +1,9 @@
 from pydantic import BaseModel, PrivateAttr, field_validator
-from typing import Callable, Iterable, Type, TypeVar, Any,  Literal, Annotated, Tuple, get_args, Generic, Sequence, Self
+from typing import Callable, Iterable, Type, Any,  Literal, Annotated, Tuple, Sequence, Self
 from abc import ABC, abstractmethod
-from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict, RootModel, Field, ConfigDict
+from pydantic import BaseModel as PydanticBaseModel, BeforeValidator, WithJsonSchema, ConfigDict, Field, ConfigDict
 from pydantic.fields import FieldInfo
+from generics import get_filled_type
 
 Snowflake = Annotated[int, BeforeValidator(
     int), WithJsonSchema({"type": 'int'})]
@@ -41,6 +42,9 @@ class BaseModel(PydanticBaseModel):
             fields_with_names.append((field_name, field))
 
         return fields_with_names
+
+    def get_type(self) -> Any:
+        return get_filled_type(self, BaseModel, 0)
 
 
 class RobloxEntity(BaseModel, ABC):
@@ -85,35 +89,23 @@ class BloxlinkEntity(RobloxEntity):
 class CoerciveSet[T: Callable](BaseModel):
     """A set that coerces the children into another type."""
 
+    root: Sequence[T] = Field(kw_only=False)
+
     @field_validator("root", mode="before", check_fields=False)
     @classmethod
     def transform_root(cls: Type[Self], old_root: Iterable[T]) -> Sequence[T]:
         return list(old_root)
 
     _data: set[T] = PrivateAttr(default_factory=set)
-    _target_type: T = PrivateAttr(default=None)
 
-    def __init__(self, **data):
-        root_data = data.get("root", set())
-        super().__init__(root=root_data)
+    def __init__(self, root: Iterable[T]):
+        super().__init__(root=root)
 
     def model_post_init(self, __context: Any) -> None:
         self._data = set(self._coerce(x) for x in self.root)
 
-    def _get_type(self) -> Type[T]:
-        if self._target_type:
-            return self._target_type
-
-        try:
-            target_type = get_args(self.__annotations__['root'])[0]
-            self._target_type = target_type
-        except (IndexError, AttributeError):
-            raise TypeError("Cannot determine the target type for coercion")
-        else:
-            return target_type
-
     def _coerce(self, item: Any) -> T:
-        target_type = self._get_type()
+        target_type = self.get_type()
 
         if isinstance(item, target_type):
             return item

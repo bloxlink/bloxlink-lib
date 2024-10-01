@@ -27,6 +27,7 @@ class BaseModel(PydanticBaseModel):
     """Base model with a set configuration."""
 
     model_config = ConfigDict(populate_by_name=True, validate_assignment=True)
+    _generic_type_value: Any = None
 
     @classmethod
     def model_fields_index(cls: Type[PydanticBaseModel | BaseModelArbitraryTypes]) -> list[Tuple[str, FieldInfo]]:
@@ -44,7 +45,12 @@ class BaseModel(PydanticBaseModel):
         return fields_with_names
 
     def get_type(self) -> Any:
-        return get_filled_type(self, BaseModel, 0)
+        if self._generic_type_value:
+            return self._generic_type_value
+
+        self._generic_type_value = get_filled_type(self, BaseModel, 0)
+
+        return self._generic_type_value
 
 
 class RobloxEntity(BaseModel, ABC):

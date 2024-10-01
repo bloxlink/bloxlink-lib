@@ -91,12 +91,15 @@ class CoerciveSet(BaseModel, Generic[T]):
 
     root: Sequence[T]
     _data: set[T] = PrivateAttr(default_factory=set)
-    _target_type: Type[T] | None = PrivateAttr(default=None)
+    _target_type: T = PrivateAttr(default=None)
 
     def __init__(self, **data):
         print(data)
+        root_data = data.get("root", set())
+        if isinstance(root_data, set):
+            root_data = list(root_data)  # Convert set to list
         super().__init__(
-            root=data.get("root", set()),
+            root=root_data,
         )
         # self._data = set(self._coerce(x) for x in self.root)
 

@@ -195,6 +195,22 @@ class SnowflakeSet(CoerciveSet[int]):
             return super().add(item.id)
         return super().add(item)
 
+    def intersection(self, *s: Iterable[int]) -> 'SnowflakeSet':
+        result = super().intersection(*s)
+        return SnowflakeSet(root=result._data, type=self.type, str_reference=self.str_reference)
+
+    def difference(self, *s: Iterable[int]) -> 'SnowflakeSet':
+        result = super().difference(*s)
+        return SnowflakeSet(root=result._data, type=self.type, str_reference=self.str_reference)
+
+    def symmetric_difference(self, *s: Iterable[int]) -> 'SnowflakeSet':
+        result = super().symmetric_difference(*s)
+        return SnowflakeSet(root=result._data, type=self.type, str_reference=self.str_reference)
+
+    def union(self, *s: Iterable[int]) -> 'SnowflakeSet':
+        result = super().union(*s)
+        return SnowflakeSet(root=result._data, type=self.type, str_reference=self.str_reference)
+
     def __str__(self):
         match self.type:
             case "role":

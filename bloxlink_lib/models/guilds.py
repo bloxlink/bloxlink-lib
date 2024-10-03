@@ -53,6 +53,9 @@ class GuildData(BaseModel):
     @field_validator("binds", mode="before")
     @classmethod
     def transform_binds(cls: Type[Self], binds: list) -> list[binds_module.GuildBind]:
+        if all(isinstance(b, binds_module.GuildBind) for b in binds):
+            return binds
+
         return [binds_module.GuildBind(**b) for b in binds]
 
     verifiedRoleEnabled: bool = True

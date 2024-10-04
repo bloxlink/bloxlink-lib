@@ -71,11 +71,11 @@ class GuildData(BaseModel):
     ageLimit: int = None
     autoRoles: bool = True
     autoVerification: bool = True
-    disallowAlts: bool = False
-    disallowBanEvaders: bool = False
-    banRelatedAccounts: bool = False
-    unbanRelatedAccounts: bool = False
-    dynamicRoles: bool = True
+    disallowAlts: bool | None = False
+    disallowBanEvaders: bool | None = False
+    banRelatedAccounts: bool | None = False
+    unbanRelatedAccounts: bool | None = False
+    dynamicRoles: bool | None = True
     groupLock: dict[str, GroupLock] = None
     highTrafficServer: bool = False
     allowOldRoles: bool = False

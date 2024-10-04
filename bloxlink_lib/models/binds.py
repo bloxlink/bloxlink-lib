@@ -243,7 +243,7 @@ class GuildBind(BaseModel):
 
         ineligible_roles = SnowflakeSet()
         additional_roles = SnowflakeSet()
-        missing_roles = CoerciveSet(str)
+        missing_roles = CoerciveSet()
 
         if not roblox_user:
             if self.criteria.type == "unverified":
@@ -382,7 +382,8 @@ class GuildBind(BaseModel):
                 group: RobloxGroup = self.entity
 
                 if self.criteria.group.min and self.criteria.group.max:
-                    content = f"{group.roleset_name_string(self.criteria.group.min, bold_name=False)} to {group.roleset_name_string(self.criteria.group.max, bold_name=False)}"
+                    content = f"{group.roleset_name_string(self.criteria.group.min, bold_name=False)} to {
+                        group.roleset_name_string(self.criteria.group.max, bold_name=False)}"
 
                 elif self.criteria.group.roleset:
                     content = group.roleset_name_string(
@@ -438,8 +439,10 @@ class GuildBind(BaseModel):
 
         return (
             f"- _{extended_description} receive the "
-            f"role{'s' if len(self.roles) > 1 or len(self.pending_new_roles) > 1 else ''} {role_mentions}{new_roles_list}"
-            f"{'' if len(self.remove_roles) == 0 else f', and have these roles removed: {remove_role_mentions}'}_"
+            f"role{'s' if len(self.roles) > 1 or len(self.pending_new_roles) > 1 else ''} {
+                role_mentions}{new_roles_list}"
+            f"{'' if len(self.remove_roles) == 0 else f', and have these roles removed: {
+                remove_role_mentions}'}_"
         )
 
     def __eq__(self, other: GuildBind) -> bool:
@@ -488,7 +491,8 @@ async def build_binds_desc(
     if len(guild_binds) > 5:
         output += (
             f"\n_... and {len(guild_binds) - 5} more. "
-            f"Click [here](https://www.blox.link/dashboard/guilds/{guild_id}/binds) to view the rest!_"
+            f"Click [here](https://www.blox.link/dashboard/guilds/{
+                guild_id}/binds) to view the rest!_"
         )
     return output
 
@@ -667,7 +671,8 @@ async def parse_template(
     # parse {smart-name}
     if roblox_user:
         if roblox_user.display_name != roblox_user.username:
-            smart_name = f"{roblox_user.display_name} (@{roblox_user.username})"
+            smart_name = f"{
+                roblox_user.display_name} (@{roblox_user.username})"
 
             if len(smart_name) > 32:
                 smart_name = roblox_user.username

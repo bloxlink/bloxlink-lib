@@ -225,7 +225,8 @@ class RobloxUser(BaseModel):  # pylint: disable=too-many-instance-attributes
                 ending = f"yr{((years > 1 or years == 0) and 's') or ''}"
                 self.short_age_string = f"{years} {ending} ago"
             else:
-                ending = f"day{((self.age_days > 1 or self.age_days == 0) and 's') or ''}"
+                ending = f"day{
+                    ((self.age_days > 1 or self.age_days == 0) and 's') or ''}"
                 self.short_age_string = f"{self.age_days} {ending} ago"
 
 
@@ -350,7 +351,7 @@ async def fetch_user_badges(roblox_id: int) -> list[RobloxUserBadge] | None:
 
 
 async def get_user_account(
-    user: hikari.User | str, guild_id: int = None, raise_errors=True
+    user: hikari.User | MemberSerializable | str, guild_id: int = None, raise_errors=True
 ) -> RobloxUser | None:
     """Get a user's linked Roblox account.
 
@@ -367,7 +368,8 @@ async def get_user_account(
         RobloxUser | None: The linked Roblox account either globally or for this guild, if any.
     """
 
-    user_id = str(user.id) if isinstance(user, hikari.User) else str(user)
+    user_id = str(user.id) if isinstance(
+        user, (hikari.User, MemberSerializable)) else str(user)
     bloxlink_user = await fetch_user_data(user_id, "robloxID", "robloxAccounts")
 
     if guild_id:

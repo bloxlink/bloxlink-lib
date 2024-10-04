@@ -202,3 +202,9 @@ class TestSnowflakeSets:
         test_set = SnowflakeSet(input_set)
         assert list(
             test_set) == expected_set, "SnowflakeSet should coerce correctly."
+
+    def test_snowflake_set_empty_set(self):
+        """Test that the snowflake set is empty"""
+
+        test_set = SnowflakeSet()
+        assert len(test_set) == 0, "SnowflakeSet should be empty."

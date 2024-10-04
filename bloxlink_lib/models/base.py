@@ -184,8 +184,8 @@ class SnowflakeSet(CoerciveSet[int]):
     type: Literal["role", "user"] | None = Field(default=None)
     str_reference: dict = Field(default_factory=dict)
 
-    def __init__(self, root: Iterable[int], type: Literal["role", "user"] = None, str_reference: dict = None):
-        super().__init__(root=root)
+    def __init__(self, root: Iterable[int] = None, type: Literal["role", "user"] = None, str_reference: dict = None):
+        super().__init__(root=root or [])
         self.type = type
         self.str_reference = str_reference or {}
 

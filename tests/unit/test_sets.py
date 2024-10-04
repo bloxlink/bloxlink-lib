@@ -152,6 +152,12 @@ class TestCoerciveSets:
         expected_set = CoerciveSet[str](expected_list)
         assert test_set == expected_set, "CoerciveSet should coerce to the expected list of strings."
 
+    def test_coercive_set_empty_set(self):
+        """Test that the coercive set is empty"""
+
+        test_set = CoerciveSet[str]()
+        assert len(test_set) == 0, "CoerciveSet should be empty."
+
 
 class TestSnowflakeSets:
     """Tests for SnowflakeSets"""

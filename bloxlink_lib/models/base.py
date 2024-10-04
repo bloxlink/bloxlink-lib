@@ -104,8 +104,8 @@ class CoerciveSet[T: Callable](BaseModel):
 
     _data: set[T] = PrivateAttr(default_factory=set)
 
-    def __init__(self, root: Iterable[T]):
-        super().__init__(root=root)
+    def __init__(self, root: Iterable[T] = None):
+        super().__init__(root=root or [])
 
     def model_post_init(self, __context: Any) -> None:
         self._data = set(self._coerce(x) for x in self.root)

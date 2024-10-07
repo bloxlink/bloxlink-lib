@@ -243,7 +243,7 @@ class GuildBind(BaseModel):
 
         ineligible_roles = SnowflakeSet()
         additional_roles = SnowflakeSet()
-        missing_roles = CoerciveSet()
+        missing_roles = CoerciveSet[str]()
 
         if not roblox_user:
             if self.criteria.type == "unverified":

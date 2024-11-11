@@ -21,4 +21,4 @@ logging.basicConfig(level=CONFIG.LOG_LEVEL)
 init_sentry()
 
 # run unit tests
-pytest.main("tests/unit")
+pytest.main(["tests/unit"])

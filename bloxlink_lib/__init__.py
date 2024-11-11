@@ -1,4 +1,5 @@
 import logging
+import pytest
 
 from .models.base import *
 from .models.users import *
@@ -18,3 +19,6 @@ from .module import *
 logging.basicConfig(level=CONFIG.LOG_LEVEL)
 
 init_sentry()
+
+# run unit tests
+pytest.main(["tests/unit"])

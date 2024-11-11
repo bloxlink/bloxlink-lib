@@ -531,6 +531,7 @@ class MemberSerializable(BaseModel):
     username: str = None
     avatar_url: str = None
     display_name: str = None
+    global_name: str = None
     is_bot: bool = None
     joined_at: datetime = None
     role_ids: Sequence[Snowflake] = None
@@ -538,17 +539,18 @@ class MemberSerializable(BaseModel):
     nickname: str | None = None
     mention: str = None
 
-    @staticmethod
-    def from_hikari(member: hikari.InteractionMember | Self) -> 'MemberSerializable':
+    @classmethod
+    def from_hikari(cls, member: hikari.InteractionMember | Self) -> 'MemberSerializable':
         """Convert a Hikari member into a MemberSerializable object."""
 
         if isinstance(member, MemberSerializable):
             return member
 
-        return MemberSerializable(
+        return cls(
             id=member.id,
             username=member.username,
             avatar_url=str(member.avatar_url),
+            global_name=member.global_name,
             display_name=member.display_name,
             is_bot=member.is_bot,
             joined_at=member.joined_at,
@@ -558,17 +560,18 @@ class MemberSerializable(BaseModel):
             mention=member.mention
         )
 
-    @staticmethod
-    def from_discordpy(member: discord.Member | Self) -> 'MemberSerializable':
+    @classmethod
+    def from_discordpy(cls, member: discord.Member | Self) -> 'MemberSerializable':
         """Convert a Discord.py member into a MemberSerializable object."""
 
         if isinstance(member, MemberSerializable):
             return member
 
-        return MemberSerializable(
+        return cls(
             id=member.id,
             username=member.name,
             avatar_url=member.display_avatar.url,
+            global_name=member.global_name,
             display_name=member.display_name,
             is_bot=member.bot,
             joined_at=member.joined_at,

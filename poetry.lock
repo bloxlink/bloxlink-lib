@@ -1100,6 +1100,20 @@ pytest = ">=8.3.3"
 testing = ["covdefaults (>=2.3)", "coverage (>=7.6.1)", "pytest-mock (>=3.14)"]
 
 [[package]]
+name = "pytest-lazy-fixtures"
+version = "1.1.1"
+description = "Allows you to use fixtures in @pytest.mark.parametrize."
+optional = false
+python-versions = "<4.0,>=3.8"
+files = [
+    {file = "pytest_lazy_fixtures-1.1.1-py3-none-any.whl", hash = "sha256:a4b396a361faf56c6305535fd0175ce82902ca7cf668c4d812a25ed2bcde8183"},
+    {file = "pytest_lazy_fixtures-1.1.1.tar.gz", hash = "sha256:0c561f0d29eea5b55cf29b9264a3241999ffdb74c6b6e8c4ccc0bd2c934d01ed"},
+]
+
+[package.dependencies]
+pytest = ">=7"
+
+[[package]]
 name = "python-dotenv"
 version = "1.0.1"
 description = "Read key-value pairs from a .env file and set them as environment variables"
@@ -1358,4 +1372,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "<3.13, >=3.12"
-content-hash = "035963c4ab467b4c39adf7742897195fd894ee678af97ad3a9d9f66ca9571833"
+content-hash = "d758eeefb04e6ae527a236a3023e5f83fad2e9b3661b9264ede7ded8c312258c"

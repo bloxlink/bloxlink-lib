@@ -2,10 +2,12 @@ import pytest
 from bloxlink_lib.models.guilds import GuildSerializable, RoleSerializable
 
 
-@pytest.fixture()
-def test_guild() -> GuildSerializable:
+@pytest.fixture
+def test_guild_1() -> GuildSerializable:
+    """Test Guild model."""
+
     return GuildSerializable(
-        id=1,
+        id=123456789012345678,
         name="My awesome server",
         roles={
             1: RoleSerializable(

@@ -36,6 +36,8 @@ asyncio_mode = "auto"
 [tool.pytest_env]
 BOT_RELEASE = "CANARY"
 TEST_MODE = true
+MONGO_USER = "admin"
+MONGO_PASSWORD = "admin123"
 
 [build-system]
 requires = ["poetry-core"]

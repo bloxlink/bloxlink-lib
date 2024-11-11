@@ -20,8 +20,8 @@ class TestUpdatingGuildData:
         0,
         -1
     ])
-    @pytest.mark.xfail(strict=True, raises=ValidationError)
     async def test_update_guild_data_invalid_input_fails(self, test_input, start_docker_services, wait_for_redis):
-        await database.update_guild_data(1, verifiedRoleName=test_input)
+        with pytest.raises(ValidationError) as e:
+            await database.update_guild_data(1, verifiedRoleName=test_input)
 
-        assert (await database.fetch_guild_data(1, "verifiedRoleName")).verifiedRoleName == test_input
+        assert issubclass(e.type, ValidationError)

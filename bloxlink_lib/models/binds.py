@@ -629,7 +629,7 @@ async def parse_template(
     template: str = None,
     potential_binds: list[GuildBind] | None = None,
     roblox_user: RobloxUser | None = None,
-    max_length=True,
+    trim_nickname=True,
 ) -> str | None:
     """
     Parse the template for the user.
@@ -764,7 +764,7 @@ async def parse_template(
             template = template.replace(
                 "{{{0}}}".format(outer_nick), nick_value)
 
-    if max_length:
+    if trim_nickname:
         return template[:32]
 
     return template

@@ -6,7 +6,6 @@ import math
 from datetime import datetime
 import hikari
 import discord
-from dateutil import parser
 from ..fetch import fetch, fetch_typed, StatusCodes
 from ..config import CONFIG
 from ..exceptions import RobloxNotFound, RobloxAPIError, UserNotVerified
@@ -119,7 +118,7 @@ class RobloxUser(BaseModel):  # pylint: disable=too-many-instance-attributes
     description: str | None = None
     profile_link: str = Field(alias="profileLink", default=None)
     display_name: str | None = Field(alias="displayName", default=None)
-    created: str = None
+    created: datetime = None
     badges: list | None = None
     short_age_string: str = None
 
@@ -216,8 +215,7 @@ class RobloxUser(BaseModel):  # pylint: disable=too-many-instance-attributes
             return
 
         today = datetime.today()
-        roblox_user_age = parser.parse(self.created).replace(tzinfo=None)
-        self.age_days = (today - roblox_user_age).days
+        self.age_days = (today - self.created).days
 
         if not self.short_age_string:
             if self.age_days >= 365:
@@ -533,6 +531,7 @@ class MemberSerializable(BaseModel):
     username: str = None
     avatar_url: str = None
     display_name: str = None
+    global_name: str = None
     is_bot: bool = None
     joined_at: datetime = None
     role_ids: Sequence[Snowflake] = None
@@ -540,17 +539,18 @@ class MemberSerializable(BaseModel):
     nickname: str | None = None
     mention: str = None
 
-    @staticmethod
-    def from_hikari(member: hikari.InteractionMember | Self) -> 'MemberSerializable':
+    @classmethod
+    def from_hikari(cls, member: hikari.InteractionMember | Self) -> 'MemberSerializable':
         """Convert a Hikari member into a MemberSerializable object."""
 
         if isinstance(member, MemberSerializable):
             return member
 
-        return MemberSerializable(
+        return cls(
             id=member.id,
             username=member.username,
             avatar_url=str(member.avatar_url),
+            global_name=member.global_name,
             display_name=member.display_name,
             is_bot=member.is_bot,
             joined_at=member.joined_at,
@@ -560,17 +560,18 @@ class MemberSerializable(BaseModel):
             mention=member.mention
         )
 
-    @staticmethod
-    def from_discordpy(member: discord.Member | Self) -> 'MemberSerializable':
+    @classmethod
+    def from_discordpy(cls, member: discord.Member | Self) -> 'MemberSerializable':
         """Convert a Discord.py member into a MemberSerializable object."""
 
         if isinstance(member, MemberSerializable):
             return member
 
-        return MemberSerializable(
+        return cls(
             id=member.id,
             username=member.name,
             avatar_url=member.display_avatar.url,
+            global_name=member.global_name,
             display_name=member.display_name,
             is_bot=member.bot,
             joined_at=member.joined_at,

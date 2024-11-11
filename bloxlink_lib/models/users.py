@@ -6,7 +6,6 @@ import math
 from datetime import datetime
 import hikari
 import discord
-from dateutil import parser
 from ..fetch import fetch, fetch_typed, StatusCodes
 from ..config import CONFIG
 from ..exceptions import RobloxNotFound, RobloxAPIError, UserNotVerified
@@ -119,7 +118,7 @@ class RobloxUser(BaseModel):  # pylint: disable=too-many-instance-attributes
     description: str | None = None
     profile_link: str = Field(alias="profileLink", default=None)
     display_name: str | None = Field(alias="displayName", default=None)
-    created: str = None
+    created: datetime = None
     badges: list | None = None
     short_age_string: str = None
 
@@ -216,8 +215,7 @@ class RobloxUser(BaseModel):  # pylint: disable=too-many-instance-attributes
             return
 
         today = datetime.today()
-        roblox_user_age = parser.parse(self.created).replace(tzinfo=None)
-        self.age_days = (today - roblox_user_age).days
+        self.age_days = (today - self.created).days
 
         if not self.short_age_string:
             if self.age_days >= 365:
